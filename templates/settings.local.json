@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "additionalDirectories": ["~/Cognisphere/{{project}}"],
+    "allow": ["Read(~/Cognisphere/{{project}}/**)", "Edit(~/Cognisphere/{{project}}/Agent/**)"],
+    "deny": ["Edit(~/Cognisphere/{{project}}/Human/**)"]
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "name": "cognisphere",
+  "description": "Agent harness and per-project vault: guards, .agents scaffold, memory and rules mapping, an Agent/ workspace outside the repo.",
+  "owner": { "name": "cognisphere contributors" },
+  "plugins": [
+    {
+      "name": "cognisphere",
+      "source": "./",
+      "description": "Commit/secret/memory-drift guards, /cognisphere:install and /cognisphere:update [area], explorer/planner/implementer/test-runner/reviewer agents, and a ~/Cognisphere/<project>/ vault. Claude Code on Linux and macOS."
+    }
+  ]
+}

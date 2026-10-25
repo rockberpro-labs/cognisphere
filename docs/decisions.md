@@ -1,0 +1,315 @@
+# Design decisions
+
+Why cognisphere is the way it is. Point-in-time, ADR-style: an entry is never rewritten.
+Reversing a decision adds a new entry, and the old one only gains a
+"Superseded by D<n>" line.
+
+Cognisphere joins two layers: the versioned harness in the repo (agent-kit's `.agents/`:
+memory catalog, rules, settings, guards) and an unversioned per-project vault outside it
+(`~/Cognisphere/<project>/`, with `Agent/` for the agent and `Human/` for the
+maintainer), tied together by a gitignored local configuration.
+
+---
+
+## D1. The vault path is fixed at `~/Cognisphere/<project>/`
+
+*2026-10-25, v0.1.0*
+
+**Decision.** The vault lives at `~/Cognisphere/<project>/`, capitalized and visible in
+the home folder. There is no setting to change it. `<project>` is the basename of the
+*main* worktree
+(`basename "$(dirname "$(git rev-parse --path-format=absolute --git-common-dir)")"`),
+so all worktrees of a repo share one vault. If the folder already exists and this repo's
+local configuration does not point at it, install asks: reuse it, or pick another name.
+
+**Why.** A fixed, visible path is one less thing to configure, to get wrong, or to
+explain. Anyone can find their vaults, and so can any backup tool. Deriving the name from
+the main worktree keeps one project's history in one place, whichever worktree a session
+runs in. Asking on a name clash prevents two repos with the same basename from silently
+sharing a vault.
+
+**Rejected.** A configurable path (more surface, and nothing needed it). The spec's
+`~/Obsidian/Vaults/Cognisphere/Projects/<p>` layout (D14). Naming the vault after the
+current worktree, which would split one project's history across worktrees.
+
+## D2. `Agent/` is scaffolded from one template per note
+
+*2026-10-25, v0.1.0*
+
+**Decision.** `Agent/` is seeded from one template per note of the Vault Guide's layout:
+`00 Home.md` plus `State/`, `Workflow/`, `Knowledge/`, `Log/` and `Scratch/`. Each
+template has its frontmatter, navigation line and section headings. Each section carries
+a one-line hint comment (`<!-- … -->`) naming its source and the rule against invention:
+what no source says stays *unknown* or *not verified*. Templates carry `status: skeleton`
+until filled; the hints stay after filling. From then on the agent maintains and may
+restructure `Agent/` through its Session Protocol, logging the change; the plugin never
+maintains it.
+
+**Why.** An agent left to build a workspace invents both the structure and, worse, the
+content. A skeleton gives it a structure to work in, and the hints tie every section to
+a real source, so filling becomes condensing rather than writing. Hints are invisible in
+Obsidian's reading view, so they cost nothing to keep and guide later sessions.
+`status: skeleton` makes an unfilled note detectable by the next session and by `update`.
+
+**Rejected.** A fixed, pre-written `00 Home.md` (D17). Letting the agent design the
+layout freely.
+
+## D3. The plugin seeds the vault and never maintains it
+
+*2026-10-25, v0.1.0*
+
+**Decision.** Vault files belong to the human and the agent. `install` only creates what
+is missing under `~/Cognisphere/` and never modifies an existing file. `update` is
+read-only there: it reports a missing vault folder or note (a lost backup, a broken
+sync) and notes still at `status: skeleton`.
+
+**Why.** After the first session the vault is the agent's working memory and the
+maintainer's notes. Any automatic rewrite would destroy state that exists nowhere else,
+since the vault is not in git. Reporting rather than recreating also stops a missing
+folder (a sync gone wrong) from being papered over with an empty skeleton.
+
+**Rejected.** `update` writing to the vault (D18).
+
+## D4. The local configuration is personal; `update` only checks it
+
+*2026-10-25, v0.1.0*
+
+**Decision.** `update` verifies that `.agents/settings.local.json` and `AGENTS.local.md`
+point at `~/Cognisphere/<project>`, and that `CLAUDE.local.md` links to
+`AGENTS.local.md`. It reports any mismatch with the expected value and never edits
+these files. The user fixes them by hand, or re-runs `/cognisphere:install` for a
+missing one; install only creates what is missing.
+
+**Why.** These files are gitignored and personal: they may hold the maintainer's own
+permissions and instructions next to the vault entries. A mismatch can be deliberate (a
+renamed project, a vault kept elsewhere). The plugin cannot tell, so it says what it
+expected and leaves the decision to the person who owns the file.
+
+**Rejected.** `update` repointing the configuration (D18).
+
+## D5. `update` enforces the memory contract
+
+*2026-10-25, v0.1.0*
+
+**Decision.** Index integrity and the anti-drift rules are mandatory. When missing or
+broken, they are written into `.agents/` without asking, and the report lists them.
+Index integrity means every link in `MEMORY.md` resolves, every note has an index line,
+and every note links back. The anti-drift rules are `rules/memory.md` plus a read rule
+for every note that owns an area. Every other memory and rules finding is proposed and
+written only on a yes, as in agent-kit.
+
+**Why.** These pieces carry no policy, only the mechanics that keep the catalog
+readable and in sync with the code. An orphan note is never found, and a note without
+its read rule is never read before the first wrong edit. Asking about them adds a
+question with only one sensible answer. Everything that involves judgement (a stale
+note, a too-broad glob, a translation) stays the user's call.
+
+**Rejected.** Asking before every fix, agent-kit's behaviour for these checks.
+
+## D6. Language: the vault is English, the harness follows the project
+
+*2026-10-25, v0.1.0*
+
+**Decision.** The vault and `AGENTS.local.md` are in English, following the Agent
+Guide's conventions and the spec's example, with domain terms kept as the code names
+them. The versioned harness (`.agents/`, `AGENTS.md`) follows the project's declared
+language, as in agent-kit, settled once in `scaffold.md` § Language.
+
+**Why.** The harness is shared with a team that reads it in its own language. The vault
+is a personal workspace whose structure and hints the plugin ships, and one language
+keeps the templates, the Vault Guide and the checks aligned.
+
+**Rejected.** Translated vault files (D16).
+
+## D7. The working style is asked once, at install
+
+*2026-10-25, v0.1.0*
+
+**Decision.** Install asks whether the agent is an **author** or a **tutor**. The answer
+is written into `AGENTS.local.md` § Working style and the Working Agreement's Roles. Both
+texts are defined once, in `procedures/vault.md`:
+
+- **Author:** "The agent writes and edits code when asked, following the project's
+  rules, and proposes before large or risky changes."
+- **Tutor, not author:** "The maintainer writes the code to learn. Explain trade-offs,
+  review, catch what a second reviewer would, sketch diffs — but the maintainer
+  implements. Don't edit repo files unless explicitly asked."
+
+**Why.** The role changes how every session behaves, and it is personal: two people on
+one repo can want different ones. So it belongs in the local file, not the versioned
+harness. With one definition, the two places that quote it never drift apart.
+
+**Rejected.** A fixed tutor mode, the spec's default. Asking again on every update.
+
+## D8. `AGENTS.local.md` gets a `CLAUDE.local.md` bridge
+
+*2026-10-25, v0.1.0*
+
+**Decision.** `CLAUDE.local.md` is a symlink to `AGENTS.local.md`, mirroring
+`CLAUDE.md -> AGENTS.md`. Both files go in the root `.gitignore`. `AGENTS.local.md`
+holds the absolute vault path, because the Read tool needs absolute paths;
+`settings.local.json` uses `~/` paths.
+
+**Why.** No tool reads `AGENTS.local.md` natively, and Claude Code loads
+`CLAUDE.local.md`. A symlink keeps one source of truth under the tool-neutral name,
+the same convention the repo already uses.
+
+**Rejected.** Writing the instructions directly into `CLAUDE.local.md`, which breaks the
+`AGENTS.*` convention. Using `~` in `AGENTS.local.md`.
+
+## D9. Backup advice lives in three places
+
+*2026-10-25, v0.1.0*
+
+**Decision.** Backups are explained in `~/Cognisphere/README.md` (created once, at the
+vault root), in a Backups section of the plugin README, and in one line of
+`Human/README.md`.
+
+**Why.** The vault is not in git and the plugin never syncs it, so a lost disk loses it.
+The warning has to sit where each reader looks: at install time (the README), in the
+folder itself (the vault README), and next to the maintainer's own notes.
+
+**Rejected.** Built-in sync or backup. That is out of scope, and many good tools already
+do it.
+
+## D10. agent-kit's guards and five subagents are ported
+
+*2026-10-25, v0.1.0*
+
+**Decision.** `master-guard`, `secret-guard`, `memory-drift-guard` and the explorer,
+planner, implementer, test-runner and reviewer agents are copied from agent-kit v0.12.0.
+Only names change. cognisphere fully replaces agent-kit, and `install.sh` warns if both
+are installed.
+
+**Why.** They are tuned and tested. A full replacement means one plugin to install,
+and no guard runs twice.
+
+**Rejected.** Depending on agent-kit as a second plugin. Rewriting the guards.
+
+## D11. `update [area]` keeps agent-kit's grow-by-use mapping
+
+*2026-10-25, v0.1.0*
+
+**Decision.** The optional text after `/cognisphere:update` is an area: a directory
+(`src/payments`), a module (`billing`) or a subject (`authentication`). It maps or
+deepens only that area: one note with `paths:`, its read rule, and an index line. Claude
+may run it itself when a task enters an unmapped area, and still asks before writing.
+With no argument, update runs the full review.
+
+**Why.** A catalog grows by the tasks that touch it, not by up-front effort; exhaustive
+early mapping rots together. agent-kit's `memory <area>` and `rules <area>` did exactly
+this, and folding them into `update` keeps the command count at two.
+
+**Rejected.** Separate `memory` and `rules` commands (D20).
+
+## D12. No commits unless asked
+
+*2026-10-25, v0.1.0*
+
+**Decision.** Neither skill commits. Repo changes are staged by name, and committing
+follows the project's `rules/commit.md`.
+
+**Why.** The commit policy is the project's, written by the rules pass. The plugin
+should not pre-empt it.
+
+**Rejected.** Committing the scaffold automatically.
+
+## D13. Claude Code only
+
+*2026-10-25, v0.1.0*
+
+**Decision.** No manifests for, and no support of, other agent CLIs (Codex, Cursor).
+
+**Why.** The vault boundary depends on Claude Code's permission rules, `CLAUDE.local.md`,
+plugin hooks and skills. Other CLIs would get a weaker boundary that nobody tests.
+`.agents/` and `AGENTS.md` stay tool-neutral, so other CLIs can still read the harness.
+
+**Rejected.** Shipping Codex or Cursor manifests.
+
+## D14. Not the spec's Obsidian vault path
+
+*2026-10-25, v0.1.0*
+
+**Decision.** The vault is `~/Cognisphere/<project>/`, not the spec's
+`~/Obsidian/Vaults/Cognisphere/Projects/<p>`.
+
+**Why.** The deeper path assumes an existing Obsidian vault layout that many users don't
+have. Obsidian can open any folder as a vault, so `~/Cognisphere/<project>/` loses
+nothing. `update` reports a configuration still pointing at the old layout.
+
+**Rejected.** `~/Obsidian/Vaults/Cognisphere/Projects/<p>`.
+
+## D15. Only `Read` and `Edit` permission rules
+
+*2026-10-25, v0.1.0*
+
+**Decision.** `settings.local.json` uses only `Read(...)` and `Edit(...)` rules for the
+vault. `update` reports existing `Write(...)` rules as inert and does not remove them.
+
+**Why.** `Write(...)` rules never match: `Edit` rules cover the Write tool. A `Write`
+rule would look like protection while providing none.
+
+**Rejected.** `Write(...)` allow and deny rules.
+
+## D16. Vault files are not translated
+
+*2026-10-25, v0.1.0*
+
+**Decision.** The vault and `AGENTS.local.md` are in English, whatever the project's
+language (D6).
+
+**Why.** One set of templates, hints and checks. Translation would multiply them and let
+them drift apart.
+
+**Rejected.** Translated vault files.
+
+## D17. No pre-written `00 Home.md`
+
+*2026-10-25, v0.1.0*
+
+**Decision.** Every note, Home included, is a skeleton with hints, filled from sources
+(D2).
+
+**Why.** A fixed Home either says nothing about the project or says things that are
+false for it. Filling from sources is what makes the Quick facts trustworthy.
+
+**Rejected.** A fixed, pre-written `00 Home.md`.
+
+## D18. `update` never writes to the vault or the local configuration
+
+*2026-10-25, v0.1.0*
+
+**Decision.** `update` checks and reports only (D3, D4). It does not repoint the
+configuration, re-seed notes, or refresh templates.
+
+**Why.** Both are owned by people, not by the plugin. Silent repairs there would destroy
+state, or override a deliberate choice.
+
+**Rejected.** Repointing config, re-seeding notes, refreshing templates from `update`.
+
+## D19. No Windows support
+
+*2026-10-25, v0.1.0*
+
+**Decision.** Linux and macOS only. agent-kit's Windows-only steps (Developer Mode,
+`core.symlinks`, `MSYS=winsymlinks`) are dropped, and `install.sh` refuses other systems.
+
+**Why.** The settings use `~/` paths, and the harness relies on symlinks (`.claude`,
+`CLAUDE.md`, `CLAUDE.local.md`). Supporting Windows would mean a second, untested path
+for each.
+
+**Rejected.** Windows support.
+
+## D20. Only two commands: `install` and `update`
+
+*2026-10-25, v0.1.0*
+
+**Decision.** agent-kit's seven skills (scaffold, memory, rules, update-all,
+update-hooks, update-memory, update-rules) collapse into `/cognisphere:install` and
+`/cognisphere:update [area]`. Their bodies live on as procedures in `procedures/`,
+ported near-verbatim and read on demand.
+
+**Why.** Users need two verbs: set it up, keep it right. The procedures keep agent-kit's
+tuned wording and eval coverage without exposing seven entry points.
+
+**Rejected.** Commands other than `install` and `update`.
