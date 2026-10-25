@@ -57,13 +57,12 @@ Asks the commit policy (skipped if `rules/commit.md` exists), then writes the re
 — one per note that owns an area — and the path-scoped rules for the candidates step 2
 reported.
 
-## 4. Vault skeleton — `vault.md` § Skeleton
+## 4. Vault — `vault.md` § Seed
 
 `~/Cognisphere/README.md`, `<project>/Human/README.md`, and `<project>/Agent/` from
-`<plugin>/templates/vault/Agent/` with the mechanical placeholders replaced:
-`Log/{{date}}.md` becomes today's note, and `Knowledge/{{Area}}.md` one note per domain in
-`.agents/memory/domains.md` (single-domain repo: one per major area). Keep the list of
-files created in this run. `Human/` is written only here, before step 5's deny rule exists.
+`<plugin>/templates/vault/Agent/` with the mechanical placeholders replaced;
+`Log/{{date}}.md` becomes today's note. Keep the list of files created in this run.
+`Human/` is written only here, before step 5's deny rule exists.
 
 ## 5. Local configuration — `vault.md` § Configure
 
@@ -71,25 +70,22 @@ Merge the entries into `.agents/settings.local.json` (not valid JSON → stop); 
 `AGENTS.local.md` with its Working style and Agent workspace sections, or append the
 missing sections; create the `CLAUDE.local.md` symlink.
 
-## 6. Fill `Agent/` — `vault.md` § Fill
+## 6. Record the run in `Agent/` — `vault.md` § Fill
 
-Only the notes created in step 4. Fill each section from the sources its hint names;
-what no source says stays *unknown* or *not verified*. Keep the hints, remove
-`status: skeleton`, check that every `[[link]]` resolves, and complete Session 1 in
-`Log/<today>.md`. It runs after the mapping because Knowledge, the Working Agreement and
-the Review Checklist condense the memory catalog and the rules.
-
-**Deferrable:** if steps 2–3 used most of the context, stop after step 5 and say so. The
-notes stay `status: skeleton`, and the next session fills them: `AGENTS.local.md` tells
-it to ask, then fill per the Vault Guide.
+Only the notes created in step 4. Nothing from the repo is copied in: the vault holds
+only what nothing else holds. The open questions, contradicting docs and undone harness
+steps of this run become numbered items in `State/Open Threads.md`; Session 1 of
+`Log/<today>.md` records what was found and which vault and local files were created.
+Check that every `[[link]]` resolves.
 
 ## 7. Report
 
 - **Repo:** created vs. already existed, per file.
-- **Vault:** the tree, the sources used, what stayed *unknown* or *not verified*, the
-  `Human/` notes found (listed, not summarised), and whether the fill was deferred.
+- **Vault:** the tree, the open threads recorded, the `Human/` notes found (listed, not
+  summarised).
 - **Configuration:** the three local files, created or extended, and their ignore status.
-- **Open questions** the memory pass could not answer.
+- **Open questions** the memory pass could not answer, and any code defect found (for
+  an issue: the vault does not track them).
 - **Restart the session** so `CLAUDE.local.md` loads. Because `.claude` is a symlink,
   Claude Code treats `settings.local.json` as supplied by the repo: its allow rules and
   `additionalDirectories` wait until the folder is trusted (deny rules always apply).

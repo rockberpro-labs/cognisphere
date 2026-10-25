@@ -1,13 +1,12 @@
 ---
 tags: [{{project}}, agent, state]
 updated: {{date}}
-status: skeleton
 ---
 # History
 
-Back: [[00 Home]] · [[Current State]] · [[Open Threads]]
+Back: [[00 Home]] · [[Open Threads]]
 
-<!-- Milestones grouped by month, newest first, PR numbers in brackets ("[#12]"). Source: git log, merges and plain commits. Never invent a PR number or a date. -->
+<!-- Only what git doesn't record: a deploy, an incident, a decision made outside a commit, a change to the vault or the local configuration. Never restate git log, merges or PR numbers. Grouped by month, newest first. Never invent a date. -->
 
 ## {{month}}
 - {{date}}: Cognisphere vault created.

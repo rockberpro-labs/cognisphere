@@ -8,7 +8,7 @@ and `CLAUDE.local.md`, all gitignored.
 
 Who writes what:
 
-- `/cognisphere:install` runs § Skeleton, § Configure and § Fill. It only **creates what is
+- `/cognisphere:install` runs § Seed, § Configure and § Fill. It only **creates what is
   missing**: it never modifies an existing vault file, and touches an existing local file
   only to add what that file lacks.
 - `/cognisphere:update` runs § Check only. It **never writes** under `~/Cognisphere/` or to
@@ -36,7 +36,7 @@ replaces `project` for the whole run (§ Check accepts it later, see there).
 ## Working style
 
 Asked once, at install. The answer is written, word for word, into `AGENTS.local.md`
-§ Working style and the Working Agreement's Roles (both through `{{working_style}}`):
+§ Working style (through `{{working_style}}`), its only home: the vault points there.
 
 - **Author:** "The agent writes and edits code when asked, following the project's rules,
   and proposes before large or risky changes."
@@ -44,33 +44,31 @@ Asked once, at install. The answer is written, word for word, into `AGENTS.local
   review, catch what a second reviewer would, sketch diffs — but the maintainer
   implements. Don't edit repo files unless explicitly asked."
 
-## Skeleton
+## Seed
 
 Copies `<plugin>/templates/vault/` into the vault, replacing the mechanical placeholders.
 **Create only; never overwrite.**
+
+The vault holds only what nothing else holds: a copy of git state, `AGENTS.md`, the rules
+or the memory notes is read twice and drifts the first time the original changes. So no
+note copies them, and the templates are complete as seeded: nothing waits to be filled.
+`Workflow/Vault Guide.md` carries the rules.
 
 | Placeholder | Value |
 |---|---|
 | `{{project}}` | `$project` |
 | `{{date}}` / `{{month}}` | today, `YYYY-MM-DD` / `YYYY-MM` |
 | `{{repo}}` | `$main`, the absolute path of the main worktree |
-| `{{branch}}` | the default branch: `origin/HEAD`, else the current branch |
-| `{{working_style}}` | the text chosen above |
-| `{{Area}}` / `{{area}}` | a Knowledge note's name / its tag (kebab-case) |
+| `{{working_style}}` | the text chosen above (only in `AGENTS.local.md`, § Configure) |
 | `{{vault}}` | `$vault` (only in `AGENTS.local.md`, § Configure) |
 
 ```bash
 tpl="<plugin>/templates/vault"
-branch="$(git symbolic-ref --quiet --short refs/remotes/origin/HEAD 2>/dev/null || true)"
-branch="${branch#origin/}"; [ -n "$branch" ] || branch="$(git branch --show-current)"
 export CS_PROJECT="$project" CS_DATE="$(date +%F)" CS_MONTH="$(date +%Y-%m)" \
-       CS_REPO="$main" CS_BRANCH="$branch" CS_VAULT="$vault" \
-       CS_STYLE="<the working style text>"
+       CS_REPO="$main" CS_VAULT="$vault" CS_STYLE="<the working style text>"
 fill() { perl -pe 's/\{\{project\}\}/$ENV{CS_PROJECT}/g; s/\{\{date\}\}/$ENV{CS_DATE}/g;
   s/\{\{month\}\}/$ENV{CS_MONTH}/g; s/\{\{repo\}\}/$ENV{CS_REPO}/g;
-  s/\{\{branch\}\}/$ENV{CS_BRANCH}/g; s/\{\{working_style\}\}/$ENV{CS_STYLE}/g;
-  s/\{\{vault\}\}/$ENV{CS_VAULT}/g; s/\{\{Area\}\}/$ENV{CS_AREA}/g;
-  s/\{\{area\}\}/$ENV{CS_AREA_TAG}/g' "$1"; }
+  s/\{\{working_style\}\}/$ENV{CS_STYLE}/g; s/\{\{vault\}\}/$ENV{CS_VAULT}/g' "$1"; }
 seed() { if [ -e "$2" ]; then echo "exists  $2"; else
   mkdir -p "$(dirname "$2")" && fill "$1" > "$2" && echo "created $2"; fi; }
 
@@ -80,18 +78,6 @@ seed "$tpl/Human/README.md" "$vault/Human/README.md"
   seed "$tpl/Agent/$f" "$vault/Agent/$f"
 done
 seed "$tpl/Agent/Log/{{date}}.md" "$vault/Agent/Log/$CS_DATE.md"
-```
-
-Then one Knowledge note per area, from `$tpl/Agent/Knowledge/{{Area}}.md`:
-
-- **Several domains** → one note per domain in `.agents/memory/domains.md`, named in Title
-  Case as the map names it (`Billing`, `Inventory`).
-- **A single domain** → one note per major area instead: the module or area notes the
-  memory catalog has (`module-*.md`, notes with `paths:`). No such notes → one note named
-  after the single domain.
-
-```bash
-CS_AREA="Billing" CS_AREA_TAG="billing" seed "$tpl/Agent/Knowledge/{{Area}}.md" "$vault/Agent/Knowledge/Billing.md"
 ```
 
 Keep the `created` lines: § Fill works on those files only. An `exists` line is left
@@ -162,24 +148,19 @@ repo. Deny rules always apply. The install report says so.
 
 ## Fill
 
-Fills the notes § Skeleton **created in this run** — never one that existed. Each section
-carries a hint comment naming its sources; the note gets filled from those and nothing
-else.
+Writes what this install run found, into the notes § Seed **created in this run** —
+never one that existed. Nothing is copied from the repo: what `AGENTS.md`, `.agents/` or
+git already hold stays there.
 
-- **Sources** (read-only): `AGENTS.md` and `AGENTS.local.md`; `.agents/memory/MEMORY.md`
-  and the notes it links; `.agents/rules/` and `.agents/settings{,.local}.json`;
-  `git status --short`, `git log -1 --oneline`, `git log` (merges and plain commits);
-  `ls "$vault/Human/"`, listed by name and never summarised.
-- **No invention.** What no source says stays *unknown*; a check not run this session is
-  *not verified* (or "not run" in a status column). Never a PR number, a date, a figure or
-  a rule the sources do not hold. A section with nothing to say keeps only its hint.
-- **Knowledge notes condense, they do not copy**: the why, the gotchas, the latent bugs,
-  with `source:` naming the memory note and the code paths; pointers for the what.
-- **Keep every hint comment.** They are guidance for later sessions.
-- **Remove `status: skeleton`** from each note you filled, and set `updated:` to today.
-  `Vault Guide.md`, `Scratch/README.md` and the Log note carry no status.
-- **Order**, so links resolve as you go: Home → State → Workflow → Knowledge (Index, the
-  area notes, Docs Drift) → `Log/<today>.md`.
+- **`State/Open Threads.md`**: one numbered item per open question the memory and rules
+  passes could not answer (§ Direction), per doc found contradicting the code while
+  mapping (§ Direction, until the doc is fixed), and per harness step left undone or
+  failed (§ Harness). Each with its evidence. Nothing found → the note stays as seeded.
+  A defect in the code is not a thread: list it in the report, for an issue.
+- **`Log/<today>.md` § Session 1**: Found (what the passes showed, in a line or two),
+  Changed (the vault and local configuration files created; repo files are git's, once
+  committed), Not verified (each check not run), Next (the open threads, by number).
+- **No invention.** Never a PR number, a date, a figure or a rule the run did not see.
 - **Links.** Every `[[link]]` outside code must resolve to a note:
 
   ```bash
@@ -193,14 +174,6 @@ else.
 
   Empty output = all links resolve. Links inside code (the Vault Guide's examples) are
   not links.
-- **Session 1.** Complete `Log/<today>.md` § Session 1: Found (what the sources showed),
-  Changed (the repo, vault and configuration files created), Not verified (every check
-  not run), Next (the open questions).
-
-**Deferral.** If the memory and rules passes used most of the context, do not start the
-fill: stop after § Configure and say so. The notes stay `status: skeleton`, and
-`AGENTS.local.md` makes the next session notice ("missing or still a skeleton → ask, then
-fill per the Vault Guide").
 
 ## Check
 
@@ -216,14 +189,33 @@ exists, it is a name chosen at install: accept it, say so in one line, and check
    - `$vault` missing → report: restore it from the backup (`~/Cognisphere/README.md`), or
      run `/cognisphere:install` to re-seed it. Stop the vault checks there.
    - `$vault/Human/` missing → report the same way.
-   - `$vault/Agent/00 Home.md`, the five folders (`State`, `Workflow`, `Knowledge`, `Log`,
-     `Scratch`) and each template note (every file of `<plugin>/templates/vault/Agent/`
+   - `$vault/Agent/00 Home.md`, the four folders (`State`, `Workflow`, `Log`, `Scratch`)
+     and each template note (every file of `<plugin>/templates/vault/Agent/`
      but `{{…}}`) — missing ones are listed: restore from the backup, or
      `/cognisphere:install` re-seeds them (it never touches existing notes). The agent may
      have restructured `Agent/` on purpose: say to check the Log before re-seeding.
-   - `Knowledge/` with no note besides `Index` and `Docs Drift`, or `Log/` empty → report.
-   - Notes still at `status: skeleton` (`grep -rl '^status: skeleton' "$vault/Agent"`) →
-     list them: fill them in a session, per the Vault Guide § 4.
+   - `Log/` empty → report.
+   - **The v0.1.0 layout**, which copied the repo into the vault. Each finding is
+     reported, never fixed here:
+     - `State/Current State.md`, `Workflow/Working Agreement.md`,
+       `Workflow/Review Checklist.md` or `Knowledge/` present → they restate git,
+       `AGENTS.md`, the rules and the memory notes. Fix: move what exists nowhere else (a
+       decision → History, an open question → Open Threads, a code defect → an issue
+       linked from its memory note), then delete them and fix the links to them.
+     - `Workflow/Vault Guide.md` with a `Bootstrap` section, or `Workflow/Session
+       Protocol.md` with a `## Commands` section → an old template holding no project
+       state. Fix: delete it and run `/cognisphere:install`, which re-seeds it.
+     - `00 Home.md` with `## Quick facts`, `State/Open Threads.md` with `## Code`, or any
+       note with `status: skeleton` → bring it in line with
+       `<plugin>/templates/vault/Agent/` by hand: these hold project state, so no re-seed.
+
+     ```bash
+     cd "$vault/Agent" && { ls -d "State/Current State.md" "Workflow/Working Agreement.md" \
+       "Workflow/Review Checklist.md" Knowledge 2>/dev/null
+       grep -l 'Bootstrap' "Workflow/Vault Guide.md"; grep -l '^## Commands' "Workflow/Session Protocol.md"
+       grep -l '^## Quick facts' "00 Home.md"; grep -l '^## Code' "State/Open Threads.md"
+       grep -rl '^status: skeleton' .; } 2>/dev/null
+     ```
 2. **`.agents/settings.local.json`.**
    - Missing → report; `/cognisphere:install` creates it. Not valid JSON → report.
    - `permissions.additionalDirectories` holds `~/Cognisphere/<project>` (or its absolute
@@ -237,7 +229,9 @@ exists, it is a name chosen at install: accept it, say so in one line, and check
      tool). Do not remove them.
 3. **`AGENTS.local.md`.** Missing → report (`/cognisphere:install` creates it). Its
    `## Agent workspace` section must name `$vault` (absolute); missing section or another
-   path → report the expected text. No `## Working style` section → report.
+   path → report the expected text. A section still mentioning `status: skeleton` or
+   `§ 4 Bootstrap` is the v0.1.0 text → report the template's current section. No
+   `## Working style` section → report.
 4. **`CLAUDE.local.md`** must be a symlink to `AGENTS.local.md`
    (`[ -L CLAUDE.local.md ] && [ "$(readlink CLAUDE.local.md)" = AGENTS.local.md ]`).
    Missing → `/cognisphere:install` creates it; a regular file or another target → report.

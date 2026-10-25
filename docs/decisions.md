@@ -36,6 +36,8 @@ current worktree, which would split one project's history across worktrees.
 
 *2026-10-25, v0.1.0*
 
+Superseded by D21.
+
 **Decision.** `Agent/` is seeded from one template per note of the Vault Guide's layout:
 `00 Home.md` plus `State/`, `Workflow/`, `Knowledge/`, `Log/` and `Scratch/`. Each
 template has its frontmatter, navigation line and section headings. Each section carries
@@ -267,6 +269,8 @@ them drift apart.
 
 *2026-10-25, v0.1.0*
 
+Superseded by D21.
+
 **Decision.** Every note, Home included, is a skeleton with hints, filled from sources
 (D2).
 
@@ -313,3 +317,35 @@ ported near-verbatim and read on demand.
 tuned wording and eval coverage without exposing seven entry points.
 
 **Rejected.** Commands other than `install` and `update`.
+
+## D21. The vault holds only what nothing else holds
+
+*2026-10-25, v0.2.0*
+
+**Decision.** `Agent/` keeps only what git, the repo and the issue tracker do not: open
+threads (harness work, open questions, decisions waiting on the maintainer), events git
+doesn't record, the session log and scratch work. The seed is `00 Home.md`,
+`State/{Open Threads, History}`, `Workflow/{Session Protocol, Vault Guide}`, `Log/` and
+`Scratch/`. `Current State`, the `Working Agreement`, the `Review Checklist` and all of
+`Knowledge/` are gone, as are Home's Quick facts, the Session Protocol's Commands and Open
+Threads' Code group. History records only events git doesn't; the Log's Changed bullet
+names the commit sha and lists files only for changes outside git. A code defect goes to
+an issue, linked from the area's memory note; lasting knowledge about the code goes to
+the memory note. The working style lives only in `AGENTS.local.md` (D7's second copy is
+gone). The templates are complete as seeded, so `status: skeleton` and the deferred fill
+are gone: install writes only its run's open questions to Open Threads and Session 1 of
+the Log. `update` reports the v0.1.0 notes in an existing vault, with what to move out
+before deleting them.
+
+**Why.** Testing v0.1.0 on a real project showed every condensing note drifting within a
+session. Current State recorded branch, HEAD and "uncommitted" and was wrong by the next
+commit. History restated `git log`. The Knowledge notes, Index, Working Agreement, Review
+Checklist and Quick facts copied memory notes, `AGENTS.md` and the rules, which are
+already loaded every session: the agent read them twice, and each copy went stale the
+first time its original changed. One bug sat in three places. A copy saves nothing when
+the original is one command away or already in context, and the hints saying "condense,
+don't copy" did not stop it.
+
+**Rejected.** Keeping the notes with stricter hints, which were already there. Recording
+check status with a date: it holds for one commit only, so anchor it to a sha or rerun
+it. `update` deleting the old notes (D18).
