@@ -4,14 +4,14 @@ date: {{date}}
 ---
 # {{date}}
 
-Back: [[00 Home]] · [[Current State]]
+Back: [[00 Home]] · [[Open Threads]]
 
-<!-- One "## Session N" block per session. Append only: never rewrite a past session. -->
+<!-- One "## Session N" block per session. Append only: never rewrite a past session. Changed: the commit sha for repo changes; list files only for changes git doesn't see (vault, local configuration). -->
 
 ## Session 1
 - **Asked:** set up the Cognisphere vault (`/cognisphere:install`).
 - **Found:**
-- **Did:** scaffolded `Agent/` per [[Vault Guide]].
+- **Did:** seeded `Agent/` per [[Vault Guide]].
 - **Changed:**
 - **Not verified:**
 - **Next:**

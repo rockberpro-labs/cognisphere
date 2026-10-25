@@ -1,8 +1,8 @@
 # Cognisphere
 
 Claude Code plugin that gives a project an agent harness in two layers: a versioned one
-inside the repo, and an unversioned vault outside it where the agent keeps its own
-state, log and knowledge next to your notes.
+inside the repo, and an unversioned vault outside it where the agent keeps its open
+threads, session log and scratch work next to your notes.
 
 The repository root is the plugin and also a one-entry marketplace, both called
 `cognisphere`, so the plugin installs as `cognisphere@cognisphere`.
@@ -23,7 +23,7 @@ The repository root is the plugin and also a one-entry marketplace, both called
  ┌─────────────────────────────┐           ┌──────────────────────────────┐
  │ AGENTS.md ← CLAUDE.md       │           │ Agent/   agent writes        │
  │ .agents/ ← .claude          │  points   │   00 Home.md                 │
- │   memory/  rules/           │ ───────▶  │   State/ Workflow/ Knowledge/│
+ │   memory/  rules/           │ ───────▶  │   State/ Workflow/           │
  │   settings.json             │           │   Log/   Scratch/            │
  │ AGENTS.local.md   (ignored) │           │ Human/   you write, agent    │
  │ .agents/settings.local.json │           │          reads only          │
@@ -73,9 +73,9 @@ creating only what is missing:
 1. the `.agents/` structure, `AGENTS.md`, the symlinks and the `.gitignore` entries;
 2. the memory catalog (it asks before writing the notes);
 3. the rules (it asks the commit policy);
-4. the vault skeleton under `~/Cognisphere/<project>/`;
+4. the vault under `~/Cognisphere/<project>/`;
 5. the local configuration;
-6. the fill of `Agent/` from what the repo actually says;
+6. the run's open questions in `Agent/`'s Open Threads, and Session 1 of its Log;
 7. a report.
 
 Restart the session afterwards so `CLAUDE.local.md` loads.
@@ -100,27 +100,31 @@ touches existing ones.
 
 ```
 Agent/
-├── 00 Home.md            entry point: reading order, ground rules, map, quick facts
-├── State/                Current State · History · Open Threads
-├── Workflow/             Session Protocol · Working Agreement · Review Checklist · Vault Guide
-├── Knowledge/            Index · one note per domain or major area · Docs Drift
+├── 00 Home.md            entry point: reading order, ground rules, map
+├── State/                Open Threads · History
+├── Workflow/             Session Protocol · Vault Guide
 ├── Log/                  YYYY-MM-DD.md, one "## Session N" block per session
 └── Scratch/              README.md + throwaway work
 ```
 
-The point is that the agent works in a structure instead of inventing one, and fills it
-from real sources instead of inventing content:
+**The vault holds only what nothing else holds.** The repo's state and history are in
+git. The commands, conventions and area knowledge are in `AGENTS.md` and `.agents/`,
+which load into every session anyway. A code defect belongs in an issue. A copy of any
+of those in the vault is read twice and goes stale the first time the original changes.
+What is left is the agent's own: open threads (harness work, questions and decisions
+waiting on you), events git doesn't record, the session log and scratch work.
 
-- Every note starts as a skeleton: frontmatter, navigation line, section headings.
-- Each section carries a one-line hint comment (`<!-- … -->`) naming where its facts
-  come from: `AGENTS.md`, the memory notes, the rules, `git log`. What no source says
-  stays *unknown*, and a check not run stays *not verified*. Hints are invisible in
-  Obsidian's reading view and stay as guidance.
-- A note not filled yet carries `status: skeleton`. Install fills the notes right away
-  when the context allows. Otherwise the next session notices the skeleton and asks.
-- `Workflow/Vault Guide.md` is the spec of the whole layout: what goes where, how to
-  bootstrap and maintain it, the conventions. From then on the agent maintains and may
-  restructure `Agent/` through its Session Protocol.
+- Every note ships complete: frontmatter, navigation line, sections, and at most a
+  one-line hint comment (`<!-- … -->`) saying what belongs there. Hints are invisible in
+  Obsidian's reading view.
+- Install writes only what its run found: the open questions into Open Threads, and
+  Session 1 of today's Log.
+- `Workflow/Vault Guide.md` is the vault's rulebook: what it holds, where everything
+  else lives instead, how to maintain it, the conventions. From then on the agent
+  maintains and may restructure `Agent/` through its Session Protocol.
+- `/cognisphere:update` reports the notes of the v0.1.0 layout (Current State, Working
+  Agreement, Review Checklist, `Knowledge/`) in an older vault, with what to move out
+  before deleting them. It never deletes them itself.
 
 ## Backups
 
@@ -134,7 +138,7 @@ cognisphere never syncs or copies it. Pick one:
 
 Test a restore once. Sync clients may create conflict copies; merge them by hand. If the
 folder goes missing, `/cognisphere:update` reports it and creates nothing. Restore it
-from the backup, or run `/cognisphere:install` to re-seed an empty skeleton.
+from the backup, or run `/cognisphere:install` to re-seed the notes.
 `~/Cognisphere/README.md` repeats this.
 
 ## Boundaries and their limits
@@ -179,7 +183,7 @@ All three guards are checks in one hook, `hooks/guard.sh`, run before every Bash
   policy).
 - **templates** — `settings.json` (the deny list), `rules/memory.md` (the anti-drift
   rule), `settings.local.json` and `AGENTS.local.md` (the local configuration), and
-  `vault/` (the vault README, `Human/README.md`, one skeleton per `Agent/` note).
+  `vault/` (the vault README, `Human/README.md`, one template per `Agent/` note).
 
 ## Uninstall
 
@@ -262,7 +266,7 @@ Two things stay in the repository's own `.agents/`:
   readable by whoever clones it without this plugin. The plugin carries the *procedure*;
   the project keeps the *result*. Nothing here ships a pre-filled note or rule. The
   exceptions are `templates/rules/memory.md`, which states how the catalog is kept, and
-  the vault skeletons, which hold only structure and hints.
+  the vault templates, which hold only structure and the vault's own rules.
 
 ## Design decisions
 
