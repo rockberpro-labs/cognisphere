@@ -526,3 +526,64 @@ wikilinks, `obsidian://` URIs and bare names: four times the code for inputs nob
 pastes, and a join of two paths is not the mechanical step D23 moves out of the
 procedures. Letting the model invoke it: it acts on a pasted path, and its description
 would sit in every session's context.
+
+## D29. Rejected: a Git-user level in the vault path
+
+*2026-10-26, v0.8.0*
+
+**Decision.** Rejected decision: the vault stays at `~/Cognisphere/<project>/` (D1). It
+does not move to `~/Cognisphere/<git-user>/<project>/`, and nothing in the plugin
+changes.
+
+**Why.** `~` is already per person: the vault lives in the OS account's home, so two
+people on one machine never share one. The risk a namespace would address, two repos
+with the same basename, is not solved by it: both are committed to by the same user and
+land in the same folder, while D1's clash prompt already catches them. `user.name` is
+not a stable key either: it can be unset, differ per repo (`includeIf`), change over
+time, or hold spaces and accents, and any change points the agent at a new, empty vault,
+orphans the old one and leaves `settings.local.json` granting the old path. Adopting it
+would touch `names.sh`, the permission rules, install, update, tests and docs, and need
+a migration for existing vaults, for no case anyone hit.
+
+**Rejected.** `~/Cognisphere/<git-user>/<project>/`, keyed on `user.name` or
+`user.email`. `~/Cognisphere/<owner>/<repo>/` taken from `origin`: it tells apart repos
+with the same name, but breaks for repos with no remote, for forks, and when a repo is
+renamed or transferred, and the clash prompt covers that case already.
+
+## D30. Install can leave the repo layer untouched
+
+*2026-10-26, v0.9.0*
+
+**Decision.** Install's round of questions opens with one more: set up the repo layer,
+or leave it untouched. It proposes **untouched** when git already tracks another
+harness (`.agents/`, `AGENTS.md`, `CLAUDE.md` or `.claude/`, with no `rules/memory.md`
+naming `/cognisphere:update`) or a previous run chose it. Untouched skips scaffold,
+memory and rules, and runs `configure.sh --untouched`:
+
+- `settings.local.json` goes where Claude Code reads it, `.claude/`, followed through
+  the link when `.claude` is one;
+- each local file git does not already ignore gets an anchored line in
+  `.git/info/exclude`, never in `.gitignore`;
+- `AGENTS.local.md` gains `## Repo layer`, the mode's only record;
+- if git tracks one of the three files, the script exits 4 and writes nothing.
+
+`update` reads `## Repo layer` and then runs only the vault, configuration and
+user-settings checks. Its area mode stops, because mapping writes `.agents/`. Install
+compares `git status --porcelain` before and after the run and reports any new line as a
+defect.
+
+**Why.** The vault is the part one person benefits from alone. The repo layer is shared,
+so in a company repo that already has its own harness, or in someone else's repo,
+adding it isn't one person's call. Before this, install created whatever the existing
+harness lacked: `.gitignore` lines, settings entries, the anti-drift rule. A user who
+wanted only the vault had to revert those edits by hand after every install and
+update. `.git/info/exclude` ignores the local files without touching anything git
+tracks. Writing the mode into `AGENTS.local.md` keeps it in the file that loads into
+every session, so the agent knows it too, with no new config file.
+
+**Rejected.** A separate `/cognisphere:stealth-install` command: `update` still needs to
+know the mode, so it would add a command without removing a branch. A flag in
+`settings.local.json`: Claude Code's schema has no place for it, and the agent doesn't
+read that file. Keeping `.agents/settings.local.json` in untouched mode: with no
+`.claude -> .agents` link, Claude Code never reads it, and the `Human/` deny rule would
+silently not apply.

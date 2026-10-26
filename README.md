@@ -74,10 +74,10 @@ these steps as a follow-up.
 /cognisphere:read <note> [request]   # reads a vault note you copied in Obsidian
 ```
 
-**`/cognisphere:install`** asks one round of questions first: the repo language, the
-project name and vault path, your working style (the agent as **author**, or as
-**tutor** while you write the code), and what will be created. Then it runs, each step
-creating only what is missing:
+**`/cognisphere:install`** asks one round of questions first: whether to set up the
+repo layer at all, the repo language, the project name and vault path, your working
+style (the agent as **author**, or as **tutor** while you write the code), and what will
+be created. Then it runs, each step creating only what is missing:
 
 1. the `.agents/` structure, `AGENTS.md`, the symlinks and the `.gitignore` entries;
 2. the memory catalog (it asks before writing the notes);
@@ -89,6 +89,18 @@ creating only what is missing:
 7. a report.
 
 Restart the session afterwards so `CLAUDE.local.md` loads.
+
+### A repo you shouldn't change
+
+In a repo whose harness belongs to someone else (a company project already set up with
+`.agents/`, another tool's harness), answer **leave untouched** to the repo layer
+question. Install then sets up only the vault and the local configuration:
+`AGENTS.local.md`, `CLAUDE.local.md` and `.claude/settings.local.json` (inside the
+directory `.claude` links to, if it is a link), ignored through `.git/info/exclude`,
+which is never committed. `git status` shows nothing new. It stops, writing nothing, if
+git tracks one of those files. `AGENTS.local.md` records the choice in `## Repo layer`,
+so `/cognisphere:update` only checks the vault and the local configuration. The guards
+still run, and `memory-drift-guard` still enforces the repo's own notes, if it has any.
 
 **`/cognisphere:update`** with no argument reviews the versioned harness: structure,
 settings, memory, rules. Index integrity and the anti-drift rules are the memory
@@ -179,7 +191,7 @@ from the backup, or run `/cognisphere:install` to re-seed the notes.
   on.
 - Only `Read` and `Edit` rules are used: `Write(...)` rules never match, because `Edit`
   rules cover the Write tool.
-- **Folder trust.** `.claude` is a symlink, so Claude Code treats `settings.local.json`
+- **Folder trust.** When `.claude` is a symlink, Claude Code treats `settings.local.json`
   as supplied by the repo. Its allow rules and `additionalDirectories` apply only once
   you trust the folder; until then, reading the vault prompts. Deny rules always apply.
 - The guards fail open: an internal error never blocks the session.

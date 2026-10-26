@@ -17,6 +17,12 @@ them.
 cd "$(git rev-parse --show-toplevel)" || exit 1   # not a git repo → stop and say so
 ```
 
+**Repo layer left untouched** — `AGENTS.local.md` has `## Repo layer` (D30) → passes 1–4
+and § Area write what git tracks: skip them, say so in one line, and run passes 5–7
+only. An area argument → stop: mapping writes `.agents/`, which this repo was installed
+without; the user can delete `## Repo layer` and run `/cognisphere:install` to set the
+repo layer up.
+
 **Nothing in place** — no `.agents/` and no `AGENTS.md` → this is not an update: run
 `/cognisphere:install` instead (its skill, from step 0) and stop here.
 
