@@ -19,8 +19,12 @@ exists stays exactly as it is, and the report says which was which.
 cd "$(git rev-parse --show-toplevel)" || exit 1   # not a git repo → stop and say so
 ```
 
-Derive `<project>` and the vault path as `vault.md` § Names says. Survey without
-writing: `scaffold.md` step 1, whether `$vault` exists, and whether
+The mechanical steps are scripts in `${CLAUDE_PLUGIN_ROOT}/scripts/`: run them as the
+procedures say, never retype their contents into the shell.
+
+Derive `<project>` and the vault path with `scripts/names.sh` (`vault.md` § Names).
+Survey without writing: `scaffold.md` step 1 (including its `git grep` for what names
+`.claude/` or `CLAUDE.md`), whether `$vault` exists, and whether
 `.agents/settings.local.json` and `AGENTS.local.md` already point at it.
 
 Then ask **one round of questions, before writing anything**, in the user's language:
@@ -33,6 +37,8 @@ Then ask **one round of questions, before writing anything**, in the user's lang
 - **Working style** — author or tutor (`vault.md` § Working style), quoting both texts.
 - **What will be created** — the repo structure, the vault tree and the three local
   files, each marked "create" or "exists, kept".
+- **What the move breaks** — when `.claude/` or `CLAUDE.md` is about to move, the survey's
+  `git grep` hits, each with its proposed fix.
 
 Everything already answered in the user's request counts as answered. The procedures
 below keep their own asks (the notes to write, the commit policy); do not batch those
@@ -40,16 +46,18 @@ into this round — their questions depend on what the earlier steps found.
 
 ## 1. Repo structure — `scaffold.md`
 
-`.agents/{memory,rules}` and `.agents/.gitignore`, `.claude -> .agents`, `settings.json`
-with the deny list, `AGENTS.md` and `CLAUDE.md -> AGENTS.md` with the Memory Catalog
-section and the language line, `rules/memory.md` (translated), and the root `.gitignore`
-entries for the local files.
+`scripts/scaffold.sh`: `.agents/{memory,rules}` and `.agents/.gitignore`,
+`.claude -> .agents`, `settings.json` with the deny list, `AGENTS.md` and
+`CLAUDE.md -> AGENTS.md`, `rules/memory.md`, and the root `.gitignore` entries for the
+local files. Then by hand: the Memory Catalog section and the language line in
+`AGENTS.md`, and `rules/memory.md` translated.
 
 ## 2. Memory — `memory.md`, bootstrap
 
 Phases 0–4 plus the index (phase 6). It asks before writing, and fans out to
-`cognisphere:explorer` for phases 3–5. A catalog that already exists → only the phases
-whose output is missing.
+`cognisphere:explorer` for phases 3–5 unless the repo is small. Docs that already hold
+the knowledge become pointer notes; the phases cover only the gaps. A catalog that
+already exists → only the phases whose output is missing.
 
 ## 3. Rules — `rules.md`, full pass
 
@@ -59,16 +67,18 @@ reported.
 
 ## 4. Vault — `vault.md` § Seed
 
-`~/Cognisphere/README.md`, `<project>/Human/README.md`, and `<project>/Agent/` from
+`scripts/seed-vault.sh <project>`: `~/Cognisphere/README.md`,
+`<project>/Human/README.md`, and `<project>/Agent/` from
 `<plugin>/templates/vault/Agent/` with the mechanical placeholders replaced;
 `Log/{{date}}.md` becomes today's note. Keep the list of files created in this run.
 `Human/` is written only here, before step 5's deny rule exists.
 
 ## 5. Local configuration — `vault.md` § Configure
 
-Merge the entries into `.agents/settings.local.json` (not valid JSON → stop); create
-`AGENTS.local.md` with its Working style and Agent workspace sections, or append the
-missing sections; create the `CLAUDE.local.md` symlink.
+`scripts/configure.sh <project> <style-file>`: merge the entries into
+`.agents/settings.local.json` (not valid JSON → stop); create `AGENTS.local.md` with its
+Working style and Agent workspace sections, or append the missing sections; create the
+`CLAUDE.local.md` symlink.
 
 ## 6. Record the run in `Agent/` — `vault.md` § Fill
 
@@ -76,7 +86,7 @@ Only the notes created in step 4. Nothing from the repo is copied in: the vault 
 only what nothing else holds. The open questions, contradicting docs and undone harness
 steps of this run become numbered items in `State/Open Threads.md`; Session 1 of
 `Log/<today>.md` records what was found and which vault and local files were created.
-Check that every `[[link]]` resolves.
+Check that every `[[link]]` resolves (`scripts/check-links.pl`).
 
 ## 7. Report
 

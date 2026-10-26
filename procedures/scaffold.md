@@ -61,55 +61,58 @@ CLAUDE.local.md -> AGENTS.local.md   (gitignored)
    cd "$(git rev-parse --show-toplevel)"
    ls -ld .agents .claude AGENTS.md CLAUDE.md .agents/settings.json .agents/rules \
           .agents/rules/memory.md .agents/memory/MEMORY.md .gitignore 2>&1
+   git grep -nIF -e .claude/ -e CLAUDE.md -- . ':!.agents' ':!.claude' 2>/dev/null
    ```
+
+   **List the `git grep` hits before moving anything.** Moving `.claude/` into `.agents/`
+   or renaming `CLAUDE.md` breaks what names them, silently: a hook that treats
+   `.claude/` as a docs prefix now counts `.agents/` edits as code; a `.gitignore` line
+   such as `.claude/worktrees/` stops matching, because git sees `.claude` as a symlink
+   file; an instruction ("don't move `.claude/`") contradicts the move. For each hit, say
+   what the move does to it and propose the fix (usually `.claude/` → `.agents/`), and
+   ask with the merge question below. No hits → say so in one line.
 
    The exceptions where you *do* adjust what exists, because it is structure and not
    content:
 
-   - `CLAUDE.md` is a regular file and `AGENTS.md` does not exist → rename it
-     (`git mv CLAUDE.md AGENTS.md`) and create the symlink. Content is preserved.
-   - `.agents/settings.json` exists but is missing a `deny` entry → step 3 adds what is
-     missing, preserving the rest.
+   - `CLAUDE.md` is a regular file and `AGENTS.md` does not exist → the script renames
+     it (`git mv CLAUDE.md AGENTS.md`) and creates the symlink. Content is preserved.
+   - `.agents/settings.json` exists but is missing a `deny` entry → the script adds what
+     is missing, preserving the rest and its key order.
    - `.claude` or `CLAUDE.md` exists but is **not a symlink** (`[ ! -L .claude ]`): a
      real `.claude/` directory, or a `CLAUDE.md` with its own content next to an
      `AGENTS.md` → a copy made by hand, or a harness from before this plugin. Diff it
      against `.agents/` / `AGENTS.md`, show what only the copy has, and **ask** before
-     merging it in and replacing the copy with the link.
+     merging it in and replacing the copy with the link (the script exits 3 until then).
 
-2. Create whatever structure is missing:
-
-   ```bash
-   mkdir -p .agents/memory .agents/rules
-   [ -e .agents/.gitignore ] || printf 'settings.local.json\n.obsidian\n' > .agents/.gitignore
-   # A dangling symlink is invisible to -e but still occupies the name, so ln fails.
-   if [ -L .claude ] && [ ! -e .claude ]; then rm .claude; fi
-   [ -e .claude ] || { ln -s .agents .claude; [ -L .claude ] || { rm -r .claude; echo "ln -s made a copy, not a link: on Windows see README § Windows" >&2; exit 1; }; }
-   ```
-
-   An existing `.agents/.gitignore` without `settings.local.json` gets that line
-   appended; the rest stays.
-
-   With `memory/` comes its anti-drift rule — the always-on instruction to fix a note in
-   the same task that made it wrong, which `memory-drift-guard` then enforces at commit:
+2. **Create whatever structure is missing** — steps 2 to 5 are one script, create-only,
+   one line per item:
 
    ```bash
-   [ -e .agents/rules/memory.md ] || cp "<plugin>/templates/rules/memory.md" .agents/rules/memory.md
+   bash "<plugin>/scripts/scaffold.sh"
    ```
 
-   Freshly copied, translate it into the project's language (keep the filename).
+   It makes `.agents/{memory,rules}`, `.agents/.gitignore` (with `settings.local.json`),
+   the `.claude -> .agents` link, `rules/memory.md` from the template, `settings.json`
+   (or the `deny` entries it lacks), `AGENTS.md` with `CLAUDE.md -> AGENTS.md`, and the
+   root `.gitignore` lines. Exit 0 → done; 3 → a real `.claude/` or `CLAUDE.md` is in the
+   way (step 1); 2 → `settings.json` is not valid JSON: report it and stop, do not
+   hand-edit around it; 1 → no symlink could be made: on Windows, point at README
+   § Windows and stop.
 
-3. **`.agents/settings.json`** — denies blind `git add`:
+   A link line saying `native link via MSYS=winsymlinks:nativestrict` worked, but this
+   machine lacks the permanent setup: report README § Windows (`core.symlinks`, the
+   `~/.bashrc` line) as a follow-up, not a blocker.
 
-   ```bash
-   [ -e .agents/settings.json ] || cp "<plugin>/templates/settings.json" .agents/settings.json
-   ```
+   `rules/memory.md` is the anti-drift rule — the always-on instruction to fix a note in
+   the same task that made it wrong, which `memory-drift-guard` then enforces at commit.
+   Freshly created, translate it into the project's language (keep the filename).
 
-   An existing one gets only what it lacks from the template — each `deny` entry — and
-   everything else in it stays. Agent co-author attribution is the user's choice:
-   `rules.md` asks it with the commit policy and writes `attribution` then; do not
-   set it here. Not valid JSON → report it and stop; do not hand-edit around it. Never write
-   `extraKnownMarketplaces` or `enabledPlugins` entries for this plugin: the project's
-   config carries the project's policy, not the tool that set it up.
+3. **`.agents/settings.json`** denies blind `git add`. Agent co-author attribution is
+   the user's choice: `rules.md` asks it with the commit policy and writes `attribution`
+   then; do not set it here. Never write `extraKnownMarketplaces` or `enabledPlugins`
+   entries for this plugin: the project's config carries the project's policy, not the
+   tool that set it up.
 
    The guards (`master-guard`, `secret-guard`, `memory-drift-guard`) run from the plugin,
    so they act for whoever has it installed. The `deny` list stops a stray `.env` or real
@@ -118,13 +121,6 @@ CLAUDE.local.md -> AGENTS.local.md   (gitignored)
 4. **`AGENTS.md` at the root, with `CLAUDE.md` as a symlink to it.** The real file is
    `AGENTS.md` (a convention other CLIs also read); Claude Code sees it through the
    symlink.
-
-   ```bash
-   if [ -L CLAUDE.md ] && [ ! -e CLAUDE.md ]; then rm CLAUDE.md; fi   # dangling: drop it
-   [ -e AGENTS.md ] || [ -L CLAUDE.md ] || [ ! -e CLAUDE.md ] || git mv CLAUDE.md AGENTS.md
-   [ -e AGENTS.md ] || touch AGENTS.md          # then write the content below
-   [ -e CLAUDE.md ] || { ln -s AGENTS.md CLAUDE.md; [ -L CLAUDE.md ] || { rm CLAUDE.md; echo "ln -s made a copy, not a link: on Windows see README § Windows" >&2; exit 1; }; }
-   ```
 
    If `AGENTS.md` does not mention the memory yet, append this (leaving the rest
    alone), in the project's language:
@@ -143,20 +139,12 @@ CLAUDE.local.md -> AGENTS.local.md   (gitignored)
    for a Portuguese project: `Notas e regras em .agents/ são escritas em português
    (pt-BR).`
 
-5. **Root `.gitignore`** — the personal files stay out of git. Append each line that is
-   missing, leaving the rest alone; create the file if there is none:
+5. **Root `.gitignore`** — `AGENTS.local.md` and `CLAUDE.local.md` stay out of git (the
+   script appends the missing lines; `.agents/settings.local.json` is covered by
+   `.agents/.gitignore`).
 
-   ```bash
-   touch .gitignore
-   for f in AGENTS.local.md CLAUDE.local.md; do
-     grep -qxF "$f" .gitignore || grep -qxF "/$f" .gitignore || printf '%s\n' "$f" >> .gitignore
-   done
-   ```
-
-   (`.agents/settings.local.json` is covered by `.agents/.gitignore`, step 2.)
-
-6. Report what you created (created vs. already existed), and confirm both links
-   are real (`[ -L .claude ] && [ -L CLAUDE.md ]`).
+6. Report what you created (created vs. already existed), the step 1 hits and what was
+   done about each, and confirm both links are real (`[ -L .claude ] && [ -L CLAUDE.md ]`).
 
 ## What this procedure does NOT do
 

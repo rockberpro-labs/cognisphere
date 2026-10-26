@@ -30,6 +30,7 @@ This note is the vault's own rulebook. `/cognisphere:install` seeded the notes; 
 | The agent's role | `AGENTS.local.md` § Working style |
 | How an area works, its gotchas | its `.agents/memory/` note |
 | A defect in the code | an issue, linked from the area's memory note |
+| Planned work and its status | the repo's own plan, TODO or issue file, when it has one |
 | What `.agents/` contains | `ls .agents/` |
 | What a review checks | the `cognisphere:reviewer` agent |
 
@@ -49,6 +50,8 @@ What is left is the agent's own: open threads, events git doesn't record, the se
 | [[Open Threads]] | **numbered** items grouped as Harness / Direction, each with the evidence and the options | something is found or resolved. Close an item by ~~striking it through~~ with the date and the closing commit or PR. Never delete or renumber |
 | [[History]] | dated events git doesn't record (a deploy, an incident, a decision made outside a commit), grouped by month, newest first | such an event happens |
 
+When the repo keeps its own plan, TODO or issue file, that file owns its items: [[Open Threads]] links it once and holds only what it doesn't.
+
 A code defect isn't a thread: it gets one home, an issue, and the area's memory note links to it. Until the issue exists, a Direction item asks the maintainer for it. The agent's working notes on a defect (a repro script, a half-done diagnosis) go in `Scratch/`.
 
 ### `Workflow/`: "how do we work?"
@@ -58,7 +61,7 @@ A code defect isn't a thread: it gets one home, an issue, and the area's memory 
 ### `Log/`: "what happened?"
 - `Log/YYYY-MM-DD.md`, with one `## Session N` block per session, using these bullets:
   **Asked**, **Found**, **Did**, **Changed**, **Not verified**, **Next**.
-- **Changed** names the commit sha for repo changes; it lists files only for changes git doesn't see (the vault, the local configuration).
+- **Changed** names the commit sha for repo changes, or says "uncommitted" when there is none yet; it lists files only for changes git doesn't see (the vault, the local configuration).
 - Append only. Don't rewrite past sessions.
 
 ### `Scratch/`: "thinking space"

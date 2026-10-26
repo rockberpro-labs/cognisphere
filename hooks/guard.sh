@@ -9,7 +9,8 @@
 #                       header, a well-known token format, a `.env`/keystore file.
 #   memory-drift-guard  blocks a `git commit` that changes code covered by a note in
 #                       .agents/memory/ (its `paths:` frontmatter) when the note is not
-#                       in the same commit. SKIP_MEMORY_CHECK=1 in front when it still holds.
+#                       in the same commit (for a `kind: pointer` note, the note or its
+#                       `doc:`). SKIP_MEMORY_CHECK=1 in front when it still holds.
 #
 # Fails OPEN: any internal error exits 0 so the session is never wedged.
 set -uo pipefail
@@ -200,6 +201,13 @@ note_paths() {
        /^[^[:space:]]/ { p = 0 }' "$1"
 }
 
+# The `doc:` of a pointer note: the existing doc it stands for, which may come instead.
+note_doc() {
+  awk 'NR == 1 { if ($0 != "---") exit; next }
+       $0 == "---" { exit }
+       /^doc:/ { sub(/^doc:[[:space:]]*/, ""); gsub(/^["\047]|["\047][[:space:]]*$/, ""); print; exit }' "$1"
+}
+
 # Bash `*` already crosses `/`; a leading `**/` must also match at the root.
 matches() {
   [[ $1 == $2 ]] || { [[ $2 == '**/'* ]] && [[ $1 == ${2#'**/'} ]]; }
@@ -210,6 +218,8 @@ missing="$(
     [ -f "$note" ] || continue
     rel=".agents/memory/${note##*/}"
     printf '%s\n' "$files" | grep -Fxq "$rel" && continue
+    doc="$(note_doc "$note")"
+    [ -n "$doc" ] && printf '%s\n' "$files" | grep -Fxq "$doc" && continue
     globs="$(note_paths "$note")"
     [ -n "$globs" ] || continue
     while IFS= read -r f; do

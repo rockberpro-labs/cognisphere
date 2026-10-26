@@ -51,13 +51,13 @@ do reports "nothing to do" in one line and the next one starts.
      least as wide as the note's.
    - **Proposed, written on a yes:** dead or too-broad globs, duplicates, oversized
      rules, broken pointers, language, new candidates.
-5. **Vault, read-only — `vault.md` § Check.** The vault folder, `Human/`, `Agent/`'s
+5. **Vault, read-only — `vault-check.md`.** The vault folder, `Human/`, `Agent/`'s
    Home, four folders and template notes; leftovers of the v0.1.0 layout that copy the
    repo into the vault. Missing items → restore from the backup, or
    `/cognisphere:install` re-seeds missing notes (never touching existing ones).
    Leftovers → what to move out and delete by hand. **Never create, edit, move or
    delete anything under `~/Cognisphere/`.**
-6. **Configuration, check-only — `vault.md` § Check.** `settings.local.json`
+6. **Configuration, check-only — `vault-check.md`.** `settings.local.json`
    (`additionalDirectories`, the `Read` and `Edit` allow rules, the `Human/` deny rule,
    inert `Write(...)` rules), `AGENTS.local.md`'s Agent workspace section, the
    `CLAUDE.local.md` symlink. **Never edit these files:** the report says what to change
