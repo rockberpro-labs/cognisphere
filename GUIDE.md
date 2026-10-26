@@ -227,6 +227,15 @@ fail open: an internal error never blocks the session.
   pointer note, its `doc:` counts too. Prefix `SKIP_MEMORY_CHECK=1` when the note still
   holds.
 
+One more hook runs when the agent stops, in a project with a vault only:
+
+- **`session-log`** — `hooks/session-log.sh`, a Stop hook. When the session changed
+  files, made a commit or touched a vault `State/` note, and no file in the vault's
+  `Log/` changed, it blocks the stop once and asks for Session Protocol § End: the
+  `## Session N` entry and Open Threads. The vault path comes from `AGENTS.local.md`.
+  A reply that only pauses for you just stops again, and the same changes aren't
+  reported twice. It can't see a missed Findings entry: that changes no file.
+
 The versioned `settings.json` also denies the blanket `git add` forms (`-A`, `--all`,
 `.`, `-u`) and allows the read-only git commands without prompting.
 
@@ -309,7 +318,7 @@ the code names them. Filenames stay English everywhere.
   `SKILL.md` and reading procedures from `procedures/` on demand (`scaffold`, `memory`,
   `rules`, `review-settings`, `review-memory`, `review-rules`, `vault`, `vault-check`);
   `install`, which runs `harness` then `vault`; `read`, with no procedure.
-- **`hooks/`** — `guard.sh` and one test per guard.
+- **`hooks/`** — `guard.sh`, `session-log.sh` and one test per guard and hook.
 - **`agents/`** — `cognisphere:explorer` (read-only investigator; the memory passes fan
   out to it), `cognisphere:planner` (ordered steps from an explorer report),
   `cognisphere:implementer` (one planned step, code plus the stale note),

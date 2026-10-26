@@ -169,6 +169,9 @@ error never blocks the session.
 - **`memory-drift-guard`** blocks a commit that changes code without the memory note
   covering it.
 
+In a project with a vault, a Stop hook, `session-log`, asks once for the end-of-session
+Log entry when the session changed something and didn't log it.
+
 The protection of `Human/` and `Shared/` covers Claude's tools, not arbitrary scripts;
 turn on the sandbox for that. → [GUIDE.md § Guards](GUIDE.md#guards),
 [§ Boundaries and their limits](GUIDE.md#boundaries-and-their-limits)
