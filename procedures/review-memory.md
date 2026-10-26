@@ -68,6 +68,11 @@ Run all of them, then report once. Each finding: note, what is wrong, proposed f
    `cognisphere:explorer`, one per note, asking for "what in this note the diffs made
    wrong or incomplete"; you write the fixes.
 
+   A pointer note (`kind: pointer`) is checked through its `doc:`: `since` is the last
+   commit to the doc or the note (`git log -1 --format=%H -- <doc> .agents/memory/<note>.md`),
+   and the fix goes into the doc. A `doc:` that no longer exists → the pointer is dead:
+   find where the doc went, or propose turning the pointer into a regular note.
+
 5. **Area notes without `paths:`.** A note that describes a directory or module
    (`module-*`, a jobs/integration note) but has no frontmatter is invisible to the
    guard and gets no read rule. Propose the globs.

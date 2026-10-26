@@ -13,7 +13,8 @@ want a smaller cut. `/cognisphere:install` runs it as a bootstrap,
 - **Area mode** (`/cognisphere:update <area>`: a module, directory or subject) — phase 5
   for that area only, then phase 6 to hook the note into the index. Read `MEMORY.md`
   first: if a note already covers the area, deepen that one instead of creating a
-  sibling.
+  sibling. Sections it needs: Language, Three destinations, What makes a note worth
+  reading, Phase 5, Phase 6 (note format); skip phases 0–4 and the stopping criterion.
 
 No `.agents/` yet → run `scaffold.md` first. Settle the language (next section) before
 anything else.
@@ -82,6 +83,10 @@ Before opening application code, take what metadata already gives. It answers ha
 questions at a fraction of the cost.
 
 - `README`, `docs/`, `CONTRIBUTING`, ADRs — read them, treat them as possibly stale.
+- **Knowledge already written down** — a per-class or per-module notes file, a plan with
+  status and logs, project skills, a design doc kept current. Do not re-map what such a
+  doc holds: adopt it as a **pointer note** (phase 6), and phases 3–5 cover only the
+  gaps. A doc that contradicts the code is not adopted: it is an open question.
 - **Dependency manifest** (`package.json`, `composer.json`, `go.mod`, `pom.xml`,
   `pyproject.toml`, `Gemfile`...): stack, target runtime and — most valuable — libraries
   that give the domain away. A payment gateway client, an invoicing SDK, an ERP
@@ -277,6 +282,22 @@ Note format:
   commit.
 - A domain note also says `kind: domain` there (a module note inside a domain,
   `kind: module`) — see the domains phase. It goes in even when the note has no `paths:`.
+- A **pointer note** (`kind: pointer`) stands for a doc that already exists in the repo
+  (phase 0): `doc:` names it, `paths:` the code it describes, and the body is two or
+  three lines — what the doc covers and when to read it. It is listed in the index like
+  any note and owes the same read rule. `memory-drift-guard` accepts the doc or the
+  pointer note in the commit, so keeping the doc current is enough.
+
+  ```markdown
+  ---
+  kind: pointer
+  doc: "docs/class-notes.md"
+  paths:
+    - "src/models/**"
+  ---
+
+  # Model classes
+  ```
 
   ```markdown
   ---
@@ -299,6 +320,10 @@ Note format:
 - **Phases 3–5 are fan-out:** launch the `cognisphere:explorer` agent in parallel, one per
   module or area. It is exactly the case subagents are for — reads a lot, concludes
   little.
+- **Small repo, no fan-out.** Fewer than three modules, or under about 20k lines of
+  code (`git ls-files | xargs wc -l` minus vendored and generated files) → phases 3–5
+  stay in the main flow too: each explorer starts cold and re-reads what you already
+  have, which costs more than it saves at that size.
 - **The explorer reports, you write.** It does not edit memory on purpose: the main flow
   sees the whole catalog and knows whether a fact goes into a new note or an existing one.
 - **Never in parallel with code edits.** Mapping is reading; mixing the two yields notes

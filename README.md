@@ -54,14 +54,17 @@ agent-kit is installed, remove it first (see [Coming from agent-kit](#coming-fro
 
 Works under Git Bash (its `perl` has `JSON::PP`), but the harness relies on symlinks
 (`.claude`, `CLAUDE.md`, `CLAUDE.local.md`), and by default Git Bash's `ln -s` copies
-instead and git checks links out as plain text files. Once per machine:
+instead and git checks links out as plain text files. Install retries each link with
+`MSYS=winsymlinks:nativestrict`, which often works without admin; it stops only when
+that fails too. For links that survive later checkouts, once per machine:
 
 1. Turn on **Developer Mode** (Settings → System → For developers), so links need no admin.
 2. `git config --global core.symlinks true`
 3. Add `export MSYS=winsymlinks:nativestrict` to `~/.bashrc`, so `ln -s` makes real links.
 
 Repos cloned before step 2 need `git checkout -- CLAUDE.md .claude` to turn the text
-files back into links. Without this, `/cognisphere:install` stops at the first link.
+files back into links. When install had to fall back on the retry, its report lists
+these steps as a follow-up.
 
 ## Usage
 
@@ -173,13 +176,18 @@ All three guards are checks in one hook, `hooks/guard.sh`, run before every Bash
   private-key header, a well-known token format (AWS/GitHub/Slack/GCP), or a `.env` or
   keystore (`.p12`/`.pfx`/`.jks`) being added. Test: `bash hooks/secret-guard.test.sh`.
 - **guard `memory-drift-guard`** — blocks a `git commit` that touches code covered by a
-  memory note (its `paths:` frontmatter) when the note is not in the same commit.
+  memory note (its `paths:` frontmatter) when the note is not in the same commit. A
+  `kind: pointer` note stands for an existing doc (`doc:`), and that doc counts too.
   `SKIP_MEMORY_CHECK=1` in front of the command when the note still holds. Test:
   `bash hooks/memory-drift-guard.test.sh`.
 - **skills** `/cognisphere:install` and `/cognisphere:update [area]`. Each runs the steps
   in its `SKILL.md` and reads the procedures from `procedures/` on demand:
   `scaffold`, `memory`, `rules`, `review-settings`, `review-memory`, `review-rules`,
-  `vault`.
+  `vault`, `vault-check`.
+- **scripts** — the deterministic steps, so the agent runs them instead of retyping
+  them: `scaffold.sh`, `seed-vault.sh`, `configure.sh`, `names.sh`, `link.sh`,
+  `merge-json.pl` (adds missing settings entries, keeps key order), `check-links.pl`.
+  Test: `bash scripts/scripts.test.sh`.
 - **agents** `cognisphere:explorer` (read-only investigator; the memory passes fan out
   to it), `cognisphere:planner` (ordered steps from an explorer report),
   `cognisphere:implementer` (one planned step, code plus the stale note),
@@ -232,7 +240,7 @@ Without bumping it, every commit counts as a new version. Release flow:
 ```bash
 # 1. change the code   2. bump version in plugin.json (semver)
 claude plugin validate . --strict && claude plugin validate .claude-plugin/plugin.json --strict
-for t in hooks/*.test.sh; do bash "$t" || break; done
+for t in hooks/*.test.sh scripts/*.test.sh; do bash "$t" || break; done
 # when a skill or procedure changed: the eval fixtures (costs real runs)
 claude plugin eval . --scaffold --allow-tools Bash Write Edit --runs 3
 git commit -am "feat: <what changed>"

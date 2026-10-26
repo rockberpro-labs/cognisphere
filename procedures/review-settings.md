@@ -6,8 +6,8 @@ the team chose so, turns off agent co-author attribution. It never names this pl
 project's config holds the project's policy, not the tool that wrote it.
 
 `/cognisphere:update` runs this pass after the structure pass, so `.agents/` exists.
-`.agents/settings.local.json` is not reviewed here: it is personal, and `vault.md`
-§ Check only reports on it.
+`.agents/settings.local.json` is not reviewed here: it is personal, and `vault-check.md`
+only reports on it.
 
 Language: nothing here writes prose, only JSON keys.
 

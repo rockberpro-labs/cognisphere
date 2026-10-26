@@ -356,6 +356,8 @@ it. `update` deleting the old notes (D18).
 
 *2026-10-25, v0.3.0*
 
+The stop on a copied link is superseded by D23.
+
 **Decision.** Windows is supported under Git Bash, after a one-time setup in the README
 (Developer Mode, `core.symlinks true`, `MSYS=winsymlinks:nativestrict`). Each `ln -s` in
 the procedures is checked with `[ -L ]`; a copy is removed and the run stops. Install and
@@ -369,3 +371,44 @@ check added nothing.
 
 **Rejected.** A Windows-specific install path. Keeping `install.sh` next to the
 `/plugin` commands.
+
+## D23. The mechanical steps are scripts
+
+*2026-10-25, v0.4.0*
+
+**Decision.** Everything deterministic in install moves out of the procedures into
+`scripts/`: `scaffold.sh` (structure, links, `.gitignore` lines), `seed-vault.sh`,
+`configure.sh` (the local files), `names.sh` (project and vault paths), `link.sh`,
+`merge-json.pl` and `check-links.pl`. The procedures keep only the judgment: the
+questions, the memory phases, the content of notes and rules. `link.sh` retries a copied
+link with `MSYS=winsymlinks:nativestrict` and stops only when that fails too; the
+permanent Windows setup becomes a reported follow-up. `names.sh` gives the vault path in
+`C:/...` form under Git Bash. `merge-json.pl` keeps the file's key order. `vault.md`
+§ Check becomes `vault-check.md`, so install and update each read only their part.
+
+**Why.** On a real Windows install the agent copied the steps out of markdown and broke
+them in transit: the Bash tool collapsed `\` in the inline link checker, so its regex
+stopped compiling; `$HOME` gave an MSYS path the Read tool cannot open; every link
+stopped the run although a native link worked without admin. Retyped code also costs
+tokens to read and differs between runs. Scripts are read zero times and run the same
+way every time.
+
+**Rejected.** Escaping the inline snippets harder. A single `install.sh` (D22): the
+steps are interleaved with questions, so one script per step.
+
+## D24. Existing docs are adopted as pointer notes
+
+*2026-10-25, v0.4.0*
+
+**Decision.** A memory note with `kind: pointer` stands for a doc the repo already has:
+`doc:` names it, `paths:` the code it covers. It is indexed, gets a read rule that names
+the doc, and `memory-drift-guard` accepts the doc in place of the note. The memory
+bootstrap adopts such docs first and maps only the gaps; the Vault Guide leaves a repo's
+own plan or issue file in charge of its items.
+
+**Why.** The bootstrap assumed nothing was written down. A repo with a per-class notes
+file and a plan with status got a second copy of both, which drifts the way D21
+describes.
+
+**Rejected.** Moving the doc into `.agents/memory/`: it belongs to the repo's own
+workflow, and other tools link to it where it is.

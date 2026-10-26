@@ -36,6 +36,7 @@ t(){
   note "$dir" templates.md '**/*.tmpl'
   mkdir -p "$dir/.agents/memory" && echo '# no frontmatter' > "$dir/.agents/memory/loose.md"
   printf -- '# paths: outside the frontmatter\n---\npaths:\n  - "docs/**"\n---\n' > "$dir/.agents/memory/late.md"
+  printf -- '---\nkind: pointer\ndoc: "notes/classes.md"\npaths:\n  - "lib/**"\n---\n# Classes\n' > "$dir/.agents/memory/classes.md"
   git -C "$dir" add . && git -C "$dir" -c user.email=t@t -c user.name=t commit -q -m init
   local f
   for f in $3; do
@@ -64,6 +65,7 @@ t 2 'git commit -m x' 'a/b/page.tmpl'
 t 2 'git commit -m x' 'jobs/nightly.sh .agents/memory/domains.md'
 t 2 'git -C . commit -m x' 'src/enrollment/a.py'
 t 2 'git -C @ commit -m x' 'src/enrollment/a.py'
+t 2 'git commit -m x' 'lib/a.rb'
 echo "== blocked: staged by the same command =="
 t 2 'git commit -am x' '-' 'jobs/nightly.sh'
 t 2 'git add jobs/nightly.sh && git commit -m x' '-' 'jobs/nightly.sh'
@@ -71,6 +73,8 @@ t 2 'git add jobs/nightly.sh && git commit -m x' '-' 'jobs/nightly.sh'
 echo "== allowed =="
 t 0 'git commit -m x' 'jobs/nightly.sh .agents/memory/jobs.md'
 t 0 'git commit -m x' 'src/billing/a.py src/enrollment/b.py .agents/memory/domains.md'
+t 0 'git commit -m x' 'lib/a.rb notes/classes.md'
+t 0 'git commit -m x' 'lib/a.rb .agents/memory/classes.md'
 t 0 'git commit -m x' 'src/other/api.py package.json'
 t 0 'git commit -m x' 'docs/x.md'
 t 0 'SKIP_MEMORY_CHECK=1 git commit -m x' 'jobs/nightly.sh'

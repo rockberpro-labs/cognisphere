@@ -46,7 +46,9 @@ Every rule's text and heading go in that language, the commit policy included �
 - **Area mode** (`/cognisphere:update <area>`) — only that area's rule: the read rule
   over the note's `paths:`, plus what the area must obey. Read its memory note first; if
   there is none, `memory.md` in area mode writes it first, or ask the user whether to
-  write the rule without one.
+  write the rule without one. Sections it needs: Language, Rule or memory note?, Read
+  rules, Path-scoped rules, Report; skip the always-on rules and where candidates come
+  from.
 
 ## Rule or memory note?
 
@@ -175,7 +177,8 @@ line into each (`domain` or `module`) before writing the rules.
   - <the area's prohibitions, mandatory steps or invariants, if any — none is fine>
   ```
 
-  For a note that is not a domain, the first line names just that note. A rule that is
+  For a note that is not a domain, the first line names just that note; for a pointer
+  note (`kind: pointer`), the doc its `doc:` names. A rule that is
   only the read order is complete; do not pad it with rules the area does not have.
 - **Globs may overlap** between read rules, unlike notes' `paths:`: a file in a module
   of a domain loads both rules and the agent reads both notes — which is the point.
