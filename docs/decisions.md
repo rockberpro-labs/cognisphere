@@ -310,6 +310,8 @@ for each.
 
 *2026-10-25, v0.1.0*
 
+Superseded in part by D28: a third command, `read`.
+
 **Decision.** agent-kit's seven skills (scaffold, memory, rules, update-all,
 update-hooks, update-memory, update-rules) collapse into `/cognisphere:install` and
 `/cognisphere:update [area]`. Their bodies live on as procedures in `procedures/`,
@@ -499,3 +501,28 @@ every form of the question. Filing issues straight away: outward-facing, noisy, 
 one needs the maintainer's yes. A TODO file in the repo: unvetted opinions in a shared,
 versioned file, and teammates have no vault. Reading Findings at every session start:
 it is read when asked, and checked before adding to it.
+
+## D28. `read` takes a note path as Obsidian copies it
+
+*2026-10-26, v0.8.0*
+
+**Decision.** A third command, `/cognisphere:read <note> [request]`, run only by the
+maintainer (`disable-model-invocation`). It takes a note's path relative to the
+Obsidian vault: `Human/draft.md`, or `<project>/Human/draft.md` when `~/Cognisphere`
+itself is open, whose leading `<project>/` it drops. It joins the path to the vault
+`AGENTS.local.md` names and reads the note, its embeds and the links its content depends
+on, one level deep. It checks the note's claims about the code against the code, then
+does the request that followed the path, or asks. It never writes the note. One command
+covers `Human/` and `Agent/`: the copied path already names the folder. No script: the
+agent already has the vault's absolute path, in the form the Read tool needs.
+
+**Why.** Reading a note in Obsidian and handing it to the agent took retyping its
+location. Obsidian's "Copy path" is relative to the Obsidian vault, while `@` resolves
+against the repo, so a pasted path matched nothing.
+
+**Rejected.** Two commands, `read-human-docs` and `read-agent-docs`: they differ only in
+the folder, which the pasted path already holds. A resolver script that also took
+wikilinks, `obsidian://` URIs and bare names: four times the code for inputs nobody
+pastes, and a join of two paths is not the mechanical step D23 moves out of the
+procedures. Letting the model invoke it: it acts on a pasted path, and its description
+would sit in every session's context.
