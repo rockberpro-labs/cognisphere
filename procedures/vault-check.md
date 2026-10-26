@@ -126,7 +126,7 @@ it (`names.sh <name>` prints its paths).
 
    Report each line it prints, with its fix for the user to apply:
    - `agent-kit@…` enabled → every guard runs twice. `/plugin uninstall agent-kit@agent-kit`
-     and `/plugin marketplace remove agent-kit` (README, *Coming from agent-kit*).
+     and `/plugin marketplace remove agent-kit`.
    - cognisphere enabled more than once → keep one; `/plugin uninstall` the others.
    - a hook that runs a guard script → a copy older tools installed for the user; the
      plugin already runs it. Remove its entry from `~/.claude/settings.json` by hand. A
