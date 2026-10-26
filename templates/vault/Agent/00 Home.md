@@ -21,7 +21,7 @@ Repo: `{{repo}}`
 ## Map
 | Folder | Notes |
 |---|---|
-| State | [[Open Threads]] · [[History]] |
+| State | [[Open Threads]] · [[Findings]] · [[History]] |
 | Workflow | [[Session Protocol]] · [[Vault Guide]] |
 | Log | one note per day, `YYYY-MM-DD` |
 | Scratch | [[Scratch/README\|README]] |

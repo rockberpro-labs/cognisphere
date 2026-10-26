@@ -112,9 +112,14 @@ git already hold stays there.
   mapping (§ Direction, until the doc is fixed), and per harness step left undone or
   failed (§ Harness), with a follow-up such as the Windows link setup among them. Each
   with its evidence. Nothing found → the note stays as seeded. A defect in the code is
-  not a thread: list it in the report, for an issue. The repo keeps its own plan, TODO
-  or issue file → its items stay there: Open Threads links the file once (§ Direction)
-  and holds only what it doesn't.
+  not a thread: it goes in Findings (next item) and the report. The repo keeps its own
+  plan, TODO or issue file → its items stay there: Open Threads links the file once
+  (§ Direction) and holds only what it doesn't.
+- **`State/Findings.md`**: one numbered item under `## Open` per code defect, risk or
+  improvement the mapping passes noticed, in the format its hint comment gives, "while"
+  naming the pass (e.g. "while mapping `billing`"), at the commit the run saw. Not a
+  scan: only what the passes came across. Nothing noticed → the note stays as seeded.
+  An item the repo's plan, TODO or issue tracker already holds stays there.
 - **`Workflow/Vault Guide.md` § 1 table**: the memory pass found a plan or status doc
   (`memory.md` phase 0) → replace the generic "Planned work and its status" row with
   rows naming it, one per kind of fact it owns, e.g. `| Phase status, next steps,

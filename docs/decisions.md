@@ -324,6 +324,8 @@ tuned wording and eval coverage without exposing seven entry points.
 
 *2026-10-25, v0.2.0*
 
+Superseded in part by D27: a code defect waits in Findings until the issue exists.
+
 **Decision.** `Agent/` keeps only what git, the repo and the issue tracker do not: open
 threads (harness work, open questions, decisions waiting on the maintainer), events git
 doesn't record, the session log and scratch work. The seed is `00 Home.md`,
@@ -464,3 +466,36 @@ the user level.
 **Rejected.** Writing the fix into the user's settings: they apply to every project, not
 just this one, so they belong to the user (D18). Checking it in `review-settings`: that
 pass writes, and this one must not.
+
+## D27. What the agent notices goes in Findings
+
+*2026-10-26, v0.7.0*
+
+**Decision.** The seed gains `State/Findings.md`: numbered items the agent noticed
+outside its task (bug, risk, smell, test, improvement, idea), each with its file, the
+commit it was seen at, the evidence, a suggestion and a status. `AGENTS.local.md` gains
+two lines: append a finding when it is noticed, without fixing it; and, asked about
+known issues or improvements, read Findings first, re-check each item against the code,
+say which commit the answer stands at and offer a fresh scan. An item closes struck
+through with its outcome: an issue, the plan, a memory note, a fix, or the maintainer's
+rejection and its reason, which stays. The maintainer triages by telling the agent,
+which stays the only writer of `Agent/`. A code defect waits there until the maintainer
+opens its issue, instead of a Direction item asking for one. Install's Fill records the
+defects the mapping passes came across; `vault-check` reports a section without the two
+lines and the count of open findings.
+
+**Why.** What the agent saw outside its task was said once in a reply and lost with the
+scrollback, or sat in one Log session's Found bullet, spread across days. Answering
+"known issues?" or "what would you improve?" took a scan of the repo, and a suggestion
+the maintainer had turned down came back in the next session. Open Threads held only
+questions blocking the work, and the defect rule left a bug with no home until someone
+opened its issue. The capture line is in `AGENTS.local.md` because D25 showed that only
+the always-loaded file gets the agent to write; writing on notice, not at the end, keeps
+the detail compaction would drop.
+
+**Rejected.** Todo and progress lists in the vault: the repo's plan and the Log own them
+(D25), and a third copy drifts. One note per kind, or per item: one read must answer
+every form of the question. Filing issues straight away: outward-facing, noisy, and each
+one needs the maintainer's yes. A TODO file in the repo: unvetted opinions in a shared,
+versioned file, and teammates have no vault. Reading Findings at every session start:
+it is read when asked, and checked before adding to it.

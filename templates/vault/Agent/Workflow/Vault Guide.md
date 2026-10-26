@@ -29,12 +29,12 @@ This note is the vault's own rulebook. `/cognisphere:install` seeded the notes; 
 | Commands, conventions, non-negotiables | `AGENTS.md`, `.agents/rules/` |
 | The agent's role | `AGENTS.local.md` § Working style |
 | How an area works, its gotchas | its `.agents/memory/` note |
-| A defect in the code | an issue, linked from the area's memory note |
+| A defect in the code | an issue, linked from the area's memory note; [[Findings]] until the maintainer opens it |
 | Planned work and its status | the repo's own plan, TODO or issue file, when it has one |
 | What `.agents/` contains | `ls .agents/` |
 | What a review checks | the `cognisphere:reviewer` agent |
 
-What is left is the agent's own: open threads, events git doesn't record, the session log and scratch work.
+What is left is the agent's own: open threads, what it noticed along the way, events git doesn't record, the session log and scratch work.
 
 ---
 
@@ -48,11 +48,18 @@ What is left is the agent's own: open threads, events git doesn't record, the se
 | Note | Contains | Updated when |
 |---|---|---|
 | [[Open Threads]] | **numbered** items grouped as Harness / Direction, each with the evidence and the options | something is found or resolved. Close an item by ~~striking it through~~ with the date and the closing commit or PR. Never delete or renumber |
+| [[Findings]] | **numbered** items the agent noticed outside its task: a bug, risk, smell, missing test, improvement or idea, each with its file, the commit it was seen at, the evidence and a suggestion | the agent notices one (right away, not at the end), or the maintainer decides on one. Close it by striking it through with the outcome: an issue, the plan, a memory note, a fix, or a rejection and its reason. Never delete or renumber |
 | [[History]] | dated events git doesn't record (a deploy, an incident, a decision made outside a commit), grouped by month, newest first | such an event happens |
 
-When the repo keeps its own plan, TODO or issue file, that file owns its items: [[Open Threads]] links it once and holds only what it doesn't.
+When the repo keeps its own plan, TODO or issue file, that file owns its items: [[Open Threads]] and [[Findings]] link it and hold only what it doesn't.
 
-A code defect isn't a thread: it gets one home, an issue, and the area's memory note links to it. Until the issue exists, a Direction item asks the maintainer for it. The agent's working notes on a defect (a repro script, a half-done diagnosis) go in `Scratch/`.
+**Open Threads or Findings?** A question or decision the maintainer must answer for the work to go on is a thread. Something the agent saw and the maintainer may act on, or not, is a finding.
+
+A code defect isn't a thread. Its home is an issue, and the area's memory note links to it. Until the maintainer opens the issue, it is a [[Findings]] item of kind `bug`; it then gets "→ issue #N". The agent's working notes on a defect (a repro script, a half-done diagnosis) go in `Scratch/`.
+
+[[Findings]] is a record of what the agent saw, not an audit: it covers only the areas the agent worked in, and each item holds at the commit it was seen at. Asked for known issues or suggestions, the agent reads it first, re-checks each open item against the code, says which commit the answer stands at, and offers a fresh scan.
+
+Rejected findings stay, struck through with the maintainer's reason, so the same suggestion doesn't come back. The maintainer triages by telling the agent; the agent records the outcome, since it is the only writer of `Agent/`.
 
 ### `Workflow/`: "how do we work?"
 - [[Session Protocol]]: the start, during and end checklist.
@@ -76,7 +83,7 @@ The top level stays at **one note plus four folders**. Don't add new top-level f
 ## 3. Maintenance
 
 - **Every session**, follow [[Session Protocol]].
-- **Promotion path:** Scratch → Log (what happened) → Open Threads (unresolved), or the area's `.agents/memory/` note (lasting truth about the code: fix it if the role allows, otherwise tell the maintainer).
+- **Promotion path:** Scratch → Log (what happened) → Open Threads (unresolved) or Findings (noticed, for the maintainer to triage), or the area's `.agents/memory/` note (lasting truth about the code: fix it if the role allows, otherwise tell the maintainer).
 - **Repo drift:** if the vault contradicts the repo, fix the vault and **tell the maintainer** about the repo note. Don't edit the repo from this workflow.
 - **Copy creep:** a note that starts restating git, `AGENTS.md`, a rule or a memory note gets cut back to a pointer, or deleted.
 - **Restructuring** (say, a note split into a folder): create the new notes first, delete the old note, rewrite every link, log the change. `Agent/` is yours to adapt; the plugin never maintains it.
