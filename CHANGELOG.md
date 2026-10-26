@@ -13,11 +13,16 @@ What changed in each release of cognisphere. Versions follow
   instead, so the project's working state is all in the vault (D36).
 - A PostToolUse hook, `plan-mirror`: in a project with a vault, it copies each plan-mode
   plan to `Scratch/<today>/plan <name>.md` on every write (D36).
+- A seeded note, `State/Preferences.md`: how the maintainer wants the agent to work and
+  what to know about them, the vault's home for what auto-memory kept. `session-start`
+  loads it, and `scratch-redirect` points auto-memory writes to it (D36).
 
 ### Changed
 
 - `Scratch/` keeps one folder per day, `Scratch/YYYY-MM-DD/`, and day folders stay after
   the session as history; only today's is current. Notes are no longer deleted (D36).
+- `Scratch/` is described as the agent's workbench for what its work produces, not as
+  "working memory": output, not thinking aloud (D36).
 - `scratch-first` counts only a note in a day folder, and refuses again once 3 or more
   repo files changed since the newest Scratch write (D36).
 - `session-start` lists today's Scratch notes and loose files outside a day folder,
@@ -26,9 +31,9 @@ What changed in each release of cognisphere. Versions follow
 - `scratch-first`, `scratch-redirect` and `plan-mirror` normalise paths with `cygpath`
   when it exists, so they also fire under Git Bash on Windows.
 - `/cognisphere:update` reports an `AGENTS.local.md` with the v0.13.0 Scratch lines.
-  Existing vault notes aren't rewritten: copy the Scratch README, Session Protocol and
-  Vault Guide changes by hand if you want them, and move loose Scratch notes into day
-  folders.
+  Existing vault notes aren't rewritten: run `/cognisphere:vault` to seed
+  `State/Preferences.md`, copy the Home, Scratch README, Session Protocol and Vault Guide
+  changes by hand if you want them, and move loose Scratch notes into day folders.
 
 ## 0.13.0 — 2026-10-26
 

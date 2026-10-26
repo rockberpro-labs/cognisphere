@@ -796,6 +796,15 @@ write. `session-start` lists today's notes and any loose Scratch file, names the
 earlier day folder as history, and tells the agent the vault overrides Claude Code's
 stores. `AGENTS.local.md` says the same. All of these are active only with a vault.
 
+`Scratch/` is described as the agent's workbench for what its work produces (plans,
+scripts, drafts, intermediate output, notes on the work), not as "working memory": it
+holds output, not the model's thinking aloud. A new seeded note, `State/Preferences.md`,
+takes what auto-memory kept about the maintainer: how they want the agent to work (each
+item with its reason) and what to know about them. It is current by definition, rewritten
+when a preference changes, while the Log keeps the moment it was said. `session-start`
+loads it after Home, and `scratch-redirect` names it first when it refuses an
+auto-memory write.
+
 **Why.** Claude Code keeps the agent's working state in its own folders: a per-session
 scratchpad in the temp dir, plan files and auto-memory under `~/.claude`. None of it is
 in the vault, so backing up or opening the vault missed the work in flight, and the
@@ -805,7 +814,13 @@ old notes get reread as if current, is answered by the day folder: only today's 
 current, and older ones are visibly history. Deleting threw away the record of how the
 work went, which is what portability is meant to keep. One note per session let the
 agent write a line at the start and nothing after, so the check now follows the work,
-with D35's threshold of 3 files.
+with D35's threshold of 3 files. "Working memory" read as a place to reason step by step,
+which fills Scratch with what no later session needs; the point is to keep what the work
+produced. Most of what auto-memory holds is about the maintainer (corrections, confirmed
+approaches, their expertise), and none of the vault's notes took it: the Log records a
+correction as an event, not as the rule that stands now, so refusing auto-memory
+without Preferences lost it. It is loaded every session, as auto-memory is, or it would
+be written and never read.
 
 **Rejected.** Blocking plan files: plan mode writes and reads its own file, and
 refusing it would break plan mode; a copy keeps both. Mirroring auto-memory instead of
@@ -813,4 +828,9 @@ blocking it: two stores for the same facts, and the vault already has a place fo
 kind. Catching writes made through Bash: the same reason as in D35. Date folders for
 `State/`: its notes are current by definition, one file each. Keeping loose
 `YYYY-MM-DD topic.md` files: a day's notes then mix with every other day's in one list,
-and nothing marks which are current.
+and nothing marks which are current. Letting auto-memory's user and feedback entries
+through: they would stay outside the vault, which is the gap this decision closes.
+Renaming `Scratch/` to `Memory/`: a third "memory" beside `.agents/memory/` and
+auto-memory, and a name that says lasting truth for notes that are never authoritative.
+Putting preferences in `AGENTS.local.md` § Working style: the maintainer's file, which the
+agent doesn't edit; a preference they want enforced moves there by their hand.

@@ -135,8 +135,11 @@ conventions; what's left is the agent's own:
 - **Findings**: what it notices outside its task (a bug, a risk, a missing test), written
   the moment it notices, never fixed unasked. Ask "known issues?" and it starts here.
 - **Log**: one block per session, so the next one picks up where this one stopped.
-- **Scratch**: working memory, one folder per day, kept as history. It replaces Claude
-  Code's own scratchpad, plans and auto-memory, so backing up the vault backs up the work.
+- **Preferences**: how you want it to work, from your corrections and the approaches you
+  confirmed. It replaces Claude Code's auto-memory and loads at every session start.
+- **Scratch**: the agent's workbench for what its work produces (plans, scripts, drafts,
+  intermediate output), one folder per day, kept as history. It replaces Claude Code's
+  own scratchpad and plans, so backing up the vault backs up the work.
 
 Your notes go in `Human/` (this project) or `Shared/` (every project). The agent reads
 them and never writes them. Install also asks whether the agent is your **author** (it

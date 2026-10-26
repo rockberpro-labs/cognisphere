@@ -9,7 +9,7 @@ Back: [[Open Threads]] · [[Session Protocol]] · [[Vault Guide]]
 Repo: `{{repo}}`
 
 ## Reading order
-1. This note → [[Session Protocol]] (its End checklist closes every session) → [[Open Threads]] → the latest note in `Log/`.
+1. This note → [[Session Protocol]] (its End checklist closes every session) → [[Preferences]] → [[Open Threads]] → the latest note in `Log/`.
 2. `git status` and `git log -5`: the repo's state lives there, not here.
 
 ## Ground rules
@@ -21,7 +21,7 @@ Repo: `{{repo}}`
 ## Map
 | Folder | Notes |
 |---|---|
-| State | [[Open Threads]] · [[Findings]] · [[History]] |
+| State | [[Open Threads]] · [[Findings]] · [[History]] · [[Preferences]] |
 | Workflow | [[Session Protocol]] · [[Vault Guide]] |
 | Log | one note per day, `YYYY-MM-DD` |
 | Scratch | [[Scratch/README\|README]] |

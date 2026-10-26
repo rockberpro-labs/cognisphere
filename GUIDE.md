@@ -54,10 +54,10 @@ Each fact has one place, chosen by when it must be loaded:
 └── Projects/<project>/       one vault per repo
     ├── Agent/
     │   ├── 00 Home.md        entry point: reading order, ground rules, map
-    │   ├── State/            Open Threads · Findings · History
+    │   ├── State/            Open Threads · Findings · History · Preferences
     │   ├── Workflow/         Session Protocol · Vault Guide
     │   ├── Log/              YYYY-MM-DD.md, one "## Session N" block per session
-    │   └── Scratch/          working memory, one YYYY-MM-DD/ folder per day, kept
+    │   └── Scratch/          the agent's output, one YYYY-MM-DD/ folder per day, kept
     └── Human/                your notes; this project's agent only reads them
 ```
 
@@ -68,16 +68,19 @@ git. Commands, conventions and area knowledge are in `AGENTS.md` and `.agents/`,
 load every session anyway. A code defect ends up in an issue. A copy of any of those in
 the vault is read twice and goes stale the first time the original changes. What is left
 is the agent's own: open threads (harness work, questions and decisions waiting on you),
-findings (a defect waits there until you open its issue), events git doesn't record, the
-session log and scratch work.
+findings (a defect waits there until you open its issue), how you want it to work, events
+git doesn't record, the session log and scratch work.
 
-`Scratch/` is the exception: it is the agent's working memory, written freely (a plan
-before a multi-step edit, dead ends during an investigation, scripts and intermediate
-output) in one folder per day. Today's folder is the work in flight; older ones are kept
-as the history of how the work went, and are never read as the current state. It takes
-what Claude Code would otherwise keep in its session scratchpad, plans folder or
-auto-memory, so the project's whole working state is in the vault: back up the vault,
-or open it in Obsidian, and you have it.
+`Scratch/` is the exception: it is the agent's workbench for what its work produces,
+written freely (a plan before a multi-step edit, scripts, drafts and intermediate output,
+dead ends ruled out during an investigation) in one folder per day. It holds output, not
+the model's thinking aloud. Today's folder is the work in flight; older ones are kept as
+the history of how the work went, and are never read as the current state. It takes what
+Claude Code would otherwise keep in its session scratchpad and plans folder, and
+`State/Preferences.md` takes what auto-memory would keep about you (corrections, approaches
+you confirmed, how you like to work), loaded at every session start. So the project's
+whole working state is in the vault: back up the vault, or open it in Obsidian, and you
+have it.
 
 ### Findings
 

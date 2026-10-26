@@ -61,6 +61,7 @@ reset "~/vault"; t 'vault named in the ~/ form' 2 "$pad/notes.md"
 echo "== blocks: auto-memory =="
 reset; t 'Write in auto-memory' 2 "$mem/feedback.md"
   printf '%s\n' "$last_out" | grep -q 'Open Threads' || { fails=$((fails+1)); echo "FAIL <- says where it goes instead"; }
+  printf '%s\n' "$last_out" | grep -q 'State/Preferences.md' || { fails=$((fails+1)); echo "FAIL <- names Preferences for what auto-memory keeps about the maintainer"; }
 reset; t 'Edit of MEMORY.md' 2 "$mem/MEMORY.md" Edit
 reset; CLAUDE_CONFIG_DIR="$tmp/cfg" t 'under CLAUDE_CONFIG_DIR' 2 "$tmp/cfg/projects/x/memory/a.md"
 

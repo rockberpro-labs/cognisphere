@@ -3,10 +3,11 @@
 # context, so the agent starts from it instead of having to remember to open it (D35).
 #
 #   Active only when AGENTS.local.md names a vault ("The vault for this project is `…`").
-#   Prints, for the agent: Agent/00 Home.md, State/Open Threads.md, the latest note in
-#   Log/ (its tail, where the newest session is), the files in today's Scratch/ day
-#   folder (the work in flight), any file loose in Scratch/ outside a day folder, and the
-#   newest earlier day folder, as history (D36). Each note is capped so a grown note
+#   Prints, for the agent: Agent/00 Home.md, State/Preferences.md (what auto-memory
+#   would otherwise load), State/Open Threads.md, the latest note in Log/ (its tail, where
+#   the newest session is), the files in today's Scratch/ day folder (the work in
+#   flight), any file loose in Scratch/ outside a day folder, and the newest earlier day
+#   folder, as history (D36). Each note is capped so a grown note
 #   can't flood the context. It ends by telling the agent to keep its working state in
 #   Scratch/, not in Claude Code's session scratchpad, plans or auto-memory.
 #
@@ -47,6 +48,7 @@ earlier="$(ls "$a/Scratch/" 2>/dev/null | grep -E '^[0-9]{4}-[0-9]{2}-[0-9]{2}$'
 {
   echo "session-start: the vault for this project is $vault. Its reading order, loaded for you:"
   note "00 Home" "$a/00 Home.md" head 60
+  note "Preferences" "$a/State/Preferences.md" head 80
   note "Open Threads" "$a/State/Open Threads.md" head 150
   [ -n "$latest" ] && note "latest Log" "$a/Log/$latest" tail 80
   if [ -n "$current" ]; then

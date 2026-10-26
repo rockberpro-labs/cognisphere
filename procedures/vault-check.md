@@ -109,14 +109,17 @@ it (`names.sh <name>` prints its paths).
    the two Findings lines (`When you notice something outside the task…` and
    `Asked about known issues…`, added in v0.7.0) → report the template's lines: without
    them the agent neither records what it notices nor reads it back. A section without
-   the Scratch lines (`…/Agent/Scratch/` is your working memory…` and the four after it,
-   added in v0.13.0) → report the template's lines: without them the agent has no
-   moment to write its working notes and treats Scratch as off limits like the rest
-   of `Agent/`. A Scratch line naming `Scratch/<today> <topic>.md`, without the
-   `This project's working state lives in the vault…` line, or ending in "then delete the
-   rest" is the v0.13.0 text → report the template's current lines (v0.14.0): without
-   them the agent writes loose notes the hooks don't count, deletes the day's history and
-   keeps its working state in Claude Code's own stores. No `## Working style` section → report.
+   the Scratch lines (`…/Agent/Scratch/` is your workbench…`, or `is your working memory…`
+   before v0.14.0, and the four after it, added in v0.13.0) → report the template's
+   lines: without them the agent has no moment to write its working notes and treats
+   Scratch as off limits like the rest of `Agent/`. A Scratch line calling it "working
+   memory", naming `Scratch/<today> <topic>.md`, without the `This project's working
+   state lives in the vault…` line, without `State/Preferences.md`, or ending in "then
+   delete the rest" is the v0.13.0 text → report the template's current lines (v0.14.0):
+   without them the agent thinks aloud in Scratch instead of keeping its output there,
+   writes loose notes the hooks don't count, deletes the day's history, keeps its working
+   state in Claude Code's own stores and has nowhere in the vault for what auto-memory
+   kept about the maintainer. No `## Working style` section → report.
 4. **`CLAUDE.local.md`** must be a symlink to `AGENTS.local.md`
    (`[ -L CLAUDE.local.md ] && [ "$(readlink CLAUDE.local.md)" = AGENTS.local.md ]`).
    Missing → `/cognisphere:vault` creates it; a regular file or another target → report.

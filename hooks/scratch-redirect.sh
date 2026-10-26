@@ -66,11 +66,13 @@ else
   {
     echo "scratch-redirect: this project keeps the agent's state in its vault, not in Claude Code's"
     echo "auto-memory ($path). Put it where it belongs instead:"
-    echo "  - lasting truth about the code       -> the area's .agents/memory/ note (or tell the maintainer)"
-    echo "  - a question or decision left open   -> $vault/Agent/State/Open Threads.md"
-    echo "  - something noticed outside the task -> $vault/Agent/State/Findings.md"
-    echo "  - a correction or decision made      -> $vault/Agent/Log/$(date +%F).md"
-    echo "  - working state for this task        -> $day/<topic>.md"
+    echo "  - how the maintainer wants you to work -> $vault/Agent/State/Preferences.md (with the reason)"
+    echo "  - what to know about the maintainer    -> $vault/Agent/State/Preferences.md"
+    echo "  - lasting truth about the code         -> the area's .agents/memory/ note (or tell the maintainer)"
+    echo "  - a question or decision left open     -> $vault/Agent/State/Open Threads.md"
+    echo "  - something noticed outside the task   -> $vault/Agent/State/Findings.md"
+    echo "  - a correction or decision made        -> $vault/Agent/Log/$(date +%F).md"
+    echo "  - output for this task                 -> $day/<topic>.md"
   } >&2
 fi
 exit 2

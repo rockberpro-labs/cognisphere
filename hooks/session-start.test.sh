@@ -50,12 +50,14 @@ reset; t 'payload is not JSON' '^$' 'not json'
 
 echo "== injects the reading order =="
 reset; t 'Home' 'HOME-NOTE'
+reset; echo 'PREFS-NOTE' > "$vault/Agent/State/Preferences.md"; t 'Preferences' 'PREFS-NOTE'
 reset; t 'Open Threads' 'THREADS-NOTE'
 reset; t 'the latest Log note' 'NEW-LOG'
 reset; out="$(printf '{"cwd":"%s"}' "$repo" | bash "$H")"
   if printf '%s\n' "$out" | grep -q OLD-LOG; then fails=$((fails+1)); echo "FAIL <- an older Log note"; else echo "ok   <- not an older Log note"; fi
 reset "~/vault"; t 'vault named in the ~/ form' 'HOME-NOTE'
 reset; rm "$vault"/Agent/Log/*; t 'no Log note yet' 'THREADS-NOTE'
+reset; t 'no Preferences note (a vault seeded before it)' 'THREADS-NOTE'
 reset; seq 1 400 >> "$vault/Agent/State/Open Threads.md"; t 'a long note is capped' 'more lines: read the note'
 
 echo "== Scratch/ day folders =="
