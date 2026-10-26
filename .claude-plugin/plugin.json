@@ -1,8 +1,8 @@
 {
   "name": "cognisphere",
-  "version": "0.12.0",
+  "version": "0.13.0",
   "license": "MIT",
-  "description": "Agent harness plus a per-project vault: guards (master, secrets, memory drift), a Stop hook that asks for the vault's session log, .agents scaffold, /cognisphere:harness and /cognisphere:vault for either half alone, /cognisphere:read for vault notes copied in Obsidian, memory and rules mapping, explorer, planner, implementer, test-runner and reviewer agents, and an Obsidian-ready Agent/ workspace outside the repo.",
+  "description": "Agent harness plus a per-project vault: guards (master, secrets, memory drift), a SessionStart hook that loads the vault's reading order, a PreToolUse hook that asks for a Scratch plan before the first edit, a Stop hook that asks for the session log and the Scratch working notes, .agents scaffold, /cognisphere:harness and /cognisphere:vault for either half alone, /cognisphere:read for vault notes copied in Obsidian, memory and rules mapping, explorer, planner, implementer, test-runner and reviewer agents, and an Obsidian-ready Agent/ workspace outside the repo.",
   "author": { "name": "cognisphere contributors" },
   "repository": "https://github.com/rockberpro/cognisphere",
   "keywords": ["agents", "memory", "rules", "guards", "harness", "obsidian", "vault"]

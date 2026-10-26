@@ -108,8 +108,11 @@ it (`names.sh <name>` prints its paths).
    neither knows the shared notes exist nor that other projects' folders are off limits. A section without
    the two Findings lines (`When you notice something outside the task…` and
    `Asked about known issues…`, added in v0.7.0) → report the template's lines: without
-   them the agent neither records what it notices nor reads it back. No
-   `## Working style` section → report.
+   them the agent neither records what it notices nor reads it back. A section without
+   the Scratch lines (`…/Agent/Scratch/` is your working memory…` and the three after it,
+   added in v0.13.0) → report the template's lines: without them the agent has no
+   moment to write its working notes and treats Scratch as off limits like the rest
+   of `Agent/`. No `## Working style` section → report.
 4. **`CLAUDE.local.md`** must be a symlink to `AGENTS.local.md`
    (`[ -L CLAUDE.local.md ] && [ "$(readlink CLAUDE.local.md)" = AGENTS.local.md ]`).
    Missing → `/cognisphere:vault` creates it; a regular file or another target → report.

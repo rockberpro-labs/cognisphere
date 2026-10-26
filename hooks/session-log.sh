@@ -7,6 +7,11 @@
 #   began (its first transcript timestamp) the repo gained a commit or a changed file, or
 #   a vault State/ note changed, and no file in the vault's Log/ changed.
 #
+#   Also blocks, in the same reply, when the session changed 3 or more repo files
+#   (committed or not) and nothing in the vault's Scratch/ changed: the working notes
+#   AGENTS.local.md asks for before a multi-step edit were never written (D35). A file
+#   written there and deleted at the end still counts: the deletion changes the folder.
+#
 # Soft, because a stop is often a pause waiting on the user, not the end: the agent may
 # just stop again (`stop_hook_active` lets that through), and the same changes are never
 # reported twice: after a block, only changes newer than it count.
@@ -67,25 +72,55 @@ newer() {
     }' "$@" 2>/dev/null
 }
 
-[ -n "$(newer "$logged_since" "$vault/Agent/Log")" ] && exit 0
+# touched <epoch> <dir>: prints the dir, or anything under it, modified after <epoch>.
+# Unlike newer, folders count, so a file created and then deleted is still seen.
+touched() {
+  perl -MFile::Find -e '
+    my $t = shift;
+    find({ no_chdir => 1, wanted => sub { print "$_\n" if (lstat $_)[9] > $t } }, @ARGV);' "$@" 2>/dev/null
+}
+
+log_done=; [ -n "$(newer "$logged_since" "$vault/Agent/Log")" ] && log_done=1
+scratch_done=1
+[ -d "$vault/Agent/Scratch" ] && [ -z "$(touched "$start" "$vault/Agent/Scratch")" ] && scratch_done=
+[ -n "$log_done" ] && [ -n "$scratch_done" ] && exit 0
 
 commits="$(git -C "$root" log --since="@$since" --format='%h %s' 2>/dev/null)"
 files="$(cd "$root" && { git diff -z --name-only HEAD 2>/dev/null; git ls-files -z --others --exclude-standard 2>/dev/null; } | newer "$since")"
 state="$(newer "$since" "$vault/Agent/State")"
-[ -n "$commits$files$state" ] || exit 0
+
+need_log=; [ -z "$log_done" ] && [ -n "$commits$files$state" ] && need_log=1
+need_scratch=
+if [ -z "$scratch_done" ] && [ -n "$commits$files" ]; then
+  # Every repo file the session touched, committed or not, counted once.
+  touched_files="$(cd "$root" && { git log -z --since="@$start" --name-only --format= 2>/dev/null
+    git diff -z --name-only HEAD 2>/dev/null; git ls-files -z --others --exclude-standard 2>/dev/null; } \
+    | newer "$start" | sort -u | grep -c .)"
+  [ "${touched_files:-0}" -ge 3 ] && need_scratch=1
+fi
+[ -n "$need_log$need_scratch" ] || exit 0
 
 [ -n "$marker" ] && touch "$marker" 2>/dev/null
 
 list() { printf "%s\n" "$1" | sed -n "1,5s/^/    /p"; local n; n=$(( $(printf "%s\n" "$1" | wc -l) - 5 )); [ "$n" -gt 0 ] && echo "    … and $n more"; }
 {
-  echo "session-log: this session changed things and the vault's Log has no entry for it yet."
-  echo
-  [ -n "$commits" ] && { echo "  commits:"; list "$commits"; }
-  [ -n "$files" ] && { echo "  files:"; list "$files"; }
-  [ -n "$state" ] && { echo "  vault State/ notes:"; list "${state//"$vault/Agent/"/}"; }
-  echo
-  echo "If this reply ends the work, do Session Protocol § End now: append \`## Session N\`"
-  echo "to $vault/Agent/Log/$(date +%F).md and update State/Open Threads.md."
+  if [ -n "$need_log" ]; then
+    echo "session-log: this session changed things and the vault's Log has no entry for it yet."
+    echo
+    [ -n "$commits" ] && { echo "  commits:"; list "$commits"; }
+    [ -n "$files" ] && { echo "  files:"; list "$files"; }
+    [ -n "$state" ] && { echo "  vault State/ notes:"; list "${state//"$vault/Agent/"/}"; }
+    echo
+    echo "If this reply ends the work, do Session Protocol § End now: append \`## Session N\`"
+    echo "to $vault/Agent/Log/$(date +%F).md and update State/Open Threads.md."
+  fi
+  if [ -n "$need_scratch" ]; then
+    [ -n "$need_log" ] && echo
+    echo "session-log: this session touched $touched_files repo files and wrote nothing in $vault/Agent/Scratch/."
+    echo "Write \`Scratch/$(date +%F) <topic>.md\` now: the plan, the files touched, what you ruled"
+    echo "out and what is still open. If this reply ends the work, promote what matters to the"
+    echo "Log, Open Threads or Findings, then delete the file."
+  fi
   echo "If you are pausing for the user mid-task, just stop again: this reminder comes back"
   echo "only when something else changes."
 } >&2

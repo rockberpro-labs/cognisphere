@@ -20,11 +20,11 @@ at() { perl -e 'my $t = shift; utime $t, $t, @ARGV or exit 1' "$@"; }   # at <ep
 printf '{"type":"mode"}\n{"type":"user","timestamp":"%s"}\n' "$(iso "$start")" > "$tmp/transcript.jsonl"
 
 repo="$tmp/repo"; vault="$tmp/vault"; sid=0
-# A fresh repo whose only commit and files predate the session, and a vault with a Log
-# and a State note from yesterday. $1 is the path form AGENTS.local.md names.
+# A fresh repo whose only commit and files predate the session, and a vault with a Log,
+# a State note and a Scratch/ README from yesterday. $1 is the path form AGENTS.local.md names.
 reset() {
   rm -rf "$repo" "$vault" "$tmp"/cognisphere-session-log-*
-  mkdir -p "$repo" "$vault/Agent/Log" "$vault/Agent/State"
+  mkdir -p "$repo" "$vault/Agent/Log" "$vault/Agent/State" "$vault/Agent/Scratch"
   git -C "$repo" init -q -b feat
   echo a > "$repo/a.txt"; echo '/AGENTS.local.md' > "$repo/.gitignore"
   git -C "$repo" add a.txt .gitignore
@@ -33,8 +33,10 @@ reset() {
   printf '# local\n\n## Agent workspace\n\n- The vault for this project is `%s` (outside the repo).\n' \
     "${1:-$vault}" > "$repo/AGENTS.local.md"
   echo x > "$vault/Agent/Log/yesterday.md"; echo y > "$vault/Agent/State/Open Threads.md"
+  echo r > "$vault/Agent/Scratch/README.md"
   at "$((start - 86400))" "$repo/a.txt" "$repo/AGENTS.local.md" "$repo/.gitignore" \
-    "$vault/Agent/Log/yesterday.md" "$vault/Agent/State/Open Threads.md"
+    "$vault/Agent/Log/yesterday.md" "$vault/Agent/State/Open Threads.md" \
+    "$vault/Agent/Scratch/README.md" "$vault/Agent/Scratch"
   sid=$((sid + 1))
 }
 
@@ -71,6 +73,22 @@ reset; echo b >> "$repo/a.txt"; t 'stop_hook_active: the agent stopped again' 0 
 reset; echo b >> "$repo/a.txt"; at "$((now - 10))" "$repo/a.txt"; t 'first stop after a change' 2
 t 'next stop, nothing new since the block' 0
 echo c >> "$repo/a.txt"; at "$((now + 10))" "$repo/a.txt"; t 'next stop, a newer change' 2
+
+echo "== scratch: 3+ repo files touched and nothing written in Scratch/ =="
+three() { echo b >> "$repo/a.txt"; echo n > "$repo/n1.txt"; echo n > "$repo/n2.txt"; }
+logged() { echo s > "$vault/Agent/Log/today.md"; }
+reset; three; logged; t '3 files, logged, Scratch untouched' 2
+reset; echo b >> "$repo/a.txt"; echo n > "$repo/n1.txt"; logged; t '2 files: under the threshold' 0
+reset; three; logged; echo p > "$vault/Agent/Scratch/plan.md"; t 'a Scratch note written' 0
+reset; three; logged; echo p > "$vault/Agent/Scratch/plan.md"; rm "$vault/Agent/Scratch/plan.md"
+  t 'a Scratch note written, then pruned' 0
+reset; three; git -C "$repo" add -A; git -C "$repo" -c user.email=t@t -c user.name=t commit -q -m s
+  logged; t '3 files committed, clean tree' 2
+reset; three; logged; rm -r "$vault/Agent/Scratch"; t 'the vault has no Scratch/' 0
+reset; three; t 'no Log and no Scratch: one block for both' 2
+reset; three; logged; t 'stop_hook_active: the agent stopped again' 0 true
+reset; three; logged; at "$((now - 10))" "$repo/a.txt" "$repo/n1.txt" "$repo/n2.txt"; t 'first stop' 2
+t 'next stop, nothing new since the block' 0
 
 echo
 [ "$fails" -eq 0 ] && echo "all session-log cases pass" || { echo "$fails case(s) FAILED"; exit 1; }

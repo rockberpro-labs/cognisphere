@@ -4,6 +4,31 @@ What changed in each release of cognisphere. Versions follow
 [semver](https://semver.org/); the reasoning behind each change is in
 [docs/decisions.md](docs/decisions.md), referenced as `Dnn`.
 
+## 0.13.0 — 2026-10-26
+
+### Added
+
+- A SessionStart hook, `session-start`: in a project with a vault, it loads `00 Home`,
+  Open Threads and the tail of the latest Log note into the session's context, and
+  lists any `Scratch/` file an earlier session left behind (D35).
+- A PreToolUse hook, `scratch-first`: in a project with a vault, it refuses an Edit,
+  Write, MultiEdit or NotebookEdit of a repo file until the session has written a note
+  in `Scratch/`, so the plan comes before the code. Edits made through Bash aren't
+  seen (D35).
+
+### Changed
+
+- `Scratch/` is now the agent's working memory: written freely, exempt from "only what
+  nothing else holds", emptied at session end after promoting what matters.
+  `AGENTS.local.md` gives it set moments: before the first edit of a multi-step task,
+  before a long investigation, and a Log or Open Threads entry when the maintainer
+  corrects or decides something (D35).
+- The `session-log` Stop hook also blocks once when the session touched 3 or more repo
+  files and wrote nothing in `Scratch/` (D35).
+- `/cognisphere:update` reports an `AGENTS.local.md` without the Scratch lines. Existing
+  vault notes aren't rewritten: copy the Scratch README, Session Protocol and Vault
+  Guide changes by hand if you want them.
+
 ## 0.12.0 — 2026-10-26
 
 ### Added

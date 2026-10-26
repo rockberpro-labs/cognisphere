@@ -734,3 +734,43 @@ without a turn is the instruction-only habit again, and a reminder at the next p
 arrives after the session may already be over. Re-blocking after every reply until the Log changes: a long session
 paused for the user would pay a turn on each reply. Checking Findings: a missed
 finding changes no file, so it stays instruction-driven.
+
+## D35. Scratch is working memory, with set moments and a check
+
+*2026-10-26, v0.13.0*
+
+Supersedes D21 in part: its "only what nothing else holds" no longer covers `Scratch/`.
+
+**Decision.** `Scratch/` is the agent's working memory. It is written freely, a copy of
+something held elsewhere included, and emptied at session end after promoting what
+matters. `AGENTS.local.md` gives it set moments: before the first edit of a multi-step
+task (the plan, the files to touch, the open questions), before a long investigation
+(what is sought, what was ruled out), and, outside Scratch, a Log or Open Threads entry
+as soon as the maintainer corrects or decides something. Three hooks back this. A
+SessionStart hook, `hooks/session-start.sh`, puts `00 Home`, Open Threads, the tail of
+the latest Log note and the names of leftover Scratch files into context, capped per
+note. The `session-log` Stop hook also blocks once when the session touched 3 or more
+repo files, committed or not, and nothing under `Scratch/` changed, the folder itself
+included so a pruned note still counts. A PreToolUse hook on Edit, Write, MultiEdit and
+NotebookEdit, `hooks/scratch-first.sh`, refuses an edit of a repo file until a file in
+`Scratch/` other than its README was written in the session; unlike the Stop hook it
+keeps refusing, since the note is one Write away. All three are active only with a
+vault and fail open.
+
+**Why.** Used on real projects, the agent wrote almost nothing to `Agent/` outside the
+Log the Stop hook demands. The instructions were nearly all prohibitions ("only what
+nothing else holds", "never copy", "never park"), and the one invitation, "think in
+`Scratch/`", named no moment and sat in a note read only if the agent followed Home's
+reading order. Under doubt, the prohibitions won. D21's rule exists against copies that
+outlive their originals; a Scratch note is deleted at session end, so it can't go
+stale the way Current State did. As with D34, an instruction alone slipped, so the
+moments that matter get a hook.
+
+**Rejected.** Stricter wording alone: D21 already showed hints don't change behaviour.
+Loosening the whole vault: `State/` copies went stale in v0.1.0 and would again.
+Keeping Scratch notes for good: they pile up and get reread as if current. Checking
+Scratch on any change at stop: a one-file fix needs no reminder, so the Stop hook waits
+for 3 files. Only the stop-time check: it lets the agent work first and write one summary
+note at the end, the opposite of a plan. A soft PreToolUse block that a retry clears:
+the retry is the whole cost of ignoring it. Catching edits made through Bash (`sed -i`, a
+heredoc): no reliable way to tell them from reads.
