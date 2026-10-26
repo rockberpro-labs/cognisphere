@@ -4,9 +4,11 @@
 #
 #   Active only when AGENTS.local.md names a vault ("The vault for this project is `…`").
 #   Prints, for the agent: Agent/00 Home.md, State/Open Threads.md, the latest note in
-#   Log/ (its tail, where the newest session is), and the files left in Scratch/ by a
-#   session that never pruned them. Each note is capped so a grown note can't flood
-#   the context.
+#   Log/ (its tail, where the newest session is), the files in today's Scratch/ day
+#   folder (the work in flight), any file loose in Scratch/ outside a day folder, and the
+#   newest earlier day folder, as history (D36). Each note is capped so a grown note
+#   can't flood the context. It ends by telling the agent to keep its working state in
+#   Scratch/, not in Claude Code's session scratchpad, plans or auto-memory.
 #
 # Fails OPEN: any internal error exits 0 with no output, so the session starts as usual.
 set -uo pipefail
@@ -36,19 +38,29 @@ note() {
   return 0
 }
 
+today="$(date +%F)"
 latest="$(ls "$a/Log/" 2>/dev/null | grep -E '^[0-9]{4}-[0-9]{2}-[0-9]{2}\.md$' | sort | tail -n 1)"
-scratch="$(ls "$a/Scratch/" 2>/dev/null | grep -vx 'README.md')"
+current="$(cd "$a/Scratch/$today" 2>/dev/null && find . -type f 2>/dev/null | sed 's|^\./||' | sort)"
+loose="$(cd "$a/Scratch" 2>/dev/null && find . -maxdepth 1 -type f ! -name README.md 2>/dev/null | sed 's|^\./||' | sort)"
+earlier="$(ls "$a/Scratch/" 2>/dev/null | grep -E '^[0-9]{4}-[0-9]{2}-[0-9]{2}$' | grep -vx "$today" | sort | tail -n 1)"
 
 {
   echo "session-start: the vault for this project is $vault. Its reading order, loaded for you:"
   note "00 Home" "$a/00 Home.md" head 60
   note "Open Threads" "$a/State/Open Threads.md" head 150
   [ -n "$latest" ] && note "latest Log" "$a/Log/$latest" tail 80
-  if [ -n "$scratch" ]; then
-    echo; echo "=== Scratch/ left from an earlier session: promote what matters, then delete ==="
-    printf '%s\n' "$scratch" | sed -n '1,10s/^/  /p'
+  if [ -n "$current" ]; then
+    echo; echo "=== Scratch/$today/: today's working notes, the work in flight ==="
+    printf '%s\n' "$current" | sed -n '1,10s/^/  /p'
   fi
+  if [ -n "$loose" ]; then
+    echo; echo "=== Scratch/ files outside a day folder: move each into its Scratch/YYYY-MM-DD/ ==="
+    printf '%s\n' "$loose" | sed -n '1,10s/^/  /p'
+  fi
+  [ -n "$earlier" ] && { echo; echo "Older Scratch/ day folders are history, not current (newest: Scratch/$earlier/): read one only when the task needs it."; }
   echo
-  echo "Run \`git status\` and \`git log -5\` next. Write your working notes in $a/Scratch/ as AGENTS.local.md says."
+  echo "Run \`git status\` and \`git log -5\` next. Write your working notes in $a/Scratch/$today/"
+  echo "as AGENTS.local.md says. This project's working state lives in the vault: use that"
+  echo "folder instead of Claude Code's session scratchpad, plans folder or auto-memory."
 }
 exit 0

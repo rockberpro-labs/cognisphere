@@ -135,7 +135,8 @@ conventions; what's left is the agent's own:
 - **Findings**: what it notices outside its task (a bug, a risk, a missing test), written
   the moment it notices, never fixed unasked. Ask "known issues?" and it starts here.
 - **Log**: one block per session, so the next one picks up where this one stopped.
-- **Scratch**: working memory, written freely and emptied each session.
+- **Scratch**: working memory, one folder per day, kept as history. It replaces Claude
+  Code's own scratchpad, plans and auto-memory, so backing up the vault backs up the work.
 
 Your notes go in `Human/` (this project) or `Shared/` (every project). The agent reads
 them and never writes them. Install also asks whether the agent is your **author** (it
@@ -171,7 +172,9 @@ error never blocks the session.
 
 In a project with a vault, a SessionStart hook, `session-start`, loads the vault's
 reading order into context, a PreToolUse hook, `scratch-first`, refuses repo edits until
-the session has written its plan in `Scratch/`, and a Stop hook, `session-log`, asks once for the
+the session has written its plan in `Scratch/` (and again when the note falls behind),
+`scratch-redirect` sends writes meant for Claude Code's scratchpad or auto-memory to the
+vault, a PostToolUse hook, `plan-mirror`, copies plan-mode plans into `Scratch/`, and a Stop hook, `session-log`, asks once for the
 end-of-session Log entry when the session changed something and didn't log it, and for
 the `Scratch/` working notes when it touched 3 or more files without them.
 

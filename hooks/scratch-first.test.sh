@@ -19,7 +19,7 @@ iso() { perl -e 'my @t = gmtime shift; printf "%04d-%02d-%02dT%02d:%02d:%02d.000
 at() { perl -e 'my $t = shift; utime $t, $t, @ARGV or exit 1' "$@"; }   # at <epoch> <file>...
 printf '{"type":"mode"}\n{"type":"user","timestamp":"%s"}\n' "$(iso "$start")" > "$tmp/transcript.jsonl"
 
-repo="$tmp/repo"; vault="$tmp/vault"
+repo="$tmp/repo"; vault="$tmp/vault"; day="$vault/Agent/Scratch/$(date +%F)"
 # A fresh repo and a vault whose Scratch/ holds only a README from yesterday.
 # $1 is the path form AGENTS.local.md names.
 reset() {
@@ -29,8 +29,12 @@ reset() {
   printf '# local\n\n## Agent workspace\n\n- The vault for this project is `%s` (outside the repo).\n' \
     "${1:-$vault}" > "$repo/AGENTS.local.md"
   echo r > "$vault/Agent/Scratch/README.md"
-  at "$((start - 86400))" "$vault/Agent/Scratch/README.md"
+  at "$((start - 86400))" "$vault/Agent/Scratch/README.md" "$repo/AGENTS.local.md"
 }
+# note <epoch>: a note in today's day folder, written at <epoch>.
+note() { mkdir -p "$day"; echo p > "$day/plan.md"; at "$1" "$day/plan.md"; }
+# edits <epoch> <n>: <n> repo files written at <epoch>.
+edits() { local i; for i in $(seq 1 "$2"); do echo x > "$repo/src/f$i.txt"; at "$1" "$repo/src/f$i.txt"; done; }
 
 fails=0
 t(){ # t <name> <expected exit> [file_path] [tool] [payload override]
@@ -41,6 +45,7 @@ t(){ # t <name> <expected exit> [file_path] [tool] [payload override]
   local r=$?; local s=ok
   [ "$r" = "$2" ] || { s=FAIL; fails=$((fails+1)); printf '%s\n' "$out" | sed 's/^/       /'; }
   printf '%-4s got=%s want=%s  <- %s\n' "$s" "$r" "$2" "$1"
+  last_out="$out"
 }
 
 echo "== quiet: not a vault project, or not a repo file =="
@@ -59,13 +64,26 @@ reset; t 'Write of a new file' 2 "$repo/src/new.txt" Write
 reset; t 'NotebookEdit' 2 "$repo/src/n.ipynb" NotebookEdit
 reset; t 'a relative path' 2 "src/a.txt"
 reset "~/vault"; t 'vault named in the ~/ form' 2
-reset; echo old > "$vault/Agent/Scratch/old.md"; at "$((start - 60))" "$vault/Agent/Scratch/old.md"
-  t 'a note left from an earlier session' 2
+reset; note "$((start - 60))"; t 'a note left from an earlier session' 2
+reset; echo p > "$vault/Agent/Scratch/plan.md"; t 'a loose note, outside a day folder' 2
 reset; echo r >> "$vault/Agent/Scratch/README.md"; t 'only the README changed' 2
+reset; t 'the block names the day folder' 2
+  printf '%s\n' "$last_out" | grep -q "Scratch/$(date +%F)/" || { fails=$((fails+1)); echo "FAIL <- the block names Scratch/$(date +%F)/"; }
 
-echo "== passes: a note written this session =="
-reset; echo p > "$vault/Agent/Scratch/plan.md"; t 'a note written this session' 0
-reset; mkdir "$vault/Agent/Scratch/sub"; echo p > "$vault/Agent/Scratch/sub/plan.md"; t 'a note in a subfolder' 0
+echo "== passes: a note written this session, in a day folder =="
+reset; note "$((start + 60))"; t "a note in today's day folder" 0
+reset; mkdir -p "$vault/Agent/Scratch/2020-01-01/sub"; echo p > "$vault/Agent/Scratch/2020-01-01/sub/plan.md"
+  t 'a note in another day folder, written this session (past midnight)' 0
+
+echo "== the note falls behind: 3+ repo files changed since the newest Scratch write =="
+reset; note "$((start + 60))"; edits "$((start + 120))" 2; t '2 files since the note' 0
+reset; note "$((start + 60))"; edits "$((start + 120))" 3; t '3 files since the note' 2
+  printf '%s\n' "$last_out" | grep -q 'f1\.txt' || { fails=$((fails+1)); echo "FAIL <- the block names the files"; }
+reset; note "$((start + 180))"; edits "$((start + 120))" 3; t '3 files, the note updated after them' 0
+reset; note "$((start + 60))"; edits "$((start + 120))" 3
+  git -C "$repo" add src && git -C "$repo" -c user.name=t -c user.email=t@t commit -qm x
+  t '3 files since the note, committed' 2
+reset; edits "$((start - 120))" 3; note "$((start + 60))"; t '3 files changed before the session' 0
 
 echo
 [ "$fails" -eq 0 ] && echo "all scratch-first cases pass" || { echo "$fails case(s) FAILED"; exit 1; }

@@ -9,8 +9,8 @@
 #
 #   Also blocks, in the same reply, when the session changed 3 or more repo files
 #   (committed or not) and nothing in the vault's Scratch/ changed: the working notes
-#   AGENTS.local.md asks for before a multi-step edit were never written (D35). A file
-#   written there and deleted at the end still counts: the deletion changes the folder.
+#   AGENTS.local.md asks for before a multi-step edit were never written (D35). Anything
+#   written under Scratch/ counts, a day folder's note or a file since deleted (D36).
 #
 # Soft, because a stop is often a pause waiting on the user, not the end: the agent may
 # just stop again (`stop_hook_active` lets that through), and the same changes are never
@@ -117,9 +117,9 @@ list() { printf "%s\n" "$1" | sed -n "1,5s/^/    /p"; local n; n=$(( $(printf "%
   if [ -n "$need_scratch" ]; then
     [ -n "$need_log" ] && echo
     echo "session-log: this session touched $touched_files repo files and wrote nothing in $vault/Agent/Scratch/."
-    echo "Write \`Scratch/$(date +%F) <topic>.md\` now: the plan, the files touched, what you ruled"
+    echo "Write \`Scratch/$(date +%F)/<topic>.md\` now: the plan, the files touched, what you ruled"
     echo "out and what is still open. If this reply ends the work, promote what matters to the"
-    echo "Log, Open Threads or Findings, then delete the file."
+    echo "Log, Open Threads or Findings; the day folder stays, as the history of the work."
   fi
   echo "If you are pausing for the user mid-task, just stop again: this reminder comes back"
   echo "only when something else changes."

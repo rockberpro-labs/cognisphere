@@ -109,10 +109,14 @@ it (`names.sh <name>` prints its paths).
    the two Findings lines (`When you notice something outside the task…` and
    `Asked about known issues…`, added in v0.7.0) → report the template's lines: without
    them the agent neither records what it notices nor reads it back. A section without
-   the Scratch lines (`…/Agent/Scratch/` is your working memory…` and the three after it,
+   the Scratch lines (`…/Agent/Scratch/` is your working memory…` and the four after it,
    added in v0.13.0) → report the template's lines: without them the agent has no
    moment to write its working notes and treats Scratch as off limits like the rest
-   of `Agent/`. No `## Working style` section → report.
+   of `Agent/`. A Scratch line naming `Scratch/<today> <topic>.md`, without the
+   `This project's working state lives in the vault…` line, or ending in "then delete the
+   rest" is the v0.13.0 text → report the template's current lines (v0.14.0): without
+   them the agent writes loose notes the hooks don't count, deletes the day's history and
+   keeps its working state in Claude Code's own stores. No `## Working style` section → report.
 4. **`CLAUDE.local.md`** must be a symlink to `AGENTS.local.md`
    (`[ -L CLAUDE.local.md ] && [ "$(readlink CLAUDE.local.md)" = AGENTS.local.md ]`).
    Missing → `/cognisphere:vault` creates it; a regular file or another target → report.

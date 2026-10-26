@@ -36,7 +36,7 @@ This note is the vault's own rulebook. `/cognisphere:vault` (or `/cognisphere:in
 
 What is left is the agent's own: open threads, what it noticed along the way, events git doesn't record, the session log and scratch work.
 
-`Scratch/` is the exception to this rule: it is working memory, written freely while the work lasts, and emptied at session end.
+`Scratch/` is the exception to this rule: it is working memory, written freely, one folder per day. Only today's folder is current; older ones are history.
 
 ---
 
@@ -75,10 +75,10 @@ Rejected findings stay, struck through with the maintainer's reason, so the same
 - When the repo keeps its own progress log (a plan with status, next steps and per-phase logs), that log owns what was built and what comes next. A session here stays at session level: Asked, Not verified, harness threads. **Did** and **Next** point to the plan's entry instead of restating it.
 
 ### `Scratch/`: "working memory"
-- Plans, files touched, dead ends, diff sketches, maths checks, repro scripts, half-ideas. `YYYY-MM-DD topic.md`.
-- Written freely: a copy of something held elsewhere is fine here while the work lasts.
-- Written at set moments: before the first edit of a task, and before a long investigation. The `scratch-first` hook refuses repo edits until a note exists this session; the Stop hook asks again when a session touched 3 or more repo files and nothing here changed.
-- Nothing here is authoritative. At session end, promote what's worth keeping, then delete the rest.
+- Plans, files touched, dead ends, diff sketches, maths checks, repro scripts, half-ideas, intermediate output. `YYYY-MM-DD/topic.md`, one folder per day.
+- Written freely: a copy of something held elsewhere is fine here. It takes what would otherwise go to Claude Code's session scratchpad or auto-memory, so the work travels with the vault; a plan-mode plan is copied here as `plan <name>.md`.
+- Written at set moments: before the first edit of a task, and before a long investigation. The `scratch-first` hook refuses repo edits until a note exists this session, and again once 3 repo files changed since the last write; the Stop hook asks again when a session touched 3 or more repo files and nothing here changed.
+- Nothing here is authoritative. At session end, promote what's worth keeping; the day folder stays as history. Read an older day folder only when the task needs it, never as the current state.
 
 The top level stays at **one note plus four folders**. Don't add new top-level folders without the maintainer's agreement.
 
@@ -101,7 +101,7 @@ The top level stays at **one note plus four folders**. Don't add new top-level f
 - **Hint comments:** a section may carry one short `<!-- … -->` saying what belongs there. They are invisible in Obsidian's reading view. Keep them; never repeat the same block across notes.
 - **Navigation line** under the H1: `Back: [[00 Home]] · [[sibling]] …`.
 - **Wikilinks** by bare note name (`[[Open Threads]]`), with an alias when helpful (`[[Scratch/README|Scratch]]`). Inside a table, escape the alias pipe (`[[Scratch/README\|Scratch]]`).
-- **Names:** Title Case with spaces for notes, ISO dates for Log and Scratch, `00 ` prefix only for Home.
+- **Names:** Title Case with spaces for notes, ISO dates for Log notes and Scratch day folders, `00 ` prefix only for Home.
 - **Dates:** absolute, never "yesterday" or "last week".
 - **Anchors:** a status that depends on the code (tests pass, a bug reproduces) names the commit: "at `<sha>`". A date alone means nothing after the next commit.
 - **Language:** English for the vault. Keep domain terms as the code's language names them.

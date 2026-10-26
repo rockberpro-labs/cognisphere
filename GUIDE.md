@@ -57,7 +57,7 @@ Each fact has one place, chosen by when it must be loaded:
     │   ├── State/            Open Threads · Findings · History
     │   ├── Workflow/         Session Protocol · Vault Guide
     │   ├── Log/              YYYY-MM-DD.md, one "## Session N" block per session
-    │   └── Scratch/          working memory, emptied each session
+    │   └── Scratch/          working memory, one YYYY-MM-DD/ folder per day, kept
     └── Human/                your notes; this project's agent only reads them
 ```
 
@@ -72,8 +72,12 @@ findings (a defect waits there until you open its issue), events git doesn't rec
 session log and scratch work.
 
 `Scratch/` is the exception: it is the agent's working memory, written freely (a plan
-before a multi-step edit, dead ends during an investigation) and emptied at session end
-after what matters is promoted.
+before a multi-step edit, dead ends during an investigation, scripts and intermediate
+output) in one folder per day. Today's folder is the work in flight; older ones are kept
+as the history of how the work went, and are never read as the current state. It takes
+what Claude Code would otherwise keep in its session scratchpad, plans folder or
+auto-memory, so the project's whole working state is in the vault: back up the vault,
+or open it in Obsidian, and you have it.
 
 ### Findings
 
@@ -242,16 +246,31 @@ One more hook runs when the agent stops, in a project with a vault only:
   It also blocks once when the session touched 3 or more repo files (committed or
   not) and nothing in `Scratch/` changed, asking for the working notes.
 
-And two more, in a project with a vault only:
+And four more, in a project with a vault only:
 
 - **`scratch-first`** — `hooks/scratch-first.sh`, a PreToolUse hook on Edit, Write,
   MultiEdit and NotebookEdit. Refuses an edit of a repo file until the session has
-  written a note in `Scratch/` (any file but its README), and keeps refusing until one
-  exists. Edits outside the repo pass; edits made through Bash aren't seen.
+  written a note in a `Scratch/YYYY-MM-DD/` day folder, and keeps refusing until one
+  exists. It refuses again once 3 or more repo files (committed or not) changed since the
+  newest Scratch write, until the note is brought up to date. Edits outside the repo
+  pass; edits made through Bash aren't seen.
+
+- **`scratch-redirect`** — `hooks/scratch-redirect.sh`, a PreToolUse hook on the same
+  tools. Refuses a write to Claude Code's session scratchpad (a `scratchpad/` folder
+  under `claude*` in the temp dir) or to auto-memory
+  (`~/.claude/projects/*/memory/`, or under `CLAUDE_CONFIG_DIR`), and says where it
+  goes in the vault instead. Writes through Bash aren't seen.
+
+- **`plan-mirror`** — `hooks/plan-mirror.sh`, a PostToolUse hook on Write, Edit and
+  MultiEdit. Copies a plan-mode plan (`~/.claude/plans/*.md`) to
+  `Scratch/<today>/plan <name>.md` on every write, so plan mode keeps working and the
+  plan still ends up in the vault. A custom `plansDirectory` isn't followed.
 
 - **`session-start`** — `hooks/session-start.sh`, a SessionStart hook. Loads `00 Home`,
   Open Threads and the tail of the latest Log note into the session's context, each
-  capped, and lists any `Scratch/` file an earlier session left behind.
+  capped, lists today's `Scratch/` notes and any file loose outside a day folder, names
+  the newest earlier day folder as history, and tells the agent to keep its working
+  state in the vault rather than in Claude Code's own stores.
 
 The versioned `settings.json` also denies the blanket `git add` forms (`-A`, `--all`,
 `.`, `-u`) and allows the read-only git commands without prompting.
@@ -335,7 +354,7 @@ the code names them. Filenames stay English everywhere.
   `SKILL.md` and reading procedures from `procedures/` on demand (`scaffold`, `memory`,
   `rules`, `review-settings`, `review-memory`, `review-rules`, `vault`, `vault-check`);
   `install`, which runs `harness` then `vault`; `read`, with no procedure.
-- **`hooks/`** — `guard.sh`, `session-log.sh`, `session-start.sh`, `scratch-first.sh` and one test per guard and hook.
+- **`hooks/`** — `guard.sh`, `session-log.sh`, `session-start.sh`, `scratch-first.sh`, `scratch-redirect.sh`, `plan-mirror.sh` and one test per guard and hook.
 - **`agents/`** — `cognisphere:explorer` (read-only investigator; the memory passes fan
   out to it), `cognisphere:planner` (ordered steps from an explorer report),
   `cognisphere:implementer` (one planned step, code plus the stale note),

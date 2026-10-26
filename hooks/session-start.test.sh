@@ -58,10 +58,15 @@ reset "~/vault"; t 'vault named in the ~/ form' 'HOME-NOTE'
 reset; rm "$vault"/Agent/Log/*; t 'no Log note yet' 'THREADS-NOTE'
 reset; seq 1 400 >> "$vault/Agent/State/Open Threads.md"; t 'a long note is capped' 'more lines: read the note'
 
-echo "== Scratch/ leftovers =="
-reset; echo p > "$vault/Agent/Scratch/2026-02-01 plan.md"; t 'a leftover is listed' '2026-02-01 plan\.md'
+echo "== Scratch/ day folders =="
+today="$(date +%F)"
+reset; mkdir "$vault/Agent/Scratch/$today"; echo p > "$vault/Agent/Scratch/$today/auth plan.md"
+  t "today's notes are listed" 'auth plan\.md'
+reset; mkdir "$vault/Agent/Scratch/2020-01-01"; t 'an earlier day folder is named as history' 'history.*Scratch/2020-01-01/'
+reset; echo p > "$vault/Agent/Scratch/2026-02-01 plan.md"; t 'a loose file is listed to move' 'outside a day folder'
+reset; t 'points at the day folder, not the internal stores' "Scratch/$today/"
 reset; out="$(printf '{"cwd":"%s"}' "$repo" | bash "$H")"
-  if printf '%s\n' "$out" | grep -q 'left from an earlier'; then fails=$((fails+1)); echo "FAIL <- README alone is no leftover"; else echo "ok   <- README alone is no leftover"; fi
+  if printf '%s\n' "$out" | grep -q 'outside a day folder'; then fails=$((fails+1)); echo "FAIL <- README alone is not loose"; else echo "ok   <- README alone is not loose"; fi
 
 echo
 [ "$fails" -eq 0 ] && echo "all session-start cases pass" || { echo "$fails case(s) FAILED"; exit 1; }

@@ -79,8 +79,8 @@ three() { echo b >> "$repo/a.txt"; echo n > "$repo/n1.txt"; echo n > "$repo/n2.t
 logged() { echo s > "$vault/Agent/Log/today.md"; }
 reset; three; logged; t '3 files, logged, Scratch untouched' 2
 reset; echo b >> "$repo/a.txt"; echo n > "$repo/n1.txt"; logged; t '2 files: under the threshold' 0
-reset; three; logged; echo p > "$vault/Agent/Scratch/plan.md"; t 'a Scratch note written' 0
-reset; three; logged; echo p > "$vault/Agent/Scratch/plan.md"; rm "$vault/Agent/Scratch/plan.md"
+reset; three; logged; mkdir -p "$vault/Agent/Scratch/d"; echo p > "$vault/Agent/Scratch/d/plan.md"; t 'a Scratch note written' 0
+reset; three; logged; mkdir -p "$vault/Agent/Scratch/d"; echo p > "$vault/Agent/Scratch/d/plan.md"; rm -r "$vault/Agent/Scratch/d"
   t 'a Scratch note written, then pruned' 0
 reset; three; git -C "$repo" add -A; git -C "$repo" -c user.email=t@t -c user.name=t commit -q -m s
   logged; t '3 files committed, clean tree' 2

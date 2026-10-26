@@ -774,3 +774,43 @@ for 3 files. Only the stop-time check: it lets the agent work first and write on
 note at the end, the opposite of a plan. A soft PreToolUse block that a retry clears:
 the retry is the whole cost of ignoring it. Catching edits made through Bash (`sed -i`, a
 heredoc): no reliable way to tell them from reads.
+
+## D36. Scratch keeps day folders and takes over Claude Code's own stores
+
+*2026-10-26, v0.14.0*
+
+Supersedes D35 in part: Scratch notes are no longer deleted at session end, and a
+single note no longer satisfies `scratch-first` for the rest of the session.
+
+**Decision.** The vault is where the project's whole working state lives, so it can be
+backed up and opened in Obsidian as it is. `Scratch/` holds one folder per day,
+`Scratch/YYYY-MM-DD/<topic>.md`, kept after the session as the history of how the work
+went; only today's folder is current. `scratch-first` counts only a note in a day
+folder, and refuses again once 3 or more repo files, committed or not, changed since
+the newest Scratch write. A new PreToolUse hook, `hooks/scratch-redirect.sh`, refuses
+a write to Claude Code's session scratchpad (a `scratchpad/` folder under `claude*` in
+the temp dir) and to auto-memory (`<config dir>/projects/*/memory/`), and names the
+vault note that takes it instead. A new PostToolUse hook, `hooks/plan-mirror.sh`,
+copies a plan-mode plan (`<config dir>/plans/*.md`) into today's day folder on every
+write. `session-start` lists today's notes and any loose Scratch file, names the newest
+earlier day folder as history, and tells the agent the vault overrides Claude Code's
+stores. `AGENTS.local.md` says the same. All of these are active only with a vault.
+
+**Why.** Claude Code keeps the agent's working state in its own folders: a per-session
+scratchpad in the temp dir, plan files and auto-memory under `~/.claude`. None of it is
+in the vault, so backing up or opening the vault missed the work in flight, and the
+system prompt tells the agent to use the scratchpad, which an instruction in
+`AGENTS.local.md` alone doesn't reliably outweigh. D35's reason to delete notes, that
+old notes get reread as if current, is answered by the day folder: only today's is
+current, and older ones are visibly history. Deleting threw away the record of how the
+work went, which is what portability is meant to keep. One note per session let the
+agent write a line at the start and nothing after, so the check now follows the work,
+with D35's threshold of 3 files.
+
+**Rejected.** Blocking plan files: plan mode writes and reads its own file, and
+refusing it would break plan mode; a copy keeps both. Mirroring auto-memory instead of
+blocking it: two stores for the same facts, and the vault already has a place for each
+kind. Catching writes made through Bash: the same reason as in D35. Date folders for
+`State/`: its notes are current by definition, one file each. Keeping loose
+`YYYY-MM-DD topic.md` files: a day's notes then mix with every other day's in one list,
+and nothing marks which are current.
