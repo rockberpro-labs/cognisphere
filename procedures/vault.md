@@ -132,7 +132,7 @@ lacks. Nothing in them is ever rewritten.
 
    ```bash
    if [ -L CLAUDE.local.md ] && [ ! -e CLAUDE.local.md ]; then rm CLAUDE.local.md; fi
-   [ -e CLAUDE.local.md ] || ln -s AGENTS.local.md CLAUDE.local.md
+   [ -e CLAUDE.local.md ] || { ln -s AGENTS.local.md CLAUDE.local.md; [ -L CLAUDE.local.md ] || { rm CLAUDE.local.md; echo "ln -s made a copy, not a link: on Windows see README § Windows" >&2; exit 1; }; }
    ```
 
    `CLAUDE.local.md` is a regular file next to an `AGENTS.local.md` → diff them, show

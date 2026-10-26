@@ -83,7 +83,7 @@ CLAUDE.local.md -> AGENTS.local.md   (gitignored)
    [ -e .agents/.gitignore ] || printf 'settings.local.json\n.obsidian\n' > .agents/.gitignore
    # A dangling symlink is invisible to -e but still occupies the name, so ln fails.
    if [ -L .claude ] && [ ! -e .claude ]; then rm .claude; fi
-   [ -e .claude ] || ln -s .agents .claude
+   [ -e .claude ] || { ln -s .agents .claude; [ -L .claude ] || { rm -r .claude; echo "ln -s made a copy, not a link: on Windows see README § Windows" >&2; exit 1; }; }
    ```
 
    An existing `.agents/.gitignore` without `settings.local.json` gets that line
@@ -123,7 +123,7 @@ CLAUDE.local.md -> AGENTS.local.md   (gitignored)
    if [ -L CLAUDE.md ] && [ ! -e CLAUDE.md ]; then rm CLAUDE.md; fi   # dangling: drop it
    [ -e AGENTS.md ] || [ -L CLAUDE.md ] || [ ! -e CLAUDE.md ] || git mv CLAUDE.md AGENTS.md
    [ -e AGENTS.md ] || touch AGENTS.md          # then write the content below
-   [ -e CLAUDE.md ] || ln -s AGENTS.md CLAUDE.md
+   [ -e CLAUDE.md ] || { ln -s AGENTS.md CLAUDE.md; [ -L CLAUDE.md ] || { rm CLAUDE.md; echo "ln -s made a copy, not a link: on Windows see README § Windows" >&2; exit 1; }; }
    ```
 
    If `AGENTS.md` does not mention the memory yet, append this (leaving the rest

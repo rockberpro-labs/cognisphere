@@ -35,7 +35,7 @@ When they disagree, **code** > `AGENTS.md` > `.agents/memory/` > the vault > `do
 
 ## Install
 
-One line, once per machine (Linux or macOS):
+One line, once per machine (Linux, macOS, or Windows under Git Bash — see [Windows](#windows)):
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/rockberpro/cognisphere/main/install.sh | bash
@@ -57,6 +57,19 @@ The default scope is `user`, which is what you want: the guards then apply to ev
 repository of yours. Inside Claude Code the same commands exist as
 `/plugin marketplace add` and `/plugin install`; after installing mid-session, run
 `/reload-plugins`.
+
+### Windows
+
+Works under Git Bash (its `perl` has `JSON::PP`), but the harness relies on symlinks
+(`.claude`, `CLAUDE.md`, `CLAUDE.local.md`), and by default Git Bash's `ln -s` copies
+instead and git checks links out as plain text files. Once per machine:
+
+1. Turn on **Developer Mode** (Settings → System → For developers), so links need no admin.
+2. `git config --global core.symlinks true`
+3. Add `export MSYS=winsymlinks:nativestrict` to `~/.bashrc`, so `ln -s` makes real links.
+
+Repos cloned before step 2 need `git checkout -- CLAUDE.md .claude` to turn the text
+files back into links. Without this, `/cognisphere:install` stops at the first link.
 
 ## Usage
 
