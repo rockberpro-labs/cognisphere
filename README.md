@@ -35,28 +35,20 @@ When they disagree, **code** > `AGENTS.md` > `.agents/memory/` > the vault > `do
 
 ## Install
 
-One line, once per machine (Linux, macOS, or Windows under Git Bash — see [Windows](#windows)):
+Inside Claude Code, once per machine:
 
-```bash
-curl -fsSL https://raw.githubusercontent.com/rockberpro/cognisphere/main/install.sh | bash
+```
+/plugin marketplace add rockberpro/cognisphere
+/plugin install cognisphere@cognisphere
+/reload-plugins
 ```
 
-It checks for `claude`, `git` and `perl` with `JSON::PP`, adds the marketplace (or
-updates it), installs the plugin (or updates it), and warns if agent-kit is installed
-too. Run it again any time to update. `COGNISPHERE_REPO=<url-or-path>` points it at a
-mirror.
+Then, in each project, `/cognisphere:install`. To update later:
+`/plugin marketplace update cognisphere`, then restart the session.
 
-Or by hand:
-
-```bash
-claude plugin marketplace add https://github.com/rockberpro/cognisphere.git
-claude plugin install cognisphere@cognisphere
-```
-
-The default scope is `user`, which is what you want: the guards then apply to every
-repository of yours. Inside Claude Code the same commands exist as
-`/plugin marketplace add` and `/plugin install`; after installing mid-session, run
-`/reload-plugins`.
+Needs `git` and `perl` with `JSON::PP` (it ships with git). The default scope is `user`,
+which is what you want: the guards then apply to every repository of yours. If
+agent-kit is installed, remove it first (see [Coming from agent-kit](#coming-from-agent-kit)).
 
 ### Windows
 
@@ -214,11 +206,12 @@ cognisphere is agent-kit v0.12.0 with seven skills collapsed into two and the va
 added. The guards and the five agents are the same, only renamed, so it replaces
 agent-kit entirely. Keeping both would run every guard twice.
 
-```bash
-claude plugin uninstall agent-kit@agent-kit
-claude plugin marketplace remove agent-kit
-curl -fsSL https://raw.githubusercontent.com/rockberpro/cognisphere/main/install.sh | bash
 ```
+/plugin uninstall agent-kit@agent-kit
+/plugin marketplace remove agent-kit
+```
+
+then install cognisphere as in [Install](#install).
 
 Then, in each project, run `/cognisphere:update`. It offers to remove old agent-kit
 entries from `settings.json`, and it replaces the `agent-kit:memory` pointer in
@@ -249,7 +242,7 @@ git push --follow-tags
 ```
 
 There is no CI in this repository on purpose; the line above is the gate. On each
-machine, re-run `install.sh` (or `claude plugin marketplace update cognisphere`) and
+machine, run `/plugin marketplace update cognisphere` and
 restart the session. To pin a machine to a release:
 `claude plugin marketplace add https://github.com/rockberpro/cognisphere.git#cognisphere--v0.1.0`.
 
@@ -263,7 +256,6 @@ the code names them. Filenames stay English everywhere.
 
 ## Not supported
 
-- **Windows.** The settings use `~` paths and the harness relies on symlinks.
 - **Other agent CLIs** (Codex, Cursor, …). `.agents/` and `AGENTS.md` are tool-neutral and
   readable by any of them, but this plugin ships no manifests for them and is not tested
   with them.
