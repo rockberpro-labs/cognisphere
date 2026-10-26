@@ -71,6 +71,7 @@ these steps as a follow-up.
 ```
 /cognisphere:install          # sets everything up at once
 /cognisphere:update [area]    # maintains the harness; with an area, maps just that one
+/cognisphere:read <note> [request]   # reads a vault note you copied in Obsidian
 ```
 
 **`/cognisphere:install`** asks one round of questions first: the repo language, the
@@ -102,6 +103,14 @@ a subject (`authentication`) — maps or deepens only that area: one note with `
 its read rule, an index line. Claude may run it itself when a task enters an unmapped
 area; it still asks before writing. This is how the catalog grows: by the tasks that
 touch it.
+
+**`/cognisphere:read <note> [request]`** takes what Obsidian copies, so you can hand the
+agent the note you are looking at: its path relative to the open vault (`Human/draft.md`,
+or `<project>/Human/draft.md` when `~/Cognisphere` itself is open). It reads the note
+from this project's vault, with its embeds and the links its content depends on, one
+level deep. It checks what the note says about the code against the code, then does the request
+(`/cognisphere:read Human/draft.md plan phase 1`), or, with none, says what it read
+and what the code contradicts, and asks. It never writes the note, and only you run it.
 
 The vault is **seeded once**. After install it belongs to you and the agent; the plugin
 never maintains it. Re-running install re-seeds only notes that are missing, and never
@@ -195,7 +204,8 @@ All three guards are checks in one hook, `hooks/guard.sh`, run before every Bash
 - **skills** `/cognisphere:install` and `/cognisphere:update [area]`. Each runs the steps
   in its `SKILL.md` and reads the procedures from `procedures/` on demand:
   `scaffold`, `memory`, `rules`, `review-settings`, `review-memory`, `review-rules`,
-  `vault`, `vault-check`.
+  `vault`, `vault-check`. `/cognisphere:read <note>` reads one vault note
+  (`skills/read/SKILL.md`, no procedure).
 - **scripts** — the deterministic steps, so the agent runs them instead of retyping
   them: `scaffold.sh`, `seed-vault.sh`, `configure.sh`, `names.sh`, `link.sh`,
   `merge-json.pl` (adds missing settings entries, keeps key order), `check-links.pl`,
