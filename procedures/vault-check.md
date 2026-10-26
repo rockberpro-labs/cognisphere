@@ -1,8 +1,9 @@
 # vault-check
 
 Read-only; `/cognisphere:update` runs it. **Never create, edit, move or delete anything
-under `~/Cognisphere/`, nor in the three local files.** Each finding names the path, what
-is wrong, the expected value, and the fix for the user to apply: by hand, or by running
+under `~/Cognisphere/`, nor in the three local files, nor in the user-level settings
+(`~/.claude/settings.json`).** Each finding names the path, what is wrong, the expected
+value, and the fix for the user to apply: by hand, or by running
 `/cognisphere:install`, which only creates what is missing (`vault.md`).
 
 ```bash
@@ -81,5 +82,19 @@ it (`names.sh <name>` prints its paths).
 4. **`CLAUDE.local.md`** must be a symlink to `AGENTS.local.md`
    (`[ -L CLAUDE.local.md ] && [ "$(readlink CLAUDE.local.md)" = AGENTS.local.md ]`).
    Missing → `/cognisphere:install` creates it; a regular file or another target → report.
+5. **User-level settings.** The project's files are not the only place a guard gets
+   registered: a plugin or hook enabled for the user runs in every project.
 
-Nothing wrong → one line: "vault and local configuration: nothing to do".
+   ```bash
+   perl "<plugin>/scripts/user-settings.pl"   # no output = nothing to report; exit 2 = not valid JSON
+   ```
+
+   Report each line it prints, with its fix for the user to apply:
+   - `agent-kit@…` enabled → every guard runs twice. `/plugin uninstall agent-kit@agent-kit`
+     and `/plugin marketplace remove agent-kit` (README, *Coming from agent-kit*).
+   - cognisphere enabled more than once → keep one; `/plugin uninstall` the others.
+   - a hook that runs a guard script → a copy older tools installed for the user; the
+     plugin already runs it. Remove its entry from `~/.claude/settings.json` by hand. A
+     script of the user's own that only shares the name is theirs: say so and leave it.
+
+Nothing wrong → one line: "vault, local and user-level configuration: nothing to do".

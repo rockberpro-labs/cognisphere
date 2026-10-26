@@ -1,6 +1,6 @@
 {
   "name": "cognisphere",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "license": "MIT",
   "description": "Agent harness plus a per-project vault: guards (master, secrets, memory drift), .agents scaffold, memory and rules mapping, explorer, planner, implementer, test-runner and reviewer agents, and an Obsidian-ready Agent/ workspace outside the repo.",
   "author": { "name": "cognisphere contributors" },

@@ -442,3 +442,25 @@ top-level `hooks`.
 **Rejected.** A Stop hook that nudges when today's Log is empty: Stop fires after every
 reply, so it would force entries on sessions that changed nothing. Adding the vault step
 to `AGENTS.md`: it is shared, and teammates have no vault.
+
+## D26. `update` checks the user-level settings for guards that run twice
+
+*2026-10-26, v0.6.0*
+
+**Decision.** `vault-check` gains a step for `~/.claude/settings.json` (or
+`$CLAUDE_CONFIG_DIR/settings.json`), run by `scripts/user-settings.pl`. It reports
+agent-kit enabled, cognisphere enabled from more than one marketplace, and a hook that
+runs a guard script, each with the fix for the user to apply. It reads only; `update`
+never writes the user-level settings (`~/.claude/settings.json`). The project's own
+`.claude` link to `.agents/` is a different folder: memory and rules are written there
+as before.
+
+**Why.** `review-settings` removes agent-kit's entries from the project's
+`settings.json`, but the README installs plugins for the user, so that is where a
+leftover agent-kit usually stays enabled. Nothing looked there, and every guard kept
+running twice. External feedback on v0.5.0 found the double-running guards came from
+the user level.
+
+**Rejected.** Writing the fix into the user's settings: they apply to every project, not
+just this one, so they belong to the user (D18). Checking it in `review-settings`: that
+pass writes, and this one must not.

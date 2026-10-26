@@ -60,6 +60,21 @@ ok "seeded links resolve"             'perl "$S/check-links.pl" "$vault/Agent"'
 echo "see [[Nowhere]] but not \`[[Code]]\`" >> "$vault/Agent/Scratch/README.md"
 ok "broken link reported"             '[ "$(perl "$S/check-links.pl" "$vault/Agent")" = "./Scratch/README.md: [[Nowhere]]" ]'
 
+# user-settings: agent-kit, a second cognisphere and a guard hook are each reported;
+# a plugin left disabled and an unrelated hook are not.
+u="$tmp/user-settings.json"
+ok "no user settings, no output"      '[ -z "$(perl "$S/user-settings.pl" "$tmp/none.json")" ]'
+printf '{ "enabledPlugins": { "cognisphere@cognisphere": true, "agent-kit@agent-kit": false },\n  "hooks": { "PreToolUse": [{ "matcher": "Bash", "hooks": [{ "type": "command", "command": "bash ~/bin/encoding-guard.sh" }] }] } }\n' > "$u"
+ok "clean user settings, no output"   '[ -z "$(perl "$S/user-settings.pl" "$u")" ]'
+printf '{ "enabledPlugins": { "cognisphere@cognisphere": true, "cognisphere@fork": true, "agent-kit@agent-kit": true },\n  "hooks": { "PreToolUse": [{ "matcher": "Bash", "hooks": [{ "type": "command", "command": "bash ~/.agents/hooks/master-guard.sh" }] }] } }\n' > "$u"
+out="$(perl "$S/user-settings.pl" "$u")"
+ok "agent-kit reported"               'printf "%s" "$out" | grep -qF "\"agent-kit@agent-kit\" runs the same guards"'
+ok "second cognisphere reported"      'printf "%s" "$out" | grep -qF "more than once"'
+ok "guard hook reported"              'printf "%s" "$out" | grep -qF "master-guard.sh\" runs a guard"'
+echo "{ broken" > "$u"
+perl "$S/user-settings.pl" "$u" >/dev/null 2>&1; r=$?
+ok "invalid user settings exits 2"    '[ $r = 2 ]'
+
 # coupling: 3 commits touch src/, 2 of them also the doc.
 c="$tmp/coupling"; mkdir -p "$c/src" "$c/docs" && cd "$c" && git init -q && git config user.email t@t && git config user.name t && git config core.autocrlf false
 for i in 1 2 3; do echo $i > src/a.c; [ $i = 3 ] || echo $i > docs/notes.md; git add src docs && git commit -qm $i; done
