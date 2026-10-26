@@ -425,6 +425,8 @@ workflow, and other tools link to it where it is.
 
 *2026-10-26, v0.5.0*
 
+Superseded in part by D34: a Stop hook now checks the end-of-session entry.
+
 **Decision.** `AGENTS.local.md` gains an end-of-session line: before the last reply, or
 at the project's own hand-off step, append the session to the Log and update Open
 Threads. Install names that hand-off step in the line when `AGENTS.md` has one; only the
@@ -704,3 +706,31 @@ per-command internals, so a first-time reader had to dig for what the plugin is.
 
 **Rejected.** Putting the reference under `docs/`: it is user-facing, and `docs/` holds
 the maintainers' decision record.
+
+## D34. A Stop hook checks the end-of-session Log entry
+
+*2026-10-26, v0.12.0*
+
+**Decision.** The plugin's `hooks/hooks.json` gains a Stop hook, `hooks/session-log.sh`.
+It is active only when `AGENTS.local.md` names a vault, and takes the path from that
+line. It blocks the stop once, with the end-of-session step as the reason, when since
+the session's first transcript timestamp the repo gained a commit or a changed file, or
+a vault `State/` note changed, and no file in `Log/` changed. `stop_hook_active` lets the
+next stop through, and a per-session marker in `$TMPDIR` means the same changes are
+never reported twice: after a block, only newer changes count. Once the Log changes in
+the session, the hook stays quiet. It fails open.
+
+**Why.** The end-of-session step from D25 was still only an instruction, and it slipped:
+a session that changed and decided things ended without its Log entry. D25 rejected a
+Stop hook because Stop fires after every reply. Firing only on a session that changed
+something, once per batch of changes, with a reason that says to just stop again when
+the reply is a pause, keeps that cost to one extra turn. Shipping it in the plugin
+needs no repo file and no hand edit of `settings.local.json`, and every vault project
+gets it.
+
+**Rejected.** A hand-written hook in `~/.claude/hooks/`: one machine only, and
+`update` would not know it. Only injecting a reminder: one the agent can pass over
+without a turn is the instruction-only habit again, and a reminder at the next prompt
+arrives after the session may already be over. Re-blocking after every reply until the Log changes: a long session
+paused for the user would pay a turn on each reply. Checking Findings: a missed
+finding changes no file, so it stays instruction-driven.

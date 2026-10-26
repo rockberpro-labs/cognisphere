@@ -4,7 +4,14 @@ What changed in each release of cognisphere. Versions follow
 [semver](https://semver.org/); the reasoning behind each change is in
 [docs/decisions.md](docs/decisions.md), referenced as `Dnn`.
 
-## Unreleased
+## 0.12.0 — 2026-10-26
+
+### Added
+
+- A Stop hook, `session-log`: in a project with a vault, when the session changed files,
+  made a commit or touched a `State/` note and the vault's `Log/` has nothing new, it
+  blocks the stop once and asks for the end-of-session entry. Stopping again goes
+  through, and the same changes aren't reported twice (D34).
 
 ### Changed
 
