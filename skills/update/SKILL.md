@@ -1,6 +1,6 @@
 ---
 name: update
-description: Maintains an existing cognisphere harness - the .agents/ structure, settings and guards, the memory catalog (index, anti-drift rule, stale notes, dead or overlapping globs, domain declarations) and the rules (read rules, dead or too-broad globs, duplicates, new candidates) - and checks, without writing, the vault at ~/Cognisphere/<project>/ and the local configuration. Use when the user asks to update, upgrade, review, audit, refresh or repair the agent harness, the .agents, the memory, the rules, the hooks/guards or the settings of a project that already has one, typically after upgrading the plugin or a long stretch of commits. Pass an area (a directory, module or subject) to map or deepen just that one, e.g. when a task enters an area that has no note - ask before writing.
+description: Maintains an existing cognisphere harness - the .agents/ structure, settings and guards, the memory catalog (index, anti-drift rule, stale notes, dead or overlapping globs, domain declarations) and the rules (read rules, dead or too-broad globs, duplicates, new candidates) - and checks, without writing, the vault at ~/Cognisphere/<project>/, the local configuration and the user-level settings that would run the guards twice. Use when the user asks to update, upgrade, review, audit, refresh or repair the agent harness, the .agents, the memory, the rules, the hooks/guards or the settings of a project that already has one, typically after upgrading the plugin or a long stretch of commits. Pass an area (a directory, module or subject) to map or deepen just that one, e.g. when a task enters an area that has no note - ask before writing.
 argument-hint: "[area]"
 ---
 
@@ -61,8 +61,9 @@ do reports "nothing to do" in one line and the next one starts.
 6. **Configuration, check-only — `vault-check.md`.** `settings.local.json`
    (`additionalDirectories`, the `Read` and `Edit` allow rules, the `Human/` deny rule,
    inert `Write(...)` rules, local hooks), `AGENTS.local.md`'s Agent workspace section
-   (with its end-of-session line), the `CLAUDE.local.md` symlink. **Never edit these
-   files:** the report says what to change by hand, or to run `/cognisphere:install`
+   (with its end-of-session line), the `CLAUDE.local.md` symlink, and the user-level
+   `~/.claude/settings.json` (agent-kit or a second cognisphere enabled, guard hooks
+   registered for the user). **Never edit these files:** the report says what to change by hand, or to run `/cognisphere:install`
    for a missing one.
 7. **One consolidated report.** One section per pass: created, updated, written without
    asking (and why it was mandatory), left on purpose, what still needs the user (old

@@ -92,7 +92,9 @@ Restart the session afterwards so `CLAUDE.local.md` loads.
 settings, memory, rules. Index integrity and the anti-drift rules are the memory
 contract, so it restores them without asking. Everything else is proposed, and written
 only on a yes. Then it **checks** the vault and the local configuration and reports what
-is missing or points elsewhere. It never writes to them.
+is missing or points elsewhere, and checks `~/.claude/settings.json` for what would run
+the guards twice: agent-kit or a second cognisphere enabled, a guard hook registered for
+the user. It never writes to any of them.
 
 **`/cognisphere:update <area>`** — a directory (`src/payments`), a module (`billing`) or
 a subject (`authentication`) — maps or deepens only that area: one note with `paths:`,
@@ -187,7 +189,8 @@ All three guards are checks in one hook, `hooks/guard.sh`, run before every Bash
 - **scripts** — the deterministic steps, so the agent runs them instead of retyping
   them: `scaffold.sh`, `seed-vault.sh`, `configure.sh`, `names.sh`, `link.sh`,
   `merge-json.pl` (adds missing settings entries, keeps key order), `check-links.pl`,
-  `coupling.sh` (how often an area's commits already touch the doc a pointer note adopts).
+  `coupling.sh` (how often an area's commits already touch the doc a pointer note adopts),
+  `user-settings.pl` (what in the user-level settings runs the guards twice).
   Test: `bash scripts/scripts.test.sh`.
 - **agents** `cognisphere:explorer` (read-only investigator; the memory passes fan out
   to it), `cognisphere:planner` (ordered steps from an explorer report),
@@ -223,7 +226,8 @@ agent-kit entirely. Keeping both would run every guard twice.
 then install cognisphere as in [Install](#install).
 
 Then, in each project, run `/cognisphere:update`. It offers to remove old agent-kit
-entries from `settings.json`, and it replaces the `agent-kit:memory` pointer in
+entries from `settings.json`, reports any agent-kit still enabled in
+`~/.claude/settings.json`, and it replaces the `agent-kit:memory` pointer in
 `rules/memory.md`. Run `/cognisphere:install` to add the vault and the local
 configuration; the existing harness stays as it is.
 
