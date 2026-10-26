@@ -1,8 +1,8 @@
 {
   "name": "cognisphere",
-  "version": "0.13.0",
+  "version": "0.14.0",
   "license": "MIT",
-  "description": "Agent harness plus a per-project vault: guards (master, secrets, memory drift), a SessionStart hook that loads the vault's reading order, a PreToolUse hook that asks for a Scratch plan before the first edit, a Stop hook that asks for the session log and the Scratch working notes, .agents scaffold, /cognisphere:harness and /cognisphere:vault for either half alone, /cognisphere:read for vault notes copied in Obsidian, memory and rules mapping, explorer, planner, implementer, test-runner and reviewer agents, and an Obsidian-ready Agent/ workspace outside the repo.",
+  "description": "Agent harness plus a per-project vault: guards (master, secrets, memory drift) copied into each repo, versioned, so they run for the whole team without the plugin; and the vault's own hooks, from the plugin: a SessionStart hook that loads the vault's reading order, a PreToolUse hook that keeps working state out of Claude Code's scratchpad and auto-memory, PostToolUse hooks that remind the agent of its Scratch plan and copy plan-mode plans into Scratch, a Stop hook that asks for the session log and the Scratch working notes, .agents scaffold, /cognisphere:harness and /cognisphere:vault for either half alone, /cognisphere:read for vault notes copied in Obsidian, memory and rules mapping, explorer, planner, implementer, test-runner and reviewer agents, and an Obsidian-ready Agent/ workspace outside the repo.",
   "author": { "name": "cognisphere contributors" },
   "repository": "https://github.com/rockberpro/cognisphere",
   "keywords": ["agents", "memory", "rules", "guards", "harness", "obsidian", "vault"]

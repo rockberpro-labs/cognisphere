@@ -50,7 +50,7 @@ t(){
   fi
   local cmd="${2//@/$dir}" cwd="$dir"
   [ "$cmd" != "$2" ] && { cwd="$tmp/cwd"; mkdir -p "$cwd"; }
-  local out; out="$(cd "$cwd" && printf '{"tool_input":{"command":%s}}' "$(perl -MJSON::PP -e 'print JSON::PP->new->allow_nonref->encode($ARGV[0])' "$cmd")" | bash "$H" 2>&1)"
+  local out; out="$(cd "$cwd" && printf '{"tool_input":{"command":%s}}' "$(perl -MJSON::PP -e 'print JSON::PP->new->allow_nonref->encode($ARGV[0])' "$cmd")" | bash "$H" ${GUARD_ARGS:-} 2>&1)"
   local r=$?; local s=ok
   [ "$r" = "$1" ] || { s=FAIL; fails=$((fails+1)); }
   printf '%-4s got=%s want=%s  <- %s [%s %s]\n' "$s" "$r" "$1" "$2" "$3" "${4:-}"
@@ -69,6 +69,10 @@ t 2 'git commit -m x' 'lib/a.rb'
 echo "== blocked: staged by the same command =="
 t 2 'git commit -am x' '-' 'jobs/nightly.sh'
 t 2 'git add jobs/nightly.sh && git commit -m x' '-' 'jobs/nightly.sh'
+
+echo "== the project turned memory-drift-guard off: a flag on the hook's command line =="
+GUARD_ARGS=--no-memory-drift t 0 'git commit -m x' 'jobs/nightly.sh'
+GUARD_ARGS=--no-secret t 2 'git commit -m x' 'jobs/nightly.sh'
 
 echo "== allowed =="
 t 0 'git commit -m x' 'jobs/nightly.sh .agents/memory/jobs.md'

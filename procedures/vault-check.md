@@ -74,6 +74,16 @@ it (`names.sh <name>` prints its paths).
      ```bash
      sed -n '/^## Open/,/^## /p' "$vault/Agent/State/Findings.md" | grep -c '^### [0-9]'
      ```
+   - **Auto-memory outside the vault:** files in Claude Code's auto-memory folder for
+     this repo (`${CLAUDE_CONFIG_DIR:-~/.claude}/projects/<slug>/memory/`, the slug being
+     the repo path with every non-alphanumeric turned into `-`) → list them: written
+     before the vault took auto-memory over, they are missing from its backup. The agent
+     moves each into its vault note in a normal session (`session-start` lists them),
+     not here.
+
+     ```bash
+     ls "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/projects/$(perl -e '($s = shift) =~ s/[^A-Za-z0-9]/-/g; print $s' "$(git rev-parse --show-toplevel)")/memory/" 2>/dev/null
+     ```
    - Broken `[[links]]`: `perl "<plugin>/scripts/check-links.pl" "$vault/Agent"` prints
      each one. Report them; the agent fixes them in a normal session, not here.
 2. **The local settings** — `.agents/settings.local.json`; with `## Repo layer` in
@@ -109,10 +119,17 @@ it (`names.sh <name>` prints its paths).
    the two Findings lines (`When you notice something outside the task…` and
    `Asked about known issues…`, added in v0.7.0) → report the template's lines: without
    them the agent neither records what it notices nor reads it back. A section without
-   the Scratch lines (`…/Agent/Scratch/` is your working memory…` and the three after it,
-   added in v0.13.0) → report the template's lines: without them the agent has no
-   moment to write its working notes and treats Scratch as off limits like the rest
-   of `Agent/`. No `## Working style` section → report.
+   the Scratch lines (`…/Agent/Scratch/` is your workbench…`, or `is your working memory…`
+   before v0.14.0, and the four after it, added in v0.13.0) → report the template's
+   lines: without them the agent has no moment to write its working notes and treats
+   Scratch as off limits like the rest of `Agent/`. A Scratch line calling it "working
+   memory", naming `Scratch/<today> <topic>.md`, without the `This project's working
+   state lives in the vault…` line, without `State/Preferences.md`, or ending in "then
+   delete the rest" is the v0.13.0 text → report the template's current lines (v0.14.0):
+   without them the agent thinks aloud in Scratch instead of keeping its output there,
+   writes loose notes the hooks don't count, deletes the day's history, keeps its working
+   state in Claude Code's own stores and has nowhere in the vault for what auto-memory
+   kept about the maintainer. No `## Working style` section → report.
 4. **`CLAUDE.local.md`** must be a symlink to `AGENTS.local.md`
    (`[ -L CLAUDE.local.md ] && [ "$(readlink CLAUDE.local.md)" = AGENTS.local.md ]`).
    Missing → `/cognisphere:vault` creates it; a regular file or another target → report.
@@ -131,8 +148,9 @@ it (`names.sh <name>` prints its paths).
    - `agent-kit@…` enabled → every guard runs twice. `/plugin uninstall agent-kit@agent-kit`
      and `/plugin marketplace remove agent-kit`.
    - cognisphere enabled more than once → keep one; `/plugin uninstall` the others.
-   - a hook that runs a guard script → a copy older tools installed for the user; the
-     plugin already runs it. Remove its entry from `~/.claude/settings.json` by hand. A
-     script of the user's own that only shares the name is theirs: say so and leave it.
+   - a hook that runs a guard script → a copy older tools installed for the user, running
+     in every project on top of the guard a repo carries (`.agents/hooks/guard.sh`, D37).
+     Remove its entry from `~/.claude/settings.json` by hand. A script of the user's own
+     that only shares the name is theirs: say so and leave it.
 
 Nothing wrong → one line: "vault, local and user-level configuration: nothing to do".

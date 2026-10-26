@@ -4,6 +4,52 @@ What changed in each release of cognisphere. Versions follow
 [semver](https://semver.org/); the reasoning behind each change is in
 [docs/decisions.md](docs/decisions.md), referenced as `Dnn`.
 
+## 0.14.0 — 2026-10-26
+
+### Added
+
+- A PreToolUse hook, `scratch-redirect`: in a project with a vault, it refuses writes to
+  Claude Code's session scratchpad and auto-memory and names the vault note to use
+  instead, so the project's working state is all in the vault (D36).
+- A PostToolUse hook, `plan-mirror`: in a project with a vault, it copies each plan-mode
+  plan to `Scratch/<today>/plan <name>.md` on every write (D36).
+- A seeded note, `State/Preferences.md`: how the maintainer wants the agent to work and
+  what to know about them, the vault's home for what auto-memory kept. `session-start`
+  loads it, and `scratch-redirect` points auto-memory writes to it (D36).
+- `session-start` lists files left in the project's Claude Code auto-memory folder, for
+  the agent to move into the vault; `/cognisphere:update` reports them (D36).
+- `scripts/guards.sh`: copies the guard to `.agents/hooks/guard.sh` and registers it in
+  `.agents/settings.json`, with a flag per check the team turned off (D37).
+- `guard.sh` reads `--no-master`, `--no-secret` and `--no-memory-drift` from its command
+  line (D37).
+
+### Changed
+
+- `Scratch/` keeps one folder per day, `Scratch/YYYY-MM-DD/`, and day folders stay after
+  the session as history; only today's is current. Notes are no longer deleted (D36).
+- `Scratch/` is described as the agent's workbench for what its work produces, not as
+  "working memory": output, not thinking aloud, and only output worth keeping. Throwaway
+  material (a test repo, a download, build output) goes in a `mktemp -d` folder (D36).
+- **The guards belong to the repo.** The plugin no longer runs `guard.sh`:
+  `/cognisphere:harness` copies it into `.agents/hooks/` and registers it in
+  `.agents/settings.json`, both versioned, after asking which checks to carry (all three
+  by default), so they run for the whole team with or without the plugin.
+  `/cognisphere:update` refreshes the copy and, in a repo set up before this version,
+  asks the guard question, since the guards stopped running there (D37).
+- `scratch-first` is a PostToolUse reminder and never blocks: after a repo edit with no
+  note in a day folder this session, or with the note 3 or more repo files behind, it
+  tells the agent once (D36, D37).
+- `merge-json.pl` adds a missing object entry to an array, compared by content (D37).
+- `session-start` lists today's Scratch notes and loose files outside a day folder,
+  names the newest earlier day folder as history, and tells the agent to keep its
+  working state in the vault rather than Claude Code's own stores (D36).
+- `scratch-first`, `scratch-redirect` and `plan-mirror` normalise paths with `cygpath`
+  when it exists, so they also fire under Git Bash on Windows.
+- `/cognisphere:update` reports an `AGENTS.local.md` with the v0.13.0 Scratch lines.
+  Existing vault notes aren't rewritten: run `/cognisphere:vault` to seed
+  `State/Preferences.md`, copy the Home, Scratch README, Session Protocol and Vault Guide
+  changes by hand if you want them, and move loose Scratch notes into day folders.
+
 ## 0.13.0 — 2026-10-26
 
 ### Added

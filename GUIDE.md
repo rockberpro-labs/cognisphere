@@ -54,10 +54,10 @@ Each fact has one place, chosen by when it must be loaded:
 └── Projects/<project>/       one vault per repo
     ├── Agent/
     │   ├── 00 Home.md        entry point: reading order, ground rules, map
-    │   ├── State/            Open Threads · Findings · History
+    │   ├── State/            Open Threads · Findings · History · Preferences
     │   ├── Workflow/         Session Protocol · Vault Guide
     │   ├── Log/              YYYY-MM-DD.md, one "## Session N" block per session
-    │   └── Scratch/          working memory, emptied each session
+    │   └── Scratch/          the agent's output, one YYYY-MM-DD/ folder per day, kept
     └── Human/                your notes; this project's agent only reads them
 ```
 
@@ -68,12 +68,20 @@ git. Commands, conventions and area knowledge are in `AGENTS.md` and `.agents/`,
 load every session anyway. A code defect ends up in an issue. A copy of any of those in
 the vault is read twice and goes stale the first time the original changes. What is left
 is the agent's own: open threads (harness work, questions and decisions waiting on you),
-findings (a defect waits there until you open its issue), events git doesn't record, the
-session log and scratch work.
+findings (a defect waits there until you open its issue), how you want it to work, events
+git doesn't record, the session log and scratch work.
 
-`Scratch/` is the exception: it is the agent's working memory, written freely (a plan
-before a multi-step edit, dead ends during an investigation) and emptied at session end
-after what matters is promoted.
+`Scratch/` is the exception: it is the agent's workbench for what its work produces,
+written freely (a plan before a multi-step edit, scripts, drafts and intermediate output,
+dead ends ruled out during an investigation) in one folder per day. It holds output, not
+the model's thinking aloud, and only output worth keeping: throwaway material (a test
+repo, a download, build output) goes in a `mktemp -d` folder, out of your backups. Today's folder is the work in flight; older ones are kept as
+the history of how the work went, and are never read as the current state. It takes what
+Claude Code would otherwise keep in its session scratchpad and plans folder, and
+`State/Preferences.md` takes what auto-memory would keep about you (corrections, approaches
+you confirmed, how you like to work), loaded at every session start. So the project's
+whole working state is in the vault: back up the vault, or open it in Obsidian, and you
+have it.
 
 ### Findings
 
@@ -176,9 +184,9 @@ Where the local files go depends on whose harness the repo has:
   tool's harness): `.claude/settings.local.json` (inside the directory `.claude` links
   to, if it is a link), with all three files ignored through `.git/info/exclude`, which
   is never committed. `AGENTS.local.md` records it in `## Repo layer`, so
-  `/cognisphere:update` only checks the vault and the local configuration. The guards
-  still run, and `memory-drift-guard` still enforces the repo's own notes, if it has
-  any.
+  `/cognisphere:update` only checks the vault and the local configuration. cognisphere
+  adds no guards there (D37): the repo's own harness runs whatever guards it carries,
+  and only the vault's hooks, from the plugin, act for you.
 
 Either way `git status` shows nothing new. It stops, writing nothing, if git tracks one
 of those files.
@@ -193,8 +201,8 @@ Then it **checks**, without writing:
 
 - the vault and the local configuration, reporting what is missing or points elsewhere
   (no vault set up is a choice, not a finding);
-- `~/.claude/settings.json`, for what would run the guards twice: a second plugin with
-  the same guards enabled, a guard hook registered for the user;
+- `~/.claude/settings.json`, for what would run a guard twice: a plugin with the same
+  guards enabled, a guard hook registered for the user on top of the repo's own;
 - an older vault, reporting the notes of the v0.1.0 layout (Current State, Working
   Agreement, Review Checklist, `Knowledge/`) with what to move out before deleting
   them. It never deletes them itself.
@@ -216,8 +224,15 @@ what the code contradicts, and asks. It never writes the note, and only you run 
 
 ## Guards
 
-All three are checks in one hook, `hooks/guard.sh`, run before every Bash call. They
-fail open: an internal error never blocks the session.
+All three are checks in one hook, run before every Bash call. It belongs to the repo,
+not the plugin (D37): `/cognisphere:harness` copies the plugin's `hooks/guard.sh` to
+`.agents/hooks/guard.sh` and registers it in `.agents/settings.json`, both versioned, so
+the guards run for everyone who works on the repo with Claude Code, plugin or not. The
+harness asks which checks to carry, all three checked by default; a check left out is a
+flag on the registered command (`--no-master`, `--no-secret`, `--no-memory-drift`),
+which the team can change in a PR. `/cognisphere:update` refreshes the copy and never
+rewrites the registration. The plugin itself runs no guard. They fail open: an internal
+error never blocks the session.
 
 - **`master-guard`** — on `master`/`main`, blocks anything that writes a commit there
   (`commit`, `cherry-pick`, `revert`, `am`, `rebase`), plus `git merge`,
@@ -231,7 +246,9 @@ fail open: an internal error never blocks the session.
   pointer note, its `doc:` counts too. Prefix `SKIP_MEMORY_CHECK=1` when the note still
   holds.
 
-One more hook runs when the agent stops, in a project with a vault only:
+The vault's hooks come from the plugin and act only where your `AGENTS.local.md` names a
+vault: nothing in the repo registers them, so a teammate is never affected. One runs
+when the agent stops:
 
 - **`session-log`** — `hooks/session-log.sh`, a Stop hook. When the session changed
   files, made a commit or touched a vault `State/` note, and no file in the vault's
@@ -242,16 +259,32 @@ One more hook runs when the agent stops, in a project with a vault only:
   It also blocks once when the session touched 3 or more repo files (committed or
   not) and nothing in `Scratch/` changed, asking for the working notes.
 
-And two more, in a project with a vault only:
+And four more, from the plugin, in a project with a vault only:
 
-- **`scratch-first`** — `hooks/scratch-first.sh`, a PreToolUse hook on Edit, Write,
-  MultiEdit and NotebookEdit. Refuses an edit of a repo file until the session has
-  written a note in `Scratch/` (any file but its README), and keeps refusing until one
-  exists. Edits outside the repo pass; edits made through Bash aren't seen.
+- **`scratch-first`** — `hooks/scratch-first.sh`, a PostToolUse hook on Edit, Write,
+  MultiEdit and NotebookEdit. After an edit of a repo file, reminds the agent in context
+  to write its note in a `Scratch/YYYY-MM-DD/` day folder when the session has none, and
+  again once 3 or more repo files (committed or not) changed since the newest Scratch
+  write. It never blocks, and says each thing once: the next reminder waits until the
+  agent writes in Scratch and falls behind again. Edits outside the repo pass; edits made
+  through Bash aren't seen.
+
+- **`scratch-redirect`** — `hooks/scratch-redirect.sh`, a PreToolUse hook on the same
+  tools. Refuses a write to Claude Code's session scratchpad (a `scratchpad/` folder
+  under `claude*` in the temp dir) or to auto-memory
+  (`~/.claude/projects/*/memory/`, or under `CLAUDE_CONFIG_DIR`), and says where it
+  goes in the vault instead. Writes through Bash aren't seen.
+
+- **`plan-mirror`** — `hooks/plan-mirror.sh`, a PostToolUse hook on Write, Edit and
+  MultiEdit. Copies a plan-mode plan (`~/.claude/plans/*.md`) to
+  `Scratch/<today>/plan <name>.md` on every write, so plan mode keeps working and the
+  plan still ends up in the vault. A custom `plansDirectory` isn't followed.
 
 - **`session-start`** — `hooks/session-start.sh`, a SessionStart hook. Loads `00 Home`,
   Open Threads and the tail of the latest Log note into the session's context, each
-  capped, and lists any `Scratch/` file an earlier session left behind.
+  capped, lists today's `Scratch/` notes and any file loose outside a day folder, names
+  the newest earlier day folder as history, and tells the agent to keep its working
+  state in the vault rather than in Claude Code's own stores.
 
 The versioned `settings.json` also denies the blanket `git add` forms (`-A`, `--all`,
 `.`, `-u`) and allows the read-only git commands without prompting.
@@ -335,7 +368,8 @@ the code names them. Filenames stay English everywhere.
   `SKILL.md` and reading procedures from `procedures/` on demand (`scaffold`, `memory`,
   `rules`, `review-settings`, `review-memory`, `review-rules`, `vault`, `vault-check`);
   `install`, which runs `harness` then `vault`; `read`, with no procedure.
-- **`hooks/`** — `guard.sh`, `session-log.sh`, `session-start.sh`, `scratch-first.sh` and one test per guard and hook.
+- **`hooks/`** — `guard.sh` (the source `/cognisphere:harness` copies into each repo; the
+  plugin doesn't run it), and the vault's hooks the plugin runs: `session-log.sh`, `session-start.sh`, `scratch-first.sh`, `scratch-redirect.sh`, `plan-mirror.sh` and one test per guard and hook.
 - **`agents/`** — `cognisphere:explorer` (read-only investigator; the memory passes fan
   out to it), `cognisphere:planner` (ordered steps from an explorer report),
   `cognisphere:implementer` (one planned step, code plus the stale note),
@@ -347,7 +381,8 @@ the code names them. Filenames stay English everywhere.
   `repo-layer.sh` (moves a vault-only repo's local files over when the harness is added),
   `merge-json.pl` (adds missing settings entries, keeps key order), `check-links.pl`,
   `coupling.sh` (how often an area's commits already touch the doc a pointer note adopts),
-  `user-settings.pl` (what in the user-level settings runs the guards twice).
+  `user-settings.pl` (what in the user-level settings runs a guard twice), `guards.sh`
+  (copies the guard into a repo and registers it with the team's flags).
 - **`templates/`** — `settings.json`, `rules/memory.md` (the anti-drift rule),
   `settings.local.json` and `AGENTS.local.md` (the local configuration), and `vault/`
   (the root and `Shared/` READMEs, `Human/README.md`, one template per `Agent/` note).

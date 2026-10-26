@@ -774,3 +774,125 @@ for 3 files. Only the stop-time check: it lets the agent work first and write on
 note at the end, the opposite of a plan. A soft PreToolUse block that a retry clears:
 the retry is the whole cost of ignoring it. Catching edits made through Bash (`sed -i`, a
 heredoc): no reliable way to tell them from reads.
+
+## D36. Scratch keeps day folders and takes over Claude Code's own stores
+
+*2026-10-26, v0.14.0*
+
+Supersedes D35 in part: Scratch notes are no longer deleted at session end, and a
+single note no longer satisfies `scratch-first` for the rest of the session.
+
+**Decision.** The vault is where the project's whole working state lives, so it can be
+backed up and opened in Obsidian as it is. `Scratch/` holds one folder per day,
+`Scratch/YYYY-MM-DD/<topic>.md`, kept after the session as the history of how the work
+went; only today's folder is current. `scratch-first` counts only a note in a day
+folder, and refuses again once 3 or more repo files, committed or not, changed since
+the newest Scratch write. A new PreToolUse hook, `hooks/scratch-redirect.sh`, refuses
+a write to Claude Code's session scratchpad (a `scratchpad/` folder under `claude*` in
+the temp dir) and to auto-memory (`<config dir>/projects/*/memory/`), and names the
+vault note that takes it instead. A new PostToolUse hook, `hooks/plan-mirror.sh`,
+copies a plan-mode plan (`<config dir>/plans/*.md`) into today's day folder on every
+write. `session-start` lists today's notes and any loose Scratch file, names the newest
+earlier day folder as history, and tells the agent the vault overrides Claude Code's
+stores. `AGENTS.local.md` says the same. All of these are active only with a vault.
+
+`Scratch/` is described as the agent's workbench for what its work produces (plans,
+scripts, drafts, intermediate output, notes on the work), not as "working memory": it
+holds output, not the model's thinking aloud. A new seeded note, `State/Preferences.md`,
+takes what auto-memory kept about the maintainer: how they want the agent to work (each
+item with its reason) and what to know about them. It is current by definition, rewritten
+when a preference changes, while the Log keeps the moment it was said. `session-start`
+loads it after Home, and `scratch-redirect` names it first when it refuses an
+auto-memory write. `session-start` also lists any file in the project's auto-memory
+folder, written before the vault took it over, for the agent to move into its vault
+note and delete; `vault-check` reports them. Throwaway material (a test repo, a
+download, build output) is not output: the templates and the `scratch-redirect`
+message send it to a `mktemp -d` folder, outside the vault.
+
+**Why.** Claude Code keeps the agent's working state in its own folders: a per-session
+scratchpad in the temp dir, plan files and auto-memory under `~/.claude`. None of it is
+in the vault, so backing up or opening the vault missed the work in flight, and the
+system prompt tells the agent to use the scratchpad, which an instruction in
+`AGENTS.local.md` alone doesn't reliably outweigh. D35's reason to delete notes, that
+old notes get reread as if current, is answered by the day folder: only today's is
+current, and older ones are visibly history. Deleting threw away the record of how the
+work went, which is what portability is meant to keep. One note per session let the
+agent write a line at the start and nothing after, so the check now follows the work,
+with D35's threshold of 3 files. "Working memory" read as a place to reason step by step,
+which fills Scratch with what no later session needs; the point is to keep what the work
+produced. Most of what auto-memory holds is about the maintainer (corrections, confirmed
+approaches, their expertise), and none of the vault's notes took it: the Log records a
+correction as an event, not as the rule that stands now, so refusing auto-memory
+without Preferences lost it. It is loaded every session, as auto-memory is, or it would
+be written and never read. Refusing new auto-memory writes left the old entries where
+they were: still loaded by Claude Code, missing from the backup, and the memory split in
+two. Sending everything to Scratch would put test repos and downloads into the vault,
+where they are backed up, synced and indexed for nothing.
+
+**Rejected.** Blocking plan files: plan mode writes and reads its own file, and
+refusing it would break plan mode; a copy keeps both. Mirroring auto-memory instead of
+blocking it: two stores for the same facts, and the vault already has a place for each
+kind. Catching writes made through Bash: the same reason as in D35. Date folders for
+`State/`: its notes are current by definition, one file each. Keeping loose
+`YYYY-MM-DD topic.md` files: a day's notes then mix with every other day's in one list,
+and nothing marks which are current. Letting auto-memory's user and feedback entries
+through: they would stay outside the vault, which is the gap this decision closes.
+Renaming `Scratch/` to `Memory/`: a third "memory" beside `.agents/memory/` and
+auto-memory, and a name that says lasting truth for notes that are never authoritative.
+Putting preferences in `AGENTS.local.md` § Working style: the maintainer's file, which the
+agent doesn't edit; a preference they want enforced moves there by their hand.
+
+## D37. The guards belong to the repo; the plugin runs only the vault's hooks
+
+*2026-10-26, v0.14.0*
+
+Supersedes D10 in part (the guards no longer run from the plugin) and D35 and D36 in
+part (`scratch-first` no longer blocks). Reverses `review-settings`' removal of guard
+copies in `.agents/hooks/`.
+
+**Decision.** The plugin's `hooks/hooks.json` registers only the vault's hooks:
+`session-start`, `scratch-redirect`, `scratch-first`, `plan-mirror` and `session-log`.
+`hooks/guard.sh` stays in the plugin as the source: `/cognisphere:harness` copies it to
+`.agents/hooks/guard.sh` with `scripts/guards.sh` and registers it in
+`.agents/settings.json` as `bash "$CLAUDE_PROJECT_DIR/.agents/hooks/guard.sh"`, both
+versioned. The harness asks which checks the repo carries in one multiple-choice
+question, all three checked by default, and a check left out becomes a flag on that
+command line (`--no-master`, `--no-secret`, `--no-memory-drift`), which `guard.sh`
+reads. A registration already in the file is the team's and is never rewritten.
+`/cognisphere:update` (`review-settings` step 2) refreshes a stale copy on a yes,
+restores a missing one, asks the guard question when the repo has no registration, and
+offers to replace agent-kit's one-guard-per-file copies. `merge-json.pl` gains object
+entries in arrays, compared by content, so a hook entry can join an existing
+`PreToolUse` list. A vault-only repo gets no guards from cognisphere.
+
+`scratch-first` moves to PostToolUse and becomes a reminder: after a repo edit with no
+Scratch note this session, or with the note 3 or more files behind, it adds the
+reminder to the agent's context and exits 0. A stamp per session in the temp dir holds
+what it last said, so each reminder comes once, and the next only after the agent writes
+in Scratch and falls behind again. `scratch-redirect` and `session-log` keep their
+blocks: the first only stops writes to Claude Code's own stores, never the repo, and
+the second already lets go after one block.
+
+**Why.** The guards are the team's policy: they block commits on `main`, secrets and
+stale notes for everyone, so they belong with the repo, in git, where a teammate without
+the plugin still runs them and a change to them is a reviewed diff. Running them from a
+plugin installed for the user made them a personal setting that applied to every repo,
+including one whose own `.agents/` already carries guards, where they ran twice and the
+two copies could disagree. Whether a repo runs them is for the repo's own settings to
+say. The vault's hooks are the opposite: personal, unversioned, and meaningful only next
+to the plugin that seeded the vault and wrote the `AGENTS.local.md` they read, so they
+stay in the plugin, which keeps them in step with its templates. They do nothing without
+a vault named in `AGENTS.local.md`, so a teammate is never affected. The hard Scratch
+gate stopped work on the code over a note in the vault; the instruction is that the
+agent should write it, which a reminder says without blocking anyone.
+
+**Rejected.** Copying the vault's hooks into each repo, unversioned, beside
+`settings.local.json`: they are the same code for everyone, a copy per repo needs a
+refresh path and a staleness check, and it drifts from the plugin's templates while
+protecting no teammate the plugin's no-op checks don't already protect. Keeping a
+plugin copy of the guard that steps aside where the repo has its own: the plugin would
+still decide for the repo. A single yes/no for all the guards: `master-guard` depends on
+the team's branch policy, the other two rarely get in the way. Recording the unchecked
+guards anywhere but the registration: it is where the team sees and changes them, and
+Claude Code's settings have no place for a custom key. A reminder on every edit: it
+would be noise after the first.
