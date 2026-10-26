@@ -841,3 +841,58 @@ Renaming `Scratch/` to `Memory/`: a third "memory" beside `.agents/memory/` and
 auto-memory, and a name that says lasting truth for notes that are never authoritative.
 Putting preferences in `AGENTS.local.md` § Working style: the maintainer's file, which the
 agent doesn't edit; a preference they want enforced moves there by their hand.
+
+## D37. The guards belong to the repo; the plugin runs only the vault's hooks
+
+*2026-10-26, v0.14.0*
+
+Supersedes D10 in part (the guards no longer run from the plugin) and D35 and D36 in
+part (`scratch-first` no longer blocks). Reverses `review-settings`' removal of guard
+copies in `.agents/hooks/`.
+
+**Decision.** The plugin's `hooks/hooks.json` registers only the vault's hooks:
+`session-start`, `scratch-redirect`, `scratch-first`, `plan-mirror` and `session-log`.
+`hooks/guard.sh` stays in the plugin as the source: `/cognisphere:harness` copies it to
+`.agents/hooks/guard.sh` with `scripts/guards.sh` and registers it in
+`.agents/settings.json` as `bash "$CLAUDE_PROJECT_DIR/.agents/hooks/guard.sh"`, both
+versioned. The harness asks which checks the repo carries in one multiple-choice
+question, all three checked by default, and a check left out becomes a flag on that
+command line (`--no-master`, `--no-secret`, `--no-memory-drift`), which `guard.sh`
+reads. A registration already in the file is the team's and is never rewritten.
+`/cognisphere:update` (`review-settings` step 2) refreshes a stale copy on a yes,
+restores a missing one, asks the guard question when the repo has no registration, and
+offers to replace agent-kit's one-guard-per-file copies. `merge-json.pl` gains object
+entries in arrays, compared by content, so a hook entry can join an existing
+`PreToolUse` list. A vault-only repo gets no guards from cognisphere.
+
+`scratch-first` moves to PostToolUse and becomes a reminder: after a repo edit with no
+Scratch note this session, or with the note 3 or more files behind, it adds the
+reminder to the agent's context and exits 0. A stamp per session in the temp dir holds
+what it last said, so each reminder comes once, and the next only after the agent writes
+in Scratch and falls behind again. `scratch-redirect` and `session-log` keep their
+blocks: the first only stops writes to Claude Code's own stores, never the repo, and
+the second already lets go after one block.
+
+**Why.** The guards are the team's policy: they block commits on `main`, secrets and
+stale notes for everyone, so they belong with the repo, in git, where a teammate without
+the plugin still runs them and a change to them is a reviewed diff. Running them from a
+plugin installed for the user made them a personal setting that applied to every repo,
+including one whose own `.agents/` already carries guards, where they ran twice and the
+two copies could disagree. Whether a repo runs them is for the repo's own settings to
+say. The vault's hooks are the opposite: personal, unversioned, and meaningful only next
+to the plugin that seeded the vault and wrote the `AGENTS.local.md` they read, so they
+stay in the plugin, which keeps them in step with its templates. They do nothing without
+a vault named in `AGENTS.local.md`, so a teammate is never affected. The hard Scratch
+gate stopped work on the code over a note in the vault; the instruction is that the
+agent should write it, which a reminder says without blocking anyone.
+
+**Rejected.** Copying the vault's hooks into each repo, unversioned, beside
+`settings.local.json`: they are the same code for everyone, a copy per repo needs a
+refresh path and a staleness check, and it drifts from the plugin's templates while
+protecting no teammate the plugin's no-op checks don't already protect. Keeping a
+plugin copy of the guard that steps aside where the repo has its own: the plugin would
+still decide for the repo. A single yes/no for all the guards: `master-guard` depends on
+the team's branch policy, the other two rarely get in the way. Recording the unchecked
+guards anywhere but the registration: it is where the team sees and changes them, and
+Claude Code's settings have no place for a custom key. A reminder on every edit: it
+would be noise after the first.

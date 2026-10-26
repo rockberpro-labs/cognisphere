@@ -1,9 +1,11 @@
 # review-settings
 
-The guards run from the plugin (`hooks/guard.sh`), for whoever has it installed. What a
-project carries is only `.agents/settings.json`, which denies blind `git add` and, when
-the team chose so, turns off agent co-author attribution. It never names this plugin: a
-project's config holds the project's policy, not the tool that wrote it.
+The project carries its guards: `.agents/hooks/guard.sh`, a copy of the plugin's
+`hooks/guard.sh`, registered in `.agents/settings.json` with the checks the team turned
+off as flags (D37). They run for everyone on the repo, plugin or not; the plugin runs
+none. `.agents/settings.json` also denies blind `git add` and, when the team chose so,
+turns off agent co-author attribution. It never names this plugin: a project's config
+holds the project's policy, not the tool that wrote it.
 
 `/cognisphere:update` runs this pass after the structure pass, so `.agents/` exists.
 `.agents/settings.local.json` is not reviewed here: it is personal, and `vault-check.md`
@@ -31,20 +33,31 @@ Language: nothing here writes prose, only JSON keys.
      `extraKnownMarketplaces`, `agent-kit@agent-kit` or `agent-kit@univates.br` in
      `enabledPlugins` → list them and propose removing them; remove only on a yes.
      cognisphere replaces agent-kit, and with both installed every guard runs twice.
-     Never add entries for cognisphere. Drop an object left empty. Say that teammates
-     who relied on them keep the guards only by installing the plugin themselves
-     (README, *Quick start*).
+     Never add entries for cognisphere. Drop an object left empty. The repo's own
+     guard (step 2) keeps the checks running for teammates without either plugin.
 
-2. **Guard copies from older versions** — `.agents/hooks/{master,secret,memory-drift}-guard.sh`
-   and the `PreToolUse` entries in `settings.json` that run them. With the plugin installed
-   they run a second, stale copy of each check. List them and, on a yes, delete the files
-   and their registrations; a copy the user changed on purpose is theirs to keep. A symlink
-   points at another package: report it with its target, never write through it.
+2. **The repo's guard** — `bash "<plugin>/scripts/guards.sh" --check`, then by line:
+   - `current` and `registered …` → nothing to do; say which checks the flags turn off.
+   - `differs` → an older copy, or one the team changed: show `diff` against
+     `<plugin>/hooks/guard.sh` and, on a yes, run `scripts/guards.sh` (it replaces the
+     copy and keeps the registration). A copy changed on purpose is the team's: leave it.
+   - `missing` with `registered` → the registration runs nothing: on a yes, run
+     `scripts/guards.sh` to restore the copy.
+   - `unregistered` → the repo carries no guards (the team removed them, or a version
+     before D37 set it up, when the plugin ran them). Ask the harness's guard question
+     (`skills/harness/SKILL.md` § 0, every box checked by default) and run
+     `scripts/guards.sh` with its flags; nothing checked → leave it, and report that the
+     repo runs no guards.
+   - `old .agents/hooks/<guard>.sh` → agent-kit's one-guard-per-file copies, and the
+     `PreToolUse` entries that run them: the same checks, older. On a yes, delete them
+     and their registrations, and register `guard.sh` instead, the flags matching the
+     checks those copies ran. A symlink points at another package: report it with its
+     target, never write through it.
 
 3. **Stage** what changed, by name:
 
    ```bash
-   git add .agents/settings.json    # plus each removed copy: git rm .agents/hooks/<guard>.sh
+   git add .agents/settings.json .agents/hooks/guard.sh   # plus each removed copy: git rm .agents/hooks/<guard>.sh
    ```
 
 4. **Report**: added, removed, left on purpose. Hooks in the project that are not this

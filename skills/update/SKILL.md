@@ -47,8 +47,9 @@ do reports "nothing to do" in one line and the next one starts.
    Settle the language here — every later pass reads it from `AGENTS.md`.
 2. **Settings — `review-settings.md`.** The deny and allow lists against the template,
    `attribution` against `rules/commit.md`, the deprecated `includeCoAuthoredBy`, old
-   agent-kit marketplace and `enabledPlugins` entries, stale guard copies in
-   `.agents/hooks/`.
+   agent-kit marketplace and `enabledPlugins` entries, and the repo's guard: its copy in
+   `.agents/hooks/guard.sh` against the plugin's, its registration, agent-kit's
+   one-guard-per-file copies (D37).
 3. **Memory — `review-memory.md`.** No `MEMORY.md` → run `memory.md` (bootstrap) instead.
    - **Mandatory, written without asking:** index integrity (every link resolves, every
      note has an index line, every note links back) and the anti-drift rule

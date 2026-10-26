@@ -18,6 +18,10 @@ What changed in each release of cognisphere. Versions follow
   loads it, and `scratch-redirect` points auto-memory writes to it (D36).
 - `session-start` lists files left in the project's Claude Code auto-memory folder, for
   the agent to move into the vault; `/cognisphere:update` reports them (D36).
+- `scripts/guards.sh`: copies the guard to `.agents/hooks/guard.sh` and registers it in
+  `.agents/settings.json`, with a flag per check the team turned off (D37).
+- `guard.sh` reads `--no-master`, `--no-secret` and `--no-memory-drift` from its command
+  line (D37).
 
 ### Changed
 
@@ -26,8 +30,16 @@ What changed in each release of cognisphere. Versions follow
 - `Scratch/` is described as the agent's workbench for what its work produces, not as
   "working memory": output, not thinking aloud, and only output worth keeping. Throwaway
   material (a test repo, a download, build output) goes in a `mktemp -d` folder (D36).
-- `scratch-first` counts only a note in a day folder, and refuses again once 3 or more
-  repo files changed since the newest Scratch write (D36).
+- **The guards belong to the repo.** The plugin no longer runs `guard.sh`:
+  `/cognisphere:harness` copies it into `.agents/hooks/` and registers it in
+  `.agents/settings.json`, both versioned, after asking which checks to carry (all three
+  by default), so they run for the whole team with or without the plugin.
+  `/cognisphere:update` refreshes the copy and, in a repo set up before this version,
+  asks the guard question, since the guards stopped running there (D37).
+- `scratch-first` is a PostToolUse reminder and never blocks: after a repo edit with no
+  note in a day folder this session, or with the note 3 or more repo files behind, it
+  tells the agent once (D36, D37).
+- `merge-json.pl` adds a missing object entry to an array, compared by content (D37).
 - `session-start` lists today's Scratch notes and loose files outside a day folder,
   names the newest earlier day folder as history, and tells the agent to keep its
   working state in the vault rather than Claude Code's own stores (D36).

@@ -148,8 +148,9 @@ it (`names.sh <name>` prints its paths).
    - `agent-kit@…` enabled → every guard runs twice. `/plugin uninstall agent-kit@agent-kit`
      and `/plugin marketplace remove agent-kit`.
    - cognisphere enabled more than once → keep one; `/plugin uninstall` the others.
-   - a hook that runs a guard script → a copy older tools installed for the user; the
-     plugin already runs it. Remove its entry from `~/.claude/settings.json` by hand. A
-     script of the user's own that only shares the name is theirs: say so and leave it.
+   - a hook that runs a guard script → a copy older tools installed for the user, running
+     in every project on top of the guard a repo carries (`.agents/hooks/guard.sh`, D37).
+     Remove its entry from `~/.claude/settings.json` by hand. A script of the user's own
+     that only shares the name is theirs: say so and leave it.
 
 Nothing wrong → one line: "vault, local and user-level configuration: nothing to do".

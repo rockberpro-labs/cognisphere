@@ -25,7 +25,7 @@ MIT licensed · Claude Code on Linux, macOS and Windows (Git Bash).
 
 | | |
 |---|---|
-| **Guards** | `master-guard`, `secret-guard`, `memory-drift-guard`: one Bash hook, every repo of yours |
+| **Guards** | `master-guard`, `secret-guard`, `memory-drift-guard`: one Bash hook the repo carries, so they run for the whole team, plugin or not |
 | **Memory catalog** | `AGENTS.md` + `.agents/memory/` notes with the *why*, kept in sync with the code at commit time |
 | **Rules** | `.agents/rules/`: short instructions the harness injects when the agent reads a matching file |
 | **Vault** | `Agent/` (open threads, findings, log, scratch) and `Human/` (your notes, read-only to the agent); `Shared/` across projects |
@@ -44,8 +44,8 @@ Inside Claude Code, once per machine:
 
 Then, in each project, run `/cognisphere:install` and restart the session.
 
-- **Needs** `git` and `perl` with `JSON::PP` (it ships with git). Keep the default
-  `user` scope, so the guards apply to every repository of yours.
+- **Needs** `git` and `perl` with `JSON::PP` (it ships with git). The plugin runs only
+  the vault's hooks; the guards are copied into each repo the harness sets up.
 - **Only one half?** Run `/cognisphere:harness` for the repo layer or
   `/cognisphere:vault` for your vault. A teammate in a repo that already has the harness
   runs `/cognisphere:vault`.
@@ -164,8 +164,11 @@ Every setup command creates only what is missing and never overwrites.
 
 ## Guards
 
-One hook, `hooks/guard.sh`, runs before every Bash call. It fails open: an internal
-error never blocks the session.
+One hook, `.agents/hooks/guard.sh`, runs before every Bash call. `/cognisphere:harness`
+copies it into the repo and registers it in `.agents/settings.json`, both versioned,
+with the checks you pick (all three by default): they run for everyone on the repo,
+with or without the plugin, and `/cognisphere:update` keeps the copy current. It fails
+open: an internal error never blocks the session.
 
 - **`master-guard`** blocks commits, merges, `reset --hard` and pushes on `main`/`master`.
 - **`secret-guard`** blocks a commit that adds a private key, a known token format or a
@@ -173,13 +176,16 @@ error never blocks the session.
 - **`memory-drift-guard`** blocks a commit that changes code without the memory note
   covering it.
 
-In a project with a vault, a SessionStart hook, `session-start`, loads the vault's
-reading order into context, a PreToolUse hook, `scratch-first`, refuses repo edits until
-the session has written its plan in `Scratch/` (and again when the note falls behind),
+The vault has its own hooks. They come from the plugin, nothing in the repo registers
+them, and they act only where your `AGENTS.local.md` names a vault, so a teammate is
+never affected. A SessionStart hook, `session-start`, loads the vault's reading order
+into context; `scratch-first` reminds the agent, once and without blocking, to write its
+plan in `Scratch/` after a repo edit (and again when the note falls behind);
 `scratch-redirect` sends writes meant for Claude Code's scratchpad or auto-memory to the
-vault, a PostToolUse hook, `plan-mirror`, copies plan-mode plans into `Scratch/`, and a Stop hook, `session-log`, asks once for the
-end-of-session Log entry when the session changed something and didn't log it, and for
-the `Scratch/` working notes when it touched 3 or more files without them.
+vault; `plan-mirror` copies plan-mode plans into `Scratch/`; and a Stop hook,
+`session-log`, asks once for the end-of-session Log entry when the session changed
+something and didn't log it, and for the `Scratch/` working notes when it touched 3 or
+more files without them.
 
 The protection of `Human/` and `Shared/` covers Claude's tools, not arbitrary scripts;
 turn on the sandbox for that. → [GUIDE.md § Guards](GUIDE.md#guards),

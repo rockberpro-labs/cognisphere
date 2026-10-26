@@ -115,6 +115,32 @@ ok "repo layer now cognisphere's"     'bash "$S/names.sh" demo | grep -qx repo_l
 out="$(bash "$S/repo-layer.sh")"
 ok "repo-layer rerun changes nothing" '[ -z "$out" ]'
 
+# guards: the repo's own copy, registered with the team's flags; a rerun keeps the team's
+# registration and replaces only a stale copy (D37).
+g="$tmp/guards"; mkdir -p "$g/.agents" && cd "$g" && git init -q || exit 1
+printf '{\n  "hooks": {\n    "PreToolUse": [{ "matcher": "Edit", "hooks": [{ "type": "command", "command": "lint.sh" }] }]\n  }\n}\n' > .agents/settings.json
+ok "check: nothing yet"               '[ "$(bash "$S/guards.sh" --check | tr "\n" " ")" = "missing .agents/hooks/guard.sh unregistered " ]'
+out="$(bash "$S/guards.sh" --no-master)"; r=$?
+ok "guards exits 0"                   '[ $r = 0 ]'
+ok "copy made, executable"            'cmp -s "$S/../hooks/guard.sh" .agents/hooks/guard.sh && [ -x .agents/hooks/guard.sh ]'
+ok "registered with the flag"         'grep -qF "bash \\\"\$CLAUDE_PROJECT_DIR/.agents/hooks/guard.sh\\\" --no-master" .agents/settings.json'
+ok "a hook of the team kept"          'grep -qF lint.sh .agents/settings.json'
+before="$(cat .agents/settings.json)"; out="$(bash "$S/guards.sh" --no-secret)"
+ok "rerun keeps the registration"     '[ "$before" = "$(cat .agents/settings.json)" ] && printf "%s" "$out" | grep -q "kept as the team set it"'
+echo '# edited' >> .agents/hooks/guard.sh
+out="$(bash "$S/guards.sh" --check)"
+ok "check: a stale copy"              'printf "%s\n" "$out" | grep -qx "differs .agents/hooks/guard.sh"'
+out="$(bash "$S/guards.sh")"
+ok "rerun replaces a stale copy"      'printf "%s" "$out" | grep -q "^updated" && cmp -s "$S/../hooks/guard.sh" .agents/hooks/guard.sh'
+touch .agents/hooks/master-guard.sh
+out="$(bash "$S/guards.sh" --check)"
+ok "check: an older guard copy"       'printf "%s\n" "$out" | grep -qx "old .agents/hooks/master-guard.sh"'
+bash "$S/guards.sh" --no-such-check >/dev/null 2>&1; r=$?
+ok "unknown flag exits 1"             '[ $r = 1 ]'
+rm .agents/settings.json; rm -f .agents/hooks/guard.sh; echo "{ broken" > .agents/settings.json
+bash "$S/guards.sh" >/dev/null 2>&1; r=$?
+ok "invalid settings.json exits 2"    '[ $r = 2 ] && [ "$(cat .agents/settings.json)" = "{ broken" ]'
+
 # user-settings: agent-kit, a second cognisphere and a guard hook are each reported;
 # a plugin left disabled and an unrelated hook are not.
 u="$tmp/user-settings.json"

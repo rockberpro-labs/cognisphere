@@ -12,8 +12,18 @@
 #                       in the same commit (for a `kind: pointer` note, the note or its
 #                       `doc:`). SKIP_MEMORY_CHECK=1 in front when it still holds.
 #
+#   The project picks the checks: `/cognisphere:harness` copies this file to
+#   .agents/hooks/guard.sh and registers it in .agents/settings.json, versioned (D37).
+#   A check the team turned off is a flag on that command line: --no-master,
+#   --no-secret, --no-memory-drift.
+#
 # Fails OPEN: any internal error exits 0 so the session is never wedged.
 set -uo pipefail
+
+master=1 secret=1 drift=1
+for a in "$@"; do
+  case "$a" in --no-master) master=0 ;; --no-secret) secret=0 ;; --no-memory-drift) drift=0 ;; esac
+done
 
 payload="$(cat)" || exit 0
 # perl + JSON::PP, not jq: it ships with git on Windows (Git Bash) and Linux alike.
@@ -85,7 +95,7 @@ writes_commit() {
 }
 
 # `commit` has no recovery mode, so a message containing `--abort` must not exempt it.
-if writes_commit && [ "$on_protected" = 1 ] && { [ "$verb" = commit ] || ! is_recovery; }; then
+if [ "$master" = 1 ] && writes_commit && [ "$on_protected" = 1 ] && { [ "$verb" = commit ] || ! is_recovery; }; then
   cat >&2 <<MSG
 BLOCKED by master-guard: you are on "$branch" and "git $verb" writes a commit there.
 
@@ -99,7 +109,7 @@ MSG
   exit 2
 fi
 
-if has_verb merge && [ "$on_protected" = 1 ] && ! is_recovery; then
+if [ "$master" = 1 ] && has_verb merge && [ "$on_protected" = 1 ] && ! is_recovery; then
   cat >&2 <<MSG
 BLOCKED by master-guard: you are on "$branch" and this command merges.
 
@@ -109,7 +119,7 @@ MSG
   exit 2
 fi
 
-if has_verb reset && [ "$on_protected" = 1 ] \
+if [ "$master" = 1 ] && has_verb reset && [ "$on_protected" = 1 ] \
    && printf '%s' "$cmd" | grep -Eq -- '--hard([[:space:]]|$)'; then
   cat >&2 <<MSG
 BLOCKED by master-guard: "git reset --hard" on "$branch" throws away commits and
@@ -120,7 +130,7 @@ MSG
   exit 2
 fi
 
-if has_verb push && { [ "$on_protected" = 1 ] || names_protected; }; then
+if [ "$master" = 1 ] && has_verb push && { [ "$on_protected" = 1 ] || names_protected; }; then
   cat >&2 <<MSG
 BLOCKED by master-guard: this command pushes to master/main (current branch:
 "$branch").
@@ -165,7 +175,7 @@ key_hit="$(printf '%s\n' "$files" | grep -Ei '\.(p12|pfx|jks|keystore)$')"
 patterns='-----BEGIN [A-Z ]*PRIVATE KEY-----|AKIA[0-9A-Z]{16}|gh[opsur]_[0-9A-Za-z]{36}|xox[baprs]-[0-9A-Za-z-]{10,}|AIza[0-9A-Za-z_-]{35}'
 tok_hit="$(printf '%s\n' "$added" | grep -Eo -- "$patterns" | sort -u)"
 
-if [ -n "$env_hit$key_hit$tok_hit" ]; then
+if [ "$secret" = 1 ] && [ -n "$env_hit$key_hit$tok_hit" ]; then
   {
     echo "BLOCKED by secret-guard: this commit would introduce what looks like a secret."
     echo
@@ -180,6 +190,7 @@ if [ -n "$env_hit$key_hit$tok_hit" ]; then
 fi
 
 # ---- memory-drift-guard -----------------------------------------------------------------
+[ "$drift" = 1 ] || exit 0
 printf '%s' "$cmd" | grep -Eq '(^|[[:space:]])SKIP_MEMORY_CHECK=1[[:space:]]' && exit 0
 
 root="$(git rev-parse --show-toplevel 2>/dev/null)" || exit 0

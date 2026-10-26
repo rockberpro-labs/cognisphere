@@ -24,7 +24,7 @@ newrepo() {
 
 fails=0
 t(){ # t <cwd> <command> <expected exit>
-  local out; out="$(cd "$1" && printf '{"tool_input":{"command":%s}}' "$(perl -MJSON::PP -e 'print JSON::PP->new->allow_nonref->encode($ARGV[0])' "$2")" | bash "$H" 2>&1)"
+  local out; out="$(cd "$1" && printf '{"tool_input":{"command":%s}}' "$(perl -MJSON::PP -e 'print JSON::PP->new->allow_nonref->encode($ARGV[0])' "$2")" | bash "$H" ${GUARD_ARGS:-} 2>&1)"
   local r=$?; local s=ok
   [ "$r" = "$3" ] || { s=FAIL; fails=$((fails+1)); }
   printf '%-4s got=%s want=%s  <- %s\n' "$s" "$r" "$3" "$2"
@@ -83,6 +83,11 @@ r="$(newrepo)"; printf 'ok\n' > "$r/t.txt"
 git -C "$r" add t.txt; git -C "$r" -c user.email=t@t -c user.name=t commit -q -m seed
 printf 'aws=%s\n' "$AKIA" > "$r/t.txt"    # modified, NOT staged
 t "$r" 'git commit -am x' 2
+
+echo "== the project turned secret-guard off: a flag on the hook's command line =="
+r="$(newrepo)"; printf 'key=%s\n' "$AKIA" > "$r/c.txt"; git -C "$r" add c.txt
+GUARD_ARGS=--no-secret t "$r" 'git commit -m x' 0
+GUARD_ARGS=--no-master t "$r" 'git commit -m x' 2
 
 echo "failures=$fails"
 [ "$fails" -eq 0 ]

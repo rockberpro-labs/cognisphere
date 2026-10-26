@@ -1,7 +1,8 @@
 #!/usr/bin/env perl
 # merge-json.pl <file> <template>: add to <file> what <template> has and <file> lacks.
-# Missing keys are added last, objects merge recursively, arrays gain their missing scalar
-# entries; nothing present is changed, removed or reordered. A missing <file> is created.
+# Missing keys are added last, objects merge recursively, arrays gain their missing
+# entries (an object entry, such as a hook, compared by content); nothing present is
+# changed, removed or reordered. A missing <file> is created.
 # Prints one "added" line per entry; no output = nothing was missing, file untouched.
 # Exit 2 when <file> is not valid JSON (file untouched).
 use strict; use warnings; use JSON::PP;
@@ -35,6 +36,13 @@ sub val {
 sub parse { local $_ = shift; val() }
 my ($d, $t) = (parse($text), parse(slurp($tpl)));
 
+# An array entry compared by content: an object (a hook entry) is the same entry whatever
+# its key order or spacing.
+sub plain { my $v = shift; ref $v eq 'O' ? { map { ($_->[0] => plain($_->[1])) } @$v }
+  : ref $v eq 'A' ? [ map { plain($_) } @$v ] : $json->decode($v) }
+my $canon = JSON::PP->new->canonical->allow_nonref;
+sub canon { $canon->encode(plain($_[0])) }
+
 my @added;
 sub merge {
   my ($have, $want, $at) = @_;
@@ -45,10 +53,9 @@ sub merge {
     elsif (ref $h->[1] eq 'O' && ref $wv eq 'O') { merge($h->[1], $wv, "$at$k.") }
     elsif (ref $h->[1] eq 'A' && ref $wv eq 'A') {
       for my $e (@$wv) {
-        next if ref $e;
-        my $v = $json->decode($e);
-        next if grep { !ref && $json->decode($_) eq $v } @{$h->[1]};
-        push @{$h->[1]}, $e; push @added, "$at$k += $v";
+        my $c = canon($e);
+        next if grep { canon($_) eq $c } @{$h->[1]};
+        push @{$h->[1]}, $e; push @added, "$at$k += " . (ref $e ? $c : $json->decode($e));
       }
     }
   }

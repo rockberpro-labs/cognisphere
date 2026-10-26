@@ -37,6 +37,15 @@ Then ask **one round of questions, before writing anything**, in the user's lang
   evidence (`scaffold.md` § Language). Skip it when `AGENTS.md` already declares one.
 - **What will be created** — the repo structure, each item marked "create" or "exists,
   kept".
+- **Guards** — one multiple-choice question, every box checked by default: which
+  checks the repo carries, for everyone who works on it with Claude Code, plugin or
+  not (D37). `master-guard` blocks commits, merges, `reset --hard` and pushes on
+  `main`/`master` (a team that commits straight to `main` unchecks it); `secret-guard`
+  blocks a commit that adds a key, a token or a `.env`; `memory-drift-guard` blocks a
+  commit that changes code without its memory note (`SKIP_MEMORY_CHECK=1` covers the one
+  case where the note still holds). Say they bind the whole team once committed. Skip
+  the question when `scripts/guards.sh --check` prints `registered`: the team chose
+  already, and step 1 keeps that choice.
 - **What the move breaks** — when `.claude/` or `CLAUDE.md` is about to move, the
   survey's `git grep` hits, each with its proposed fix.
 - **From vault-only** — `AGENTS.local.md` has `## Repo layer`: the repo was set up
@@ -57,6 +66,13 @@ into this round — their questions depend on what the earlier steps found.
 `CLAUDE.md -> AGENTS.md`, `rules/memory.md`, and the root `.gitignore` entries for the
 local files. Then by hand: the Memory Catalog section and the language line in
 `AGENTS.md`, and `rules/memory.md` translated.
+
+Then `scripts/guards.sh`, with a flag for each guard the user unchecked (`--no-master`,
+`--no-secret`, `--no-memory-drift`): it copies the plugin's `hooks/guard.sh` to
+`.agents/hooks/guard.sh` and registers it in `.agents/settings.json`. The copy is the
+plugin's file, the one exception to create-only: an older copy is replaced
+(`updated`). A registration already there is never rewritten. All three unchecked →
+skip the script, and say the repo then carries no guards: the plugin runs none (D37).
 
 From vault-only, `.claude/` is a real folder → exit 3. Its `settings.local.json` is the
 vault's: merge it into `.agents/settings.local.json`
@@ -85,6 +101,9 @@ nothing else covers. From then on `/cognisphere:update` reviews the repo layer t
 ## 5. Report
 
 - **Repo:** created vs. already existed, per file.
+- **Guards:** which checks the registration runs, and that `.agents/hooks/guard.sh`
+  and `.agents/settings.json` are versioned: they run for every teammate from the next
+  session.
 - **Drift guard coverage:** the notes that declare `paths:`, with their globs. None →
   say so plainly: `memory-drift-guard` and the read rules cover no code until a note
   declares an area (`/cognisphere:update <area>`).

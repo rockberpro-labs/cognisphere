@@ -27,7 +27,7 @@ on_feature="$(mkrepo my-branch)"
 
 fails=0
 t(){ # t <cwd> <command> <expected exit>
-  local out; out="$(cd "$1" && printf '{"tool_input":{"command":%s}}' "$(perl -MJSON::PP -e 'print JSON::PP->new->allow_nonref->encode($ARGV[0])' "$2")" | bash "$H" 2>&1)"
+  local out; out="$(cd "$1" && printf '{"tool_input":{"command":%s}}' "$(perl -MJSON::PP -e 'print JSON::PP->new->allow_nonref->encode($ARGV[0])' "$2")" | bash "$H" ${GUARD_ARGS:-} 2>&1)"
   local r=$?; local s=ok
   [ "$r" = "$3" ] || { s=FAIL; fails=$((fails+1)); }
   printf '%-4s got=%s want=%s  <- %s\n' "$s" "$r" "$3" "$2"
@@ -111,6 +111,11 @@ mast 'git switch feat && git commit -m x' 2
 mast 'git commit -m x && git switch -c feat' 2
 mast 'git commit -m x && git switch -c feat && git commit -m y' 2
 mast 'git switch -c feat && git push origin main' 2
+
+echo "== the project turned a check off: a flag on the hook's command line =="
+GUARD_ARGS=--no-master mast 'git commit -m x' 0
+GUARD_ARGS=--no-master mast 'git push' 0
+GUARD_ARGS="--no-secret --no-memory-drift" mast 'git commit -m x' 2
 
 echo "== no JSON parser: a visible error (exit 1), not a silent pass =="
 mkdir -p "$tmp/noperl" && printf '#!/bin/sh\nexit 127\n' >"$tmp/noperl/perl" && chmod +x "$tmp/noperl/perl"

@@ -27,9 +27,10 @@ configuration, and git sees nothing new. On that choice, run it (its skill, from
 and stop here; on an explicit yes to the harness, go on.
 
 Then ask both § 0 rounds as **one round, before writing anything**: the harness's
-questions first (repo language, what will be created, what the move breaks, from
-vault-only), then the vault's (project name and vault path, working style, what will be
-created). Skip what is already answered or already exists.
+questions first (repo language, what will be created, the guards as one
+multiple-choice question, what the move breaks, from vault-only), then the vault's
+(project name and vault path, working style, what will be created). Skip what is
+already answered or already exists.
 
 ## 1. Harness — harness steps 1–4
 
