@@ -45,6 +45,13 @@ it (`names.sh <name>` prints its paths).
        grep -l '^## Quick facts' "00 Home.md"; grep -l '^## Code' "State/Open Threads.md"
        grep -rl '^status: skeleton' .; } 2>/dev/null
      ```
+   - The repo keeps a plan or status doc (a pointer note's `doc:`, or one `AGENTS.md`
+     names) that the `Workflow/Vault Guide.md` § 1 table does not name → report the row
+     to add (`vault.md` § Fill), so the Log and the plan don't both record progress.
+   - **Open Harness threads:** list each item under `## Harness` in
+     `State/Open Threads.md` that is not struck through. They go stale silently (a
+     "not yet trusted" settings file, resolved by the next restart): the agent re-checks
+     each one and closes it in a normal session, not here.
    - Broken `[[links]]`: `perl "<plugin>/scripts/check-links.pl" "$vault/Agent"` prints
      each one. Report them; the agent fixes them in a normal session, not here.
 2. **`.agents/settings.local.json`.**
@@ -58,13 +65,19 @@ it (`names.sh <name>` prints its paths).
      layout, a renamed project) → report it next to the expected value.
    - `Write(...)` rules → report them as inert (they never match; `Edit` covers the Write
      tool). Do not remove them.
+   - A hook in it that duplicates one in `settings.json`, or that `AGENTS.md` says not
+     to install → report it: it runs twice, or against the project's own rule. Other
+     local hooks are the maintainer's business: don't list them.
 3. **`AGENTS.local.md`.** Missing → report (`/cognisphere:install` creates it). Its
    `## Agent workspace` section must name `$vault` (absolute, as `names.sh` prints it);
    missing section or another path → report the expected text. An MSYS-style path
    (`/c/Users/...`, from installs before v0.4.0) is a finding too: the Read tool cannot
    open it. A section still mentioning `status: skeleton` or `§ 4 Bootstrap` is the
-   v0.1.0 text → report the template's current section. No `## Working style` section →
-   report.
+   v0.1.0 text → report the template's current section. A section without the
+   end-of-session line (`Before the last reply…`, added in v0.5.0) → report the
+   template's line: without it nothing makes the agent write the Log, and
+   `/cognisphere:install` never adds a line to an existing section. No
+   `## Working style` section → report.
 4. **`CLAUDE.local.md`** must be a symlink to `AGENTS.local.md`
    (`[ -L CLAUDE.local.md ] && [ "$(readlink CLAUDE.local.md)" = AGENTS.local.md ]`).
    Missing → `/cognisphere:install` creates it; a regular file or another target → report.

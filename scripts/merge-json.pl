@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 # merge-json.pl <file> <template>: add to <file> what <template> has and <file> lacks.
-# Missing keys are added, objects merge recursively, arrays gain their missing scalar
-# entries; nothing present is changed or removed. A missing <file> is created.
+# Missing keys are added last, objects merge recursively, arrays gain their missing scalar
+# entries; nothing present is changed, removed or reordered. A missing <file> is created.
 # Prints one "added" line per entry; no output = nothing was missing, file untouched.
 # Exit 2 when <file> is not valid JSON (file untouched).
 use strict; use warnings; use JSON::PP;
@@ -9,21 +9,46 @@ use strict; use warnings; use JSON::PP;
 my ($file, $tpl) = @ARGV;
 sub slurp { open my $h, '<:raw', $_[0] or die "$_[0]: $!\n"; local $/; <$h> }
 my $text = -e $file ? slurp($file) : '{}';
-my $d = eval { JSON::PP->new->decode($text) };
-ref $d eq 'HASH' or do { print STDERR "not valid JSON: $file\n"; exit 2 };
-my $t = JSON::PP->new->decode(slurp($tpl));
+my $json = JSON::PP->new->allow_nonref;
+ref(eval { $json->decode($text) }) eq 'HASH' or do { print STDERR "not valid JSON: $file\n"; exit 2 };
+
+# Order-keeping parse of JSON already known to be valid: an object is an O of
+# [key, value, raw key] triples, an array an A of values, a scalar its raw text.
+my $str = qr/"(?:[^"\\]|\\.)*"/;
+sub val {
+  /\G\s*/gc;
+  if (/\G\{\s*/gc) {
+    my @p;
+    unless (/\G\}/gc) {
+      do { /\G\s*($str)\s*:/gc; my $k = $1; push @p, [$json->decode($k), val(), $k]; /\G\s*/gc } while /\G,/gc;
+      /\G\}/gc;
+    }
+    return bless \@p, 'O';
+  }
+  if (/\G\[\s*/gc) {
+    my @a;
+    unless (/\G\]/gc) { do { push @a, val(); /\G\s*/gc } while /\G,/gc; /\G\]/gc }
+    return bless \@a, 'A';
+  }
+  /\G($str|[^\s,\]\}]+)/gc; return $1;
+}
+sub parse { local $_ = shift; val() }
+my ($d, $t) = (parse($text), parse(slurp($tpl)));
 
 my @added;
 sub merge {
   my ($have, $want, $at) = @_;
-  for my $k (sort keys %$want) {
-    my ($h, $w) = ($have->{$k}, $want->{$k});
-    if (!exists $have->{$k}) { $have->{$k} = $w; push @added, "$at$k" }
-    elsif (ref $h eq 'HASH' && ref $w eq 'HASH') { merge($h, $w, "$at$k.") }
-    elsif (ref $h eq 'ARRAY' && ref $w eq 'ARRAY') {
-      for my $e (@$w) {
-        next if ref $e || grep { !ref && $_ eq $e } @$h;
-        push @$h, $e; push @added, "$at$k += $e";
+  for my $w (@$want) {
+    my ($k, $wv) = @$w;
+    my ($h) = grep { $_->[0] eq $k } @$have;
+    if (!$h) { push @$have, $w; push @added, "$at$k" }
+    elsif (ref $h->[1] eq 'O' && ref $wv eq 'O') { merge($h->[1], $wv, "$at$k.") }
+    elsif (ref $h->[1] eq 'A' && ref $wv eq 'A') {
+      for my $e (@$wv) {
+        next if ref $e;
+        my $v = $json->decode($e);
+        next if grep { !ref && $json->decode($_) eq $v } @{$h->[1]};
+        push @{$h->[1]}, $e; push @added, "$at$k += $v";
       }
     }
   }
@@ -31,14 +56,16 @@ sub merge {
 merge($d, $t, '');
 exit 0 unless @added;
 
-# Keys keep the order they have in <file>; new ones go last.
-# ponytail: order = where the key's name first appears in the text, so a key whose name
-# also appears earlier as a value can move; an ordered parser if that ever bites.
-my $pos = sub { my $i = index($text, qq{"$_[0]"}); $i < 0 ? 9**9 : $i };
-my $out = JSON::PP->new->pretty->indent_length(2)->space_before(0)
-  ->sort_by(sub { $pos->($JSON::PP::a) <=> $pos->($JSON::PP::b) or $JSON::PP::a cmp $JSON::PP::b })
-  ->encode($d);
+sub out {
+  my ($v, $in) = @_;
+  return $v unless ref $v;
+  my ($o, $c) = ref $v eq 'O' ? ('{', '}') : ('[', ']');
+  return "$o$c" unless @$v;
+  my $i = "$in  ";
+  my @e = ref $v eq 'O' ? map { "$i$_->[2]: " . out($_->[1], $i) } @$v : map { $i . out($_, $i) } @$v;
+  "$o\n" . join(",\n", @e) . "\n$in$c";
+}
 open my $o, '>:raw', "$file.new" or die "$file.new: $!\n";
-print $o $out; close $o or die "$file.new: $!\n";
+print $o out($d, ''), "\n"; close $o or die "$file.new: $!\n";
 rename "$file.new", $file or die "$file: $!\n";
 print "added   $file: $_\n" for @added;

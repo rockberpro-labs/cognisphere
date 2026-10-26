@@ -286,7 +286,17 @@ Note format:
   (phase 0): `doc:` names it, `paths:` the code it describes, and the body is two or
   three lines — what the doc covers and when to read it. It is listed in the index like
   any note and owes the same read rule. `memory-drift-guard` accepts the doc or the
-  pointer note in the commit, so keeping the doc current is enough.
+  pointer note in the commit, so keeping the doc current is enough. Propose it in the
+  same ask as the other notes, never left for a later `update`, and show how often the
+  area's commits already bring the doc along:
+
+  ```bash
+  bash "<plugin>/scripts/coupling.sh" docs/class-notes.md "src/models/**"
+  # → 92 of 141 commits touching src/models/** also touched docs/class-notes.md; the guard would have blocked 49
+  ```
+
+  A low figure means the guard will block often: say so, and let the user choose
+  narrower `paths:` or no `paths:` at all.
 
   ```markdown
   ---

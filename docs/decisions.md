@@ -412,3 +412,33 @@ describes.
 
 **Rejected.** Moving the doc into `.agents/memory/`: it belongs to the repo's own
 workflow, and other tools link to it where it is.
+
+## D25. The session ends in the vault; the vault defers to the repo's own plan
+
+*2026-10-26, v0.5.0*
+
+**Decision.** `AGENTS.local.md` gains an end-of-session line: before the last reply, or
+at the project's own hand-off step, append the session to the Log and update Open
+Threads. Install names that hand-off step in the line when `AGENTS.md` has one; only the
+local file changes. Home's reading order now includes Session Protocol. When the repo
+keeps a plan with status and per-phase logs, that plan owns progress: install writes its
+rows into the Vault Guide's table, and a Log session stays at session level. The install
+report lists drift-guard coverage (the notes with `paths:`), and a pointer note is
+proposed with `scripts/coupling.sh`'s figure: how many of the area's commits already
+touch the doc. `merge-json.pl` parses with its own order-keeping reader, so no key
+moves. `vault-check` also reports a missing end-of-session line, a plan doc the Vault
+Guide doesn't name, the open Harness threads to re-check, and hooks in
+`settings.local.json`.
+
+**Why.** On a real v0.4.0 install the agent never wrote to the vault. The only line
+loaded every session said to read Home at the start. Home's reading order skipped the
+one note that says to log at the end, and the project's own end-of-unit ritual in
+`AGENTS.md` had no vault step. The Vault Guide's table didn't know the project's plan,
+so the plan and the Log both recorded progress. Install wrote no note with `paths:`, so
+the drift guard and the read rules covered nothing until update. `merge-json.pl` sorted
+keys by their first appearance in the text, so every `matcher` moved after the
+top-level `hooks`.
+
+**Rejected.** A Stop hook that nudges when today's Log is empty: Stop fires after every
+reply, so it would force entries on sessions that changed nothing. Adding the vault step
+to `AGENTS.md`: it is shared, and teammates have no vault.

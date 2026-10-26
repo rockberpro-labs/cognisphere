@@ -32,7 +32,7 @@ do reports "nothing to do" in one line and the next one starts.
 1. **Structure — `scaffold.md`.** Idempotent, never overwrites: symlinks, `AGENTS.md`
    sections, the language line, the anti-drift rule, the root `.gitignore` entries.
    Settle the language here — every later pass reads it from `AGENTS.md`.
-2. **Settings — `review-settings.md`.** The deny list against the template,
+2. **Settings — `review-settings.md`.** The deny and allow lists against the template,
    `attribution` against `rules/commit.md`, the deprecated `includeCoAuthoredBy`, old
    agent-kit marketplace and `enabledPlugins` entries, stale guard copies in
    `.agents/hooks/`.
@@ -53,15 +53,17 @@ do reports "nothing to do" in one line and the next one starts.
      rules, broken pointers, language, new candidates.
 5. **Vault, read-only — `vault-check.md`.** The vault folder, `Human/`, `Agent/`'s
    Home, four folders and template notes; leftovers of the v0.1.0 layout that copy the
-   repo into the vault. Missing items → restore from the backup, or
+   repo into the vault; a repo plan the Vault Guide does not name; the open Harness
+   threads, listed for the agent to re-check. Missing items → restore from the backup, or
    `/cognisphere:install` re-seeds missing notes (never touching existing ones).
    Leftovers → what to move out and delete by hand. **Never create, edit, move or
    delete anything under `~/Cognisphere/`.**
 6. **Configuration, check-only — `vault-check.md`.** `settings.local.json`
    (`additionalDirectories`, the `Read` and `Edit` allow rules, the `Human/` deny rule,
-   inert `Write(...)` rules), `AGENTS.local.md`'s Agent workspace section, the
-   `CLAUDE.local.md` symlink. **Never edit these files:** the report says what to change
-   by hand, or to run `/cognisphere:install` for a missing one.
+   inert `Write(...)` rules, local hooks), `AGENTS.local.md`'s Agent workspace section
+   (with its end-of-session line), the `CLAUDE.local.md` symlink. **Never edit these
+   files:** the report says what to change by hand, or to run `/cognisphere:install`
+   for a missing one.
 7. **One consolidated report.** One section per pass: created, updated, written without
    asking (and why it was mandatory), left on purpose, what still needs the user (old
    marketplace entries, linked hooks, rewrites declined, vault and configuration

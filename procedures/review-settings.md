@@ -15,7 +15,9 @@ Language: nothing here writes prose, only JSON keys.
 
 1. **`settings.json`** against `<plugin>/templates/settings.json`:
    - missing → copy the template.
-   - present → add only what it lacks: each `deny` entry. Everything else stays. Not
+   - present → add only what it lacks: each `deny` entry, and each read-only git
+     `allow` entry (`git status`, `git diff`, `git log`, `git show`). Everything else
+     stays, in its order. Not
      valid JSON → report it and stop; do not hand-edit around it.
    - `includeCoAuthoredBy` present → it is deprecated: propose the equivalent — `false`
      → `"attribution": { "commit": "", "pr": "" }`, `true` → drop the key — and change

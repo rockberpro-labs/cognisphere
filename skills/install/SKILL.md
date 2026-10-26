@@ -47,7 +47,7 @@ into this round — their questions depend on what the earlier steps found.
 ## 1. Repo structure — `scaffold.md`
 
 `scripts/scaffold.sh`: `.agents/{memory,rules}` and `.agents/.gitignore`,
-`.claude -> .agents`, `settings.json` with the deny list, `AGENTS.md` and
+`.claude -> .agents`, `settings.json` with the deny and read-only git allow lists, `AGENTS.md` and
 `CLAUDE.md -> AGENTS.md`, `rules/memory.md`, and the root `.gitignore` entries for the
 local files. Then by hand: the Memory Catalog section and the language line in
 `AGENTS.md`, and `rules/memory.md` translated.
@@ -94,6 +94,9 @@ Check that every `[[link]]` resolves (`scripts/check-links.pl`).
 - **Vault:** the tree, the open threads recorded, the `Human/` notes found (listed, not
   summarised).
 - **Configuration:** the three local files, created or extended, and their ignore status.
+- **Drift guard coverage:** the notes that declare `paths:`, with their globs. None →
+  say so plainly: `memory-drift-guard` and the read rules cover no code until a note
+  declares an area (`/cognisphere:update <area>`).
 - **Open questions** the memory pass could not answer, and any code defect found (for
   an issue: the vault does not track them).
 - **Restart the session** so `CLAUDE.local.md` loads. Because `.claude` is a symlink,

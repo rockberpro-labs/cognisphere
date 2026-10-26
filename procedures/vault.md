@@ -85,7 +85,11 @@ bash "<plugin>/scripts/configure.sh" <project> <style-file>
   Missing → created; a regular `CLAUDE.local.md` with no `AGENTS.local.md` is moved to
   that name first. Existing → each section it lacks (`## Working style`,
   `## Agent workspace`) is appended; the sections it has stay, even when they disagree
-  (`vault-check.md` reports that).
+  (`vault-check.md` reports that). Created in this run and `AGENTS.md` has its own
+  end-of-unit step (update the plan, commit, tell the user to `/clear`) → name that step
+  in the end-of-session line, e.g. "…or before telling the user to `/clear`", so the
+  vault step rides on the ritual the agent already follows. Only `AGENTS.local.md`
+  changes: `AGENTS.md` is shared, and teammates have no vault.
 - **`CLAUDE.local.md`** → a symlink to `AGENTS.local.md`, mirroring `CLAUDE.md`. No tool
   reads `AGENTS.local.md` natively; this is the bridge. Exit 3 → a regular
   `CLAUDE.local.md` sits next to `AGENTS.local.md`: diff them, show what only
@@ -111,6 +115,10 @@ git already hold stays there.
   not a thread: list it in the report, for an issue. The repo keeps its own plan, TODO
   or issue file → its items stay there: Open Threads links the file once (§ Direction)
   and holds only what it doesn't.
+- **`Workflow/Vault Guide.md` § 1 table**: the memory pass found a plan or status doc
+  (`memory.md` phase 0) → replace the generic "Planned work and its status" row with
+  rows naming it, one per kind of fact it owns, e.g. `| Phase status, next steps,
+  per-phase log | PLAN.md |`. The vault's Log then stays at session level (§ 2 Log).
 - **`Log/<today>.md` § Session 1**: Found (what the passes showed, in a line or two),
   Changed (the vault and local configuration files created, and "repo changes
   uncommitted" unless the user had them committed), Not verified (each check not run),
