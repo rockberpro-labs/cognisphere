@@ -6,7 +6,7 @@
     {
       "name": "cognisphere",
       "source": "./",
-      "description": "Commit/secret/memory-drift guards, /cognisphere:install and /cognisphere:update [area], explorer/planner/implementer/test-runner/reviewer agents, and a ~/Cognisphere/<project>/ vault. Claude Code on Linux and macOS."
+      "description": "Commit/secret/memory-drift guards, /cognisphere:install and /cognisphere:update [area], explorer/planner/implementer/test-runner/reviewer agents, and a ~/Cognisphere/<project>/ vault. Claude Code on Linux, macOS and Windows (Git Bash)."
     }
   ]
 }
