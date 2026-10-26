@@ -1,6 +1,6 @@
 ---
 name: update
-description: Maintains an existing cognisphere harness - the .agents/ structure, settings and guards, the memory catalog (index, anti-drift rule, stale notes, dead or overlapping globs, domain declarations) and the rules (read rules, dead or too-broad globs, duplicates, new candidates) - and checks, without writing, the vault in ~/Cognisphere/ named after the project (when this user has one), the local configuration and the user-level settings that would run the guards twice. Use when the user asks to update, upgrade, review, audit, refresh or repair the agent harness, the .agents, the memory, the rules, the hooks/guards or the settings of a project that already has one, typically after upgrading the plugin or a long stretch of commits. Pass an area (a directory, module or subject) to map or deepen just that one, e.g. when a task enters an area that has no note - ask before writing.
+description: Maintains an existing cognisphere harness - the .agents/ structure, settings and guards, the memory catalog (index, anti-drift rule, stale notes, dead or overlapping globs, domain declarations) and the rules (read rules, dead or too-broad globs, duplicates, new candidates) - and checks, without writing, the vault in ~/Cognisphere/Projects/ named after the project (when this user has one), the local configuration and the user-level settings that would run the guards twice. Use when the user asks to update, upgrade, review, audit, refresh or repair the agent harness, the .agents, the memory, the rules, the hooks/guards or the settings of a project that already has one, typically after upgrading the plugin or a long stretch of commits. Pass an area (a directory, module or subject) to map or deepen just that one, e.g. when a task enters an area that has no note - ask before writing.
 argument-hint: "[area]"
 ---
 
@@ -64,7 +64,8 @@ do reports "nothing to do" in one line and the next one starts.
      least as wide as the note's.
    - **Proposed, written on a yes:** dead or too-broad globs, duplicates, oversized
      rules, broken pointers, language, new candidates.
-5. **Vault, read-only — `vault-check.md`.** The vault folder, `Human/`, `Agent/`'s
+5. **Vault, read-only — `vault-check.md`.** A vault from before D32 still straight under
+   `~/Cognisphere/` (the move to `Projects/`); the vault folder, `Human/`, `Agent/`'s
    Home, four folders and template notes; leftovers of the v0.1.0 layout that copy the
    repo into the vault; a repo plan the Vault Guide does not name; the open Harness
    threads, listed for the agent to re-check. Missing items → restore from the backup, or
@@ -72,9 +73,10 @@ do reports "nothing to do" in one line and the next one starts.
    Leftovers → what to move out and delete by hand. **Never create, edit, move or
    delete anything under `~/Cognisphere/`.**
 6. **Configuration, check-only — `vault-check.md`.** `settings.local.json`
-   (`additionalDirectories`, the `Read` and `Edit` allow rules, the `Human/` deny rule,
-   inert `Write(...)` rules, local hooks), `AGENTS.local.md`'s Agent workspace section
-   (with its end-of-session line), the `CLAUDE.local.md` symlink, and the user-level
+   (`additionalDirectories`, the `Read` and `Edit` allow rules, the `Human/` and
+   `Shared/` deny rules, a `Read` grant over the whole root, inert `Write(...)` rules,
+   local hooks), `AGENTS.local.md`'s Agent workspace section
+   (with its end-of-session and `Shared/` lines), the `CLAUDE.local.md` symlink, and the user-level
    `~/.claude/settings.json` (agent-kit or a second cognisphere enabled, guard hooks
    registered for the user). **Never edit these files:** the report says what to change by hand, or to run `/cognisphere:vault`
    for a missing one.

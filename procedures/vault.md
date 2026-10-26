@@ -1,8 +1,11 @@
 # vault
 
 The vault is the unversioned half of the harness: a per-project folder outside the repo,
-at `~/Cognisphere/<project>/`, with `Agent/` (the agent's workspace, the agent is the only
-writer) and `Human/` (the maintainer's notes, the agent only reads). The local
+at `~/Cognisphere/Projects/<project>/`, with `Agent/` (the agent's workspace, the agent is
+the only writer) and `Human/` (the maintainer's notes, the agent only reads). Next to
+`Projects/`, `~/Cognisphere/Shared/` holds the maintainer's notes for every project: each
+project's agent reads it and none writes there (D32). The rest of the root is the
+maintainer's alone, and no agent is granted another project's folder. The local
 configuration points the agent at it: `.agents/settings.local.json`, `AGENTS.local.md`
 and `CLAUDE.local.md`, all ignored by git. When the repo layer is not cognisphere's
 (D30, D31), the settings file is `.claude/settings.local.json` and the ignore lines are in
@@ -27,13 +30,16 @@ Everything here is in English, whatever the project's language (`scaffold.md`
 ## Names
 
 ```bash
-bash "<plugin>/scripts/names.sh" [<project>]   # prints main, project, vault, vault_tilde, vault_exists
+bash "<plugin>/scripts/names.sh" [<project>]   # prints main, project, root, vault, vault_tilde, vault_exists
 ```
 
 `project` defaults to the main worktree's folder name, so all worktrees share one vault.
 `repo_layer` is `cognisphere` when `.agents/rules/memory.md` names `/cognisphere:update`
 and `AGENTS.local.md` has no `## Repo layer`; otherwise `untouched`. § Configure reads it.
-`vault` is absolute and, under Git Bash, in `C:/...` form, which the Read tool needs.
+`root` (`~/Cognisphere`) and `vault` (`<root>/Projects/<project>`) are absolute and,
+under Git Bash, in `C:/...` form, which the Read tool needs. `old_vault` is printed only
+when a vault from before D32 sits straight under the root: `vault-check.md` reports the
+move; this procedure never moves it.
 The path is fixed: there is no setting for it. The one choice is the name. If the vault
 already exists and this repo's local configuration does not point at it, another repo
 may own it: install asks whether to reuse it or pick another name, and the chosen name is
@@ -55,7 +61,8 @@ Write the chosen text to a file in the scratchpad: § Configure reads it from th
 ## Seed
 
 Copies `<plugin>/templates/vault/` into the vault, filling `{{project}}`, `{{date}}`,
-`{{month}}` and `{{repo}}`. **Create only; never overwrite.**
+`{{month}}` and `{{repo}}`; its `README.md` and `Shared/README.md` go to the root, once
+for every project. **Create only; never overwrite.**
 
 ```bash
 bash "<plugin>/scripts/seed-vault.sh" <project>
@@ -69,9 +76,10 @@ or the memory notes is read twice and drifts the first time the original changes
 note copies them, and the templates are complete as seeded: nothing waits to be filled.
 `Workflow/Vault Guide.md` carries the rules.
 
-`Human/README.md` is written only here, before § Configure adds the deny rule. On a
-re-seed the deny rule may already be in force and block it: report that, and tell the
-user to copy `<plugin>/templates/vault/Human/README.md` by hand if they want it.
+`Human/README.md` and `Shared/README.md` are written only here, before § Configure adds
+the deny rules. On a re-seed, or a second project, a deny rule may already be in force
+and block one: report that, and tell the user to copy it from
+`<plugin>/templates/vault/` by hand if they want it.
 
 ## Configure
 

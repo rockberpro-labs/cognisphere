@@ -13,6 +13,7 @@
 - Asked about known issues, problems, suggestions or what you would improve → read `State/Findings.md` first. Re-check each open item against the code (`git log <sha>..HEAD -- <path>`) before you report it, say the answer is from the vault as of which commit, and offer a fresh scan: the vault only covers the areas you have worked in.
 - `{{vault}}/Agent/` is the agent's workspace, and the agent is its only writer. It holds only what nothing else holds: open threads, findings, the session log, scratch. Never copy into it what git, `AGENTS.md`, `.agents/` or an issue already holds.
 - `{{vault}}/Human/` is the maintainer's: read-only. Don't summarise it unless asked.
+- `{{root}}/Shared/` holds the maintainer's notes for every project: read-only. Read a note there when the maintainer points at it or the task needs it; don't load the folder whole. Never read another project's folder under `{{root}}/Projects/`.
 - `00 Home.md` missing → say so; `/cognisphere:vault` re-seeds the missing notes and leaves the rest alone.
 
 ## Repo layer

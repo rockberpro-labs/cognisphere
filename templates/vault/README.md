@@ -1,9 +1,12 @@
 # Cognisphere
 
-One folder per project, written by the [cognisphere](https://github.com/rockberpro/cognisphere) plugin for Claude Code. Each one can be opened as an Obsidian vault.
+Written by the [cognisphere](https://github.com/rockberpro/cognisphere) plugin for Claude Code. Open this folder, or any project folder in it, as an Obsidian vault.
 
-- `<project>/Agent/` is the agent's workspace: state, log, knowledge, scratch. The agent is its only writer.
-- `<project>/Human/` is yours. Agents read it and cannot write there.
+- `Projects/<project>/` is one repo's vault, named after it.
+  - `Agent/` is the agent's workspace: state, log, scratch. The agent is its only writer.
+  - `Human/` is yours. That project's agent reads it and cannot write there.
+- `Shared/` is yours, for every project: each project's agent reads it and cannot write there.
+- Anything else you put here is yours alone: no agent is granted it, and no agent reads another project's folder.
 
 ## Backups are yours
 

@@ -1,6 +1,6 @@
 ---
 name: install
-description: Sets up the whole cognisphere harness in a repository at once - the versioned repo layer (/cognisphere:harness - .agents/ structure, memory catalog and AGENTS.md, commit policy and path-scoped rules) and then the per-project vault in ~/Cognisphere/, in a folder named after the project, with the gitignored local configuration that points the agent at it (/cognisphere:vault). Use when the user asks to install, set up, initialize or configure cognisphere, the agents directory, the memory base or the .agents of a repository, or to map the project's memory and rules for the first time. For one half only, use /cognisphere:harness or /cognisphere:vault. Only creates what is missing; never overwrites.
+description: Sets up the whole cognisphere harness in a repository at once - the versioned repo layer (/cognisphere:harness - .agents/ structure, memory catalog and AGENTS.md, commit policy and path-scoped rules) and then the per-project vault in ~/Cognisphere/Projects/, in a folder named after the project, with the gitignored local configuration that points the agent at it (/cognisphere:vault). Use when the user asks to install, set up, initialize or configure cognisphere, the agents directory, the memory base or the .agents of a repository, or to map the project's memory and rules for the first time. For one half only, use /cognisphere:harness or /cognisphere:vault. Only creates what is missing; never overwrites.
 ---
 
 # install

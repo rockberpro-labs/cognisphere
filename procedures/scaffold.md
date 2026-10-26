@@ -24,7 +24,7 @@ That language is a project fact, so it is **declared, not re-guessed** on every 
 Filenames, keys and paths stay as specified here regardless (English kebab-case): the
 procedures find `rules/memory.md`, `rules/commit.md` and `memory/MEMORY.md` by name.
 
-The vault (`~/Cognisphere/<project>/`) and `AGENTS.local.md` are the exception: they are
+The vault (`~/Cognisphere/Projects/<project>/`) and `AGENTS.local.md` are the exception: they are
 always English (`vault.md`), with domain terms kept as the code names them.
 
 ## Convention
