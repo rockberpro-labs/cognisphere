@@ -36,6 +36,8 @@ This note is the vault's own rulebook. `/cognisphere:vault` (or `/cognisphere:in
 
 What is left is the agent's own: open threads, what it noticed along the way, events git doesn't record, the session log and scratch work.
 
+`Scratch/` is the exception to this rule: it is working memory, written freely while the work lasts, and emptied at session end.
+
 ---
 
 ## 2. What goes where
@@ -72,9 +74,11 @@ Rejected findings stay, struck through with the maintainer's reason, so the same
 - Append only. Don't rewrite past sessions.
 - When the repo keeps its own progress log (a plan with status, next steps and per-phase logs), that log owns what was built and what comes next. A session here stays at session level: Asked, Not verified, harness threads. **Did** and **Next** point to the plan's entry instead of restating it.
 
-### `Scratch/`: "thinking space"
-- Diff sketches, maths checks, repro scripts, half-ideas. `YYYY-MM-DD topic.md`.
-- Nothing here is authoritative. Promote what's worth keeping, then delete the file.
+### `Scratch/`: "working memory"
+- Plans, files touched, dead ends, diff sketches, maths checks, repro scripts, half-ideas. `YYYY-MM-DD topic.md`.
+- Written freely: a copy of something held elsewhere is fine here while the work lasts.
+- Written at set moments: before the first edit of a task, and before a long investigation. The `scratch-first` hook refuses repo edits until a note exists this session; the Stop hook asks again when a session touched 3 or more repo files and nothing here changed.
+- Nothing here is authoritative. At session end, promote what's worth keeping, then delete the rest.
 
 The top level stays at **one note plus four folders**. Don't add new top-level folders without the maintainer's agreement.
 

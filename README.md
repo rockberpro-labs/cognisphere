@@ -135,7 +135,7 @@ conventions; what's left is the agent's own:
 - **Findings**: what it notices outside its task (a bug, a risk, a missing test), written
   the moment it notices, never fixed unasked. Ask "known issues?" and it starts here.
 - **Log**: one block per session, so the next one picks up where this one stopped.
-- **Scratch**: throwaway work.
+- **Scratch**: working memory, written freely and emptied each session.
 
 Your notes go in `Human/` (this project) or `Shared/` (every project). The agent reads
 them and never writes them. Install also asks whether the agent is your **author** (it
@@ -169,8 +169,11 @@ error never blocks the session.
 - **`memory-drift-guard`** blocks a commit that changes code without the memory note
   covering it.
 
-In a project with a vault, a Stop hook, `session-log`, asks once for the end-of-session
-Log entry when the session changed something and didn't log it.
+In a project with a vault, a SessionStart hook, `session-start`, loads the vault's
+reading order into context, a PreToolUse hook, `scratch-first`, refuses repo edits until
+the session has written its plan in `Scratch/`, and a Stop hook, `session-log`, asks once for the
+end-of-session Log entry when the session changed something and didn't log it, and for
+the `Scratch/` working notes when it touched 3 or more files without them.
 
 The protection of `Human/` and `Shared/` covers Claude's tools, not arbitrary scripts;
 turn on the sandbox for that. → [GUIDE.md § Guards](GUIDE.md#guards),

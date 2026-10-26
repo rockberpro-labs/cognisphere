@@ -57,7 +57,7 @@ Each fact has one place, chosen by when it must be loaded:
     │   ├── State/            Open Threads · Findings · History
     │   ├── Workflow/         Session Protocol · Vault Guide
     │   ├── Log/              YYYY-MM-DD.md, one "## Session N" block per session
-    │   └── Scratch/          README.md + throwaway work
+    │   └── Scratch/          working memory, emptied each session
     └── Human/                your notes; this project's agent only reads them
 ```
 
@@ -70,6 +70,10 @@ the vault is read twice and goes stale the first time the original changes. What
 is the agent's own: open threads (harness work, questions and decisions waiting on you),
 findings (a defect waits there until you open its issue), events git doesn't record, the
 session log and scratch work.
+
+`Scratch/` is the exception: it is the agent's working memory, written freely (a plan
+before a multi-step edit, dead ends during an investigation) and emptied at session end
+after what matters is promoted.
 
 ### Findings
 
@@ -235,6 +239,19 @@ One more hook runs when the agent stops, in a project with a vault only:
   `## Session N` entry and Open Threads. The vault path comes from `AGENTS.local.md`.
   A reply that only pauses for you just stops again, and the same changes aren't
   reported twice. It can't see a missed Findings entry: that changes no file.
+  It also blocks once when the session touched 3 or more repo files (committed or
+  not) and nothing in `Scratch/` changed, asking for the working notes.
+
+And two more, in a project with a vault only:
+
+- **`scratch-first`** — `hooks/scratch-first.sh`, a PreToolUse hook on Edit, Write,
+  MultiEdit and NotebookEdit. Refuses an edit of a repo file until the session has
+  written a note in `Scratch/` (any file but its README), and keeps refusing until one
+  exists. Edits outside the repo pass; edits made through Bash aren't seen.
+
+- **`session-start`** — `hooks/session-start.sh`, a SessionStart hook. Loads `00 Home`,
+  Open Threads and the tail of the latest Log note into the session's context, each
+  capped, and lists any `Scratch/` file an earlier session left behind.
 
 The versioned `settings.json` also denies the blanket `git add` forms (`-A`, `--all`,
 `.`, `-u`) and allows the read-only git commands without prompting.
@@ -318,7 +335,7 @@ the code names them. Filenames stay English everywhere.
   `SKILL.md` and reading procedures from `procedures/` on demand (`scaffold`, `memory`,
   `rules`, `review-settings`, `review-memory`, `review-rules`, `vault`, `vault-check`);
   `install`, which runs `harness` then `vault`; `read`, with no procedure.
-- **`hooks/`** — `guard.sh`, `session-log.sh` and one test per guard and hook.
+- **`hooks/`** — `guard.sh`, `session-log.sh`, `session-start.sh`, `scratch-first.sh` and one test per guard and hook.
 - **`agents/`** — `cognisphere:explorer` (read-only investigator; the memory passes fan
   out to it), `cognisphere:planner` (ordered steps from an explorer report),
   `cognisphere:implementer` (one planned step, code plus the stale note),
