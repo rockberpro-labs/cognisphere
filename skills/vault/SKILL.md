@@ -1,6 +1,6 @@
 ---
 name: vault
-description: Sets up only your own per-project vault in ~/Cognisphere/, in a folder named after the project (Agent/ workspace and Human/ notes), and the gitignored local configuration that points the agent at it, without touching the repo's harness. Use when the user asks to set up, add, create or restore their vault, when a teammate joins a repo that already has the cognisphere harness, when the repo's harness belongs to someone else, after /cognisphere:harness, or when /cognisphere:update or /cognisphere:read reports that no vault is set up. Only creates what is missing; never overwrites.
+description: Sets up only your own per-project vault in ~/Cognisphere/Projects/, in a folder named after the project (Agent/ workspace and Human/ notes, plus read access to ~/Cognisphere/Shared), and the gitignored local configuration that points the agent at it, without touching the repo's harness. Use when the user asks to set up, add, create or restore their vault, when a teammate joins a repo that already has the cognisphere harness, when the repo's harness belongs to someone else, after /cognisphere:harness, or when /cognisphere:update or /cognisphere:read reports that no vault is set up. Only creates what is missing; never overwrites.
 ---
 
 # vault
@@ -37,9 +37,9 @@ exists, whether the local settings and `AGENTS.local.md` already point at it, an
 
 Then ask **one round of questions, before writing anything**, in the user's language:
 
-- **Project name and vault path** — `~/Cognisphere/<project>/`. The folder exists and this
-  repo's local configuration does not point at it → another repo may own it: reuse it,
-  or pick another name.
+- **Project name and vault path** — `~/Cognisphere/Projects/<project>/`. The folder
+  exists and this repo's local configuration does not point at it → another repo may own
+  it: reuse it, or pick another name.
 - **Working style** — author or tutor (`vault.md` § Working style), quoting both texts.
   Skip it when `AGENTS.local.md` already has `## Working style`.
 - **What will be created** — the vault tree and the three local files, each marked
@@ -47,6 +47,11 @@ Then ask **one round of questions, before writing anything**, in the user's lang
   in the repo.
 
 Everything already answered in the user's request counts as answered.
+
+`names.sh` printed `old_vault` (a vault from before D32, straight under
+`~/Cognisphere/`) → seeding now would start an empty vault beside it. Stop before the
+questions and give the move from `vault-check.md` step 1 for the user to run; this
+skill never moves a vault.
 
 ## 1. Vault — `vault.md` § Seed
 
@@ -70,7 +75,7 @@ found. Check that every `[[link]]` resolves (`scripts/check-links.pl`).
 - **Repo:** compare `git status --porcelain` with the survey's: identical → "repo
   untouched"; any new line is a defect of this run, reported as such, never staged.
 - **Vault:** the tree, created vs. already existed; the `Human/` notes found (listed,
-  not summarised).
+  not summarised); `~/Cognisphere/Shared/`, which every project's agent reads.
 - **Configuration:** the three local files, created or extended, and their ignore status.
 - **Restart the session** so `CLAUDE.local.md` loads. When `.claude` is a symlink,
   Claude Code treats `settings.local.json` as supplied by the repo: its allow rules and

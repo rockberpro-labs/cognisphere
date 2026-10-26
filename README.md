@@ -16,9 +16,10 @@ key. Cognisphere fixes that in two layers:
   doesn't say by itself, path-scoped rules that load before the first wrong edit, and
   guards that block a commit to `main`, a commit that leaks a secret, and a commit that
   changes code without its memory note;
-- **outside the repo**, a per-project vault (`~/Cognisphere/<project>/`, Obsidian-ready)
-  where the agent keeps its open threads, findings, session log and scratch work, and
-  where you keep notes it reads but never writes.
+- **outside the repo**, a per-project vault (`~/Cognisphere/Projects/<project>/`,
+  Obsidian-ready) where the agent keeps its open threads, findings, session log and
+  scratch work, and where you keep notes it reads but never writes, plus
+  `~/Cognisphere/Shared/` for your notes that serve every project.
 
 ## What you get
 
@@ -27,7 +28,7 @@ key. Cognisphere fixes that in two layers:
 | **Guards** | `master-guard`, `secret-guard`, `memory-drift-guard`: one Bash hook, every repo of yours |
 | **Memory catalog** | `AGENTS.md` + `.agents/memory/` notes with the *why*, kept in sync with the code at commit time |
 | **Rules** | `.agents/rules/`: short instructions the harness injects when the agent reads a matching file |
-| **Vault** | `Agent/` (open threads, findings, log, scratch) and `Human/` (your notes, read-only to the agent) |
+| **Vault** | `Agent/` (open threads, findings, log, scratch) and `Human/` (your notes, read-only to the agent); `Shared/` across projects |
 | **Commands** | `/cognisphere:install` (= `harness` + `vault`), `/cognisphere:update [area]`, `/cognisphere:read <note>` |
 | **Agents** | explorer, planner, implementer, test-runner, reviewer |
 
@@ -61,15 +62,18 @@ project has three parts:
 
 - **Repo** (versioned, low entropy): `AGENTS.md` and the `.agents/` harness — memory
   catalog, rules, settings. Shared with everyone who clones.
-- **Vault** (unversioned, high entropy): `~/Cognisphere/<project>/`. `Agent/` is the
-  agent's workspace, and the agent is its only writer. `Human/` holds your notes, and
-  the agent only reads it. You can open the folder as an Obsidian vault.
+- **Vault** (unversioned, high entropy): `~/Cognisphere/Projects/<project>/`. `Agent/`
+  is the agent's workspace, and the agent is its only writer. `Human/` holds your notes,
+  and the agent only reads it. `~/Cognisphere/Shared/` holds your notes for every
+  project: each project's agent reads it, none writes it, and none reads another
+  project's folder. You can open `~/Cognisphere`, or any folder in it, as an Obsidian
+  vault.
 - **Configuration** (local, gitignored): points the agent at the vault —
   `AGENTS.local.md` (with `CLAUDE.local.md` linked to it) and
   `.agents/settings.local.json`.
 
 ```
- repo (git)                                ~/Cognisphere/<project>/ (not in git)
+ repo (git)                                ~/Cognisphere/Projects/<project>/ (not in git)
  ┌─────────────────────────────┐           ┌──────────────────────────────┐
  │ AGENTS.md ← CLAUDE.md       │           │ Agent/   agent writes        │
  │ .agents/ ← .claude          │  points   │   00 Home.md                 │
@@ -133,14 +137,20 @@ Each fact has one place, chosen by when it must be loaded:
 ## The vault
 
 ```
-Agent/
-├── 00 Home.md            entry point: reading order, ground rules, map
-├── State/                Open Threads · Findings · History
-├── Workflow/             Session Protocol · Vault Guide
-├── Log/                  YYYY-MM-DD.md, one "## Session N" block per session
-└── Scratch/              README.md + throwaway work
-Human/                    your notes; the agent only reads them
+~/Cognisphere/
+├── README.md                 backups, and what is where
+├── Shared/                   your notes for every project; every agent reads, none writes
+└── Projects/<project>/       one vault per repo
+    ├── Agent/
+    │   ├── 00 Home.md        entry point: reading order, ground rules, map
+    │   ├── State/            Open Threads · Findings · History
+    │   ├── Workflow/         Session Protocol · Vault Guide
+    │   ├── Log/              YYYY-MM-DD.md, one "## Session N" block per session
+    │   └── Scratch/          README.md + throwaway work
+    └── Human/                your notes; this project's agent only reads them
 ```
+
+Anything else you keep in `~/Cognisphere/` is yours alone: no agent is granted it.
 
 **The vault holds only what nothing else holds.** The repo's state and history are in
 git. Commands, conventions and area knowledge are in `AGENTS.md` and `.agents/`, which
@@ -150,7 +160,7 @@ is the agent's own: open threads (harness work, questions and decisions waiting 
 findings (a defect waits there until you open its issue), events git doesn't record, the
 session log and scratch work.
 
-**Findings** — `~/Cognisphere/<project>/Agent/State/Findings.md` — is where the agent
+**Findings** — `~/Cognisphere/Projects/<project>/Agent/State/Findings.md` — is where the agent
 writes what it notices outside its task (a bug, a risk, a smell, a missing test, an
 improvement, an idea) the moment it notices it, without fixing it unasked:
 
@@ -205,7 +215,8 @@ step creates only what is missing:
 1. the `.agents/` structure, `AGENTS.md`, the symlinks and the `.gitignore` entries;
 2. the memory catalog (it asks before writing the notes);
 3. the rules (it asks the commit policy);
-4. the vault under `~/Cognisphere/<project>/`;
+4. the vault under `~/Cognisphere/Projects/<project>/`, and `~/Cognisphere/Shared/`
+   the first time;
 5. the local configuration;
 6. the run's open questions in Open Threads, the defects it came across in Findings, and
    Session 1 of the Log;
@@ -270,8 +281,9 @@ rule, an index line.
 ### `/cognisphere:read <note> [request]`
 
 Takes what Obsidian copies, so you can hand the agent the note you are looking at: its
-path relative to the open vault (`Human/draft.md`, or `<project>/Human/draft.md` when
-`~/Cognisphere` itself is open). It reads the note from this project's vault, with its
+path relative to the open vault (`Human/draft.md`, or `Projects/<project>/Human/draft.md`
+and `Shared/conventions.md` when `~/Cognisphere` itself is open). It reads the note from
+this project's vault or from `Shared/`, never from another project's folder, with its
 embeds and the links its content depends on, one level deep. It checks what the note
 says about the code against the code, then does the request
 (`/cognisphere:read Human/draft.md plan phase 1`), or, with none, says what it read and
@@ -299,11 +311,13 @@ The versioned `settings.json` also denies the blanket `git add` forms (`-A`, `--
 
 ## Boundaries and their limits
 
-- `Human/` is protected by a deny rule in `settings.local.json`
-  (`Edit(~/Cognisphere/<project>/Human/**)`). It covers Claude's file tools, the Bash file
-  commands Claude Code recognizes, and redirects. It does **not** cover arbitrary
-  scripts (a `python -c` that opens the file); the sandbox covers those, if you turn it
-  on.
+- `Human/` and `Shared/` are protected by deny rules in `settings.local.json`
+  (`Edit(~/Cognisphere/Projects/<project>/Human/**)`, `Edit(~/Cognisphere/Shared/**)`).
+  They cover Claude's file tools, the Bash file commands Claude Code recognizes, and
+  redirects. They do **not** cover arbitrary scripts (a `python -c` that opens the
+  file); the sandbox covers those, if you turn it on.
+- Other projects' vaults are kept out by granting nothing over them: no `Read` rule
+  covers `~/Cognisphere` or `Projects/` as a whole. Reading one still prompts you.
 - Only `Read` and `Edit` rules are used: `Write(...)` rules never match, because `Edit`
   rules cover the Write tool.
 - **Folder trust.** When `.claude` is a symlink, Claude Code treats `settings.local.json`
@@ -412,7 +426,7 @@ the code names them. Filenames stay English everywhere.
   `user-settings.pl` (what in the user-level settings runs the guards twice).
 - **`templates/`** — `settings.json`, `rules/memory.md` (the anti-drift rule),
   `settings.local.json` and `AGENTS.local.md` (the local configuration), and `vault/`
-  (the vault README, `Human/README.md`, one template per `Agent/` note).
+  (the root and `Shared/` READMEs, `Human/README.md`, one template per `Agent/` note).
 - **`evals/`** — `claude plugin eval` fixtures for the memory and rules passes.
 
 Why the plugin is the way it is, and what was considered and rejected:

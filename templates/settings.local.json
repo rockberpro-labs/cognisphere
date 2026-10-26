@@ -1,7 +1,7 @@
 {
   "permissions": {
-    "additionalDirectories": ["~/Cognisphere/{{project}}"],
-    "allow": ["Read(~/Cognisphere/{{project}}/**)", "Edit(~/Cognisphere/{{project}}/Agent/**)"],
-    "deny": ["Edit(~/Cognisphere/{{project}}/Human/**)"]
+    "additionalDirectories": ["~/Cognisphere/Projects/{{project}}", "~/Cognisphere/Shared"],
+    "allow": ["Read(~/Cognisphere/Projects/{{project}}/**)", "Edit(~/Cognisphere/Projects/{{project}}/Agent/**)", "Read(~/Cognisphere/Shared/**)"],
+    "deny": ["Edit(~/Cognisphere/Projects/{{project}}/Human/**)", "Edit(~/Cognisphere/Shared/**)"]
   }
 }

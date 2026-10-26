@@ -44,7 +44,10 @@ ok "vault path is not MSYS-style"     '! printf "%s" "$vault" | grep -q "^/[a-z]
 ok "AGENTS.local.md names the vault"  'grep -qF "$vault/Agent/00 Home.md" AGENTS.local.md && grep -q "The agent writes code." AGENTS.local.md'
 ok "end-of-session line"              'grep -qF "Before the last reply" AGENTS.local.md'
 ok "findings lines"                  'grep -qF "State/Findings.md" AGENTS.local.md && grep -qF "Asked about known issues" AGENTS.local.md'
-ok "settings.local.json entries"      'grep -qF "Edit(~/Cognisphere/demo/Human/**)" .agents/settings.local.json'
+ok "settings.local.json entries"      'grep -qF "Edit(~/Cognisphere/Projects/demo/Human/**)" .agents/settings.local.json'
+ok "Shared readable, not writable"    'grep -qF "Read(~/Cognisphere/Shared/**)" .agents/settings.local.json && grep -qF "Edit(~/Cognisphere/Shared/**)" .agents/settings.local.json'
+ok "no grant over the whole root"     '! grep -qE "\"(Read\()?~/Cognisphere(/\*\*)?\)?\"" .agents/settings.local.json'
+ok "AGENTS.local.md names Shared"     'grep -qF "$HOME/Cognisphere/Shared/" AGENTS.local.md'
 ok "CLAUDE.local.md is a link"        '[ -L CLAUDE.local.md ]'
 ok "no Repo layer section"            '! grep -q "^## Repo layer" AGENTS.local.md && [ "$(tail -c1 AGENTS.local.md | od -An -c | tr -d " ")" = "\n" ]'
 printf '# Mine\n\n## Working style\n\nTutor.\n' > AGENTS.local.md
@@ -57,7 +60,12 @@ ok "invalid JSON stops, untouched"    '[ $r = 2 ] && [ "$(cat .agents/settings.l
 out="$(bash "$S/seed-vault.sh" demo)"
 ok "seed creates Home and today"      '[ -f "$vault/Agent/00 Home.md" ] && [ -f "$vault/Agent/Log/$(date +%F).md" ]'
 ok "seed creates Findings"           '[ -f "$vault/Agent/State/Findings.md" ]'
-ok "placeholders filled"              '! grep -rq "{{" "$vault/Agent" "$vault/Human"'
+ok "vault under Projects/"            '[ "$vault" = "$HOME/Cognisphere/Projects/demo" ]'
+ok "seed creates the root's notes"    '[ -f "$HOME/Cognisphere/README.md" ] && [ -f "$HOME/Cognisphere/Shared/README.md" ] && [ ! -e "$HOME/Cognisphere/Projects/README.md" ]'
+ok "no old vault reported"            '! bash "$S/names.sh" demo | grep -q "^old_vault="'
+mkdir -p "$HOME/Cognisphere/old/Agent"
+ok "old vault reported"               'bash "$S/names.sh" old | grep -qx "old_vault=$HOME/Cognisphere/old"'
+ok "placeholders filled"              '! grep -rq "{{" "$vault/Agent" "$vault/Human" "$HOME/Cognisphere/Shared"'
 out="$(bash "$S/seed-vault.sh" demo)"
 ok "seed rerun creates nothing"       '! printf "%s" "$out" | grep -q "^created"'
 ok "seeded links resolve"             'perl "$S/check-links.pl" "$vault/Agent"'
@@ -76,7 +84,7 @@ for kind in plain linked; do
   out="$(bash "$S/configure.sh" demo "$tmp/style")"; r=$?
   ok "untouched ($kind) exits 0, all ignored"  '[ $r = 0 ] && ! printf "%s" "$out" | grep -q "NOT IGNORED"'
   ok "untouched ($kind) leaves git clean"      '[ -z "$(git status --porcelain)" ]'
-  ok "untouched ($kind) settings where read"   'grep -qF "Edit(~/Cognisphere/demo/Human/**)" .claude/settings.local.json'
+  ok "untouched ($kind) settings where read"   'grep -qF "Edit(~/Cognisphere/Projects/demo/Human/**)" .claude/settings.local.json'
   ok "untouched ($kind) Repo layer section"    'grep -q "^## Repo layer" AGENTS.local.md && [ -L CLAUDE.local.md ]'
   before="$(cat .git/info/exclude)"
   bash "$S/configure.sh" demo "$tmp/style" >/dev/null

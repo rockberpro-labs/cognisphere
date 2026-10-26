@@ -7,7 +7,7 @@ value, and the fix for the user to apply: by hand, or by running
 `/cognisphere:vault`, which only creates what is missing (`vault.md`).
 
 ```bash
-bash "<plugin>/scripts/names.sh"   # main, project, vault (absolute), vault_tilde, repo_layer, vault_exists
+bash "<plugin>/scripts/names.sh"   # main, project, root, vault (absolute), vault_tilde, repo_layer, vault_exists, old_vault
 ```
 
 **No vault.** `AGENTS.local.md` missing, or without `## Agent workspace` → this user
@@ -18,11 +18,18 @@ configuration lost: report it, and that `/cognisphere:vault` reconnects it witho
 touching its notes.
 
 **Which name.** Expected: `project` as printed. When `AGENTS.local.md` and
-`settings.local.json` both name the same other `~/Cognisphere/<name>` and that folder
+`settings.local.json` both name the same other `~/Cognisphere/Projects/<name>` and that folder
 exists, it is a name chosen at install: accept it, say so in one line, and check against
 it (`names.sh <name>` prints its paths).
 
 1. **Vault.**
+   - `old_vault` printed (a vault from before D32, at `~/Cognisphere/<project>/`) → report
+     the move, for the user to run, and stop the vault checks there:
+     `mkdir -p ~/Cognisphere/Projects && mv ~/Cognisphere/<project> ~/Cognisphere/Projects/`,
+     then remove the old `~/Cognisphere/<project>` entries from `settings.local.json`
+     and the old `## Agent workspace` section from `AGENTS.local.md`, and run
+     `/cognisphere:vault`, which writes the new ones. Notes kept straight under the root
+     that should serve every project go in `~/Cognisphere/Shared/`.
    - `$vault` missing → report: restore it from the backup (`~/Cognisphere/README.md`), or
      run `/cognisphere:vault` to re-seed it. Stop the vault checks there.
    - `$vault/Human/` missing → report the same way.
@@ -73,13 +80,17 @@ it (`names.sh <name>` prints its paths).
    `AGENTS.local.md`, `.claude/settings.local.json` (inside the directory `.claude` links
    to, when it is a link).
    - Missing → report; `/cognisphere:vault` creates it. Not valid JSON → report.
-   - `permissions.additionalDirectories` holds `~/Cognisphere/<project>` (or its absolute
-     form); `allow` holds `Read(~/Cognisphere/<project>/**)` and
-     `Edit(~/Cognisphere/<project>/Agent/**)`; `deny` holds
-     `Edit(~/Cognisphere/<project>/Human/**)`. Each missing entry → report it with the
-     expected value.
-   - An entry naming another dir (the old `~/Obsidian/Vaults/Cognisphere/Projects/<p>`
-     layout, a renamed project) → report it next to the expected value.
+   - Each entry of `<plugin>/templates/settings.local.json`, `{{project}}` filled: the
+     vault and `~/Cognisphere/Shared` in `permissions.additionalDirectories` (or their
+     absolute form); `Read` on both and `Edit` on the vault's `Agent/**` in `allow`;
+     `Edit` on the vault's `Human/**` and on `Shared/**` in `deny`. Each missing entry →
+     report it with the expected value.
+   - An entry naming another dir (the pre-D32 `~/Cognisphere/<p>`, the old
+     `~/Obsidian/Vaults/Cognisphere/Projects/<p>` layout, a renamed project) → report it
+     next to the expected value.
+   - A `Read` rule or additional directory covering the whole root (`~/Cognisphere` or
+     `~/Cognisphere/**`) or `Projects/` → report it: it lets the agent read every
+     project's vault (D32).
    - `Write(...)` rules → report them as inert (they never match; `Edit` covers the Write
      tool). Do not remove them.
    - A hook in it that duplicates one in `settings.json`, or that `AGENTS.md` says not
@@ -92,7 +103,9 @@ it (`names.sh <name>` prints its paths).
    v0.1.0 text → report the template's current section. A section without the
    end-of-session line (`Before the last reply…`, added in v0.5.0) → report the
    template's line: without it nothing makes the agent write the Log, and
-   `/cognisphere:vault` never adds a line to an existing section. A section without
+   `/cognisphere:vault` never adds a line to an existing section. A section without the
+   `Shared/` line (added in v0.11.0) → report the template's line: without it the agent
+   neither knows the shared notes exist nor that other projects' folders are off limits. A section without
    the two Findings lines (`When you notice something outside the task…` and
    `Asked about known issues…`, added in v0.7.0) → report the template's lines: without
    them the agent neither records what it notices nor reads it back. No

@@ -6,14 +6,17 @@ Reversing a decision adds a new entry, and the old one only gains a
 
 Cognisphere joins two layers: the versioned harness in the repo (agent-kit's `.agents/`:
 memory catalog, rules, settings, guards) and an unversioned per-project vault outside it
-(`~/Cognisphere/<project>/`, with `Agent/` for the agent and `Human/` for the
-maintainer), tied together by a gitignored local configuration.
+(`~/Cognisphere/Projects/<project>/`, with `Agent/` for the agent and `Human/` for the
+maintainer, next to the maintainer's `~/Cognisphere/Shared/`), tied together by a
+gitignored local configuration.
 
 ---
 
 ## D1. The vault path is fixed at `~/Cognisphere/<project>/`
 
 *2026-10-25, v0.1.0*
+
+Superseded in part by D32: the vault moves to `~/Cognisphere/Projects/<project>/`.
 
 **Decision.** The vault lives at `~/Cognisphere/<project>/`, capitalized and visible in
 the home folder. There is no setting to change it. `<project>` is the basename of the
@@ -507,6 +510,9 @@ it is read when asked, and checked before adding to it.
 
 *2026-10-26, v0.8.0*
 
+Superseded in part by D32: `read` also resolves `Projects/<project>/` and `Shared/`
+paths.
+
 **Decision.** A third command, `/cognisphere:read <note> [request]`, run only by the
 maintainer (`disable-model-invocation`). It takes a note's path relative to the
 Obsidian vault: `Human/draft.md`, or `<project>/Human/draft.md` when `~/Cognisphere`
@@ -643,3 +649,39 @@ Recording the opt-out in `AGENTS.local.md`: the file's absence already says it, 
 writing it would leave a personal file in every opted-out clone. Keeping `--untouched`
 as an override: the detection covers every case it was passed for, and a flag that
 disagrees with `## Repo layer` would split the record.
+
+## D32. Vaults under `Projects/`, shared notes under `Shared/`
+
+*2026-10-26, v0.11.0*
+
+**Decision.** The vault moves from `~/Cognisphere/<project>/` to
+`~/Cognisphere/Projects/<project>/`, and `~/Cognisphere/Shared/` holds the maintainer's
+notes for every project. Each project's `settings.local.json` grants `Read` on its own
+vault and on `Shared/`, adds both as additional directories, and denies `Edit` on
+`Shared/**` as it does on `Human/**`. No project is granted the root, `Projects/` or
+another project's folder; anything else the maintainer keeps at the root is theirs
+alone. `seed-vault.sh` creates the root's `README.md` and `Shared/README.md` once, and
+nothing else in `Shared/`: what goes in it, and how it is organised, is the
+maintainer's. `AGENTS.local.md` § Agent workspace gains one line: read `Shared/` when
+pointed at it or the task needs it, never load it whole, never read another project's
+folder. `read` resolves a pasted path by its first segments: `Projects/<project>/` or
+`<project>/` → the vault, `Shared/` → the root, anything else → the vault, then
+`Shared/`. A vault still at the old path is not moved by the plugin: `names.sh` prints
+`old_vault`, `update` reports the move, and `vault` stops before seeding an empty vault
+beside it.
+
+**Why.** Project folders and the maintainer's own folders shared one namespace: a repo
+named like a folder the maintainer made (`Notes`, `Templates`) would land in it, and the
+root, opened in Obsidian, mixed generated vaults with personal notes. The maintainer
+also wants notes that serve every project (conventions, references) readable by every
+agent. Granting the whole root would let one project's agent read every other project's
+`Agent/` and `Human/`: a leak for client work, and stale state from another project
+taken as relevant. Claude Code cannot grant the root minus some of its children, since a deny rule wins
+over an allow, so the shared notes need a folder of their own.
+
+**Rejected.** `Read` on the whole root, with other projects kept out by an instruction
+only: nothing enforces it. A deny rule per other project, written at install: projects
+added later are not covered. Shared notes straight under the root, next to `Projects/`:
+no single folder to grant. Moving old vaults automatically: the plugin never modifies
+an existing vault (D3), and a move is one command.
+
