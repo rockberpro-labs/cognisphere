@@ -295,6 +295,8 @@ state, or override a deliberate choice.
 
 *2026-10-25, v0.1.0*
 
+Superseded by D22.
+
 **Decision.** Linux and macOS only. agent-kit's Windows-only steps (Developer Mode,
 `core.symlinks`, `MSYS=winsymlinks`) are dropped, and `install.sh` refuses other systems.
 
@@ -349,3 +351,21 @@ don't copy" did not stop it.
 **Rejected.** Keeping the notes with stricter hints, which were already there. Recording
 check status with a date: it holds for one commit only, so anchor it to a sha or rerun
 it. `update` deleting the old notes (D18).
+
+## D22. Windows under Git Bash; install from inside Claude Code
+
+*2026-10-25, v0.3.0*
+
+**Decision.** Windows is supported under Git Bash, after a one-time setup in the README
+(Developer Mode, `core.symlinks true`, `MSYS=winsymlinks:nativestrict`). Each `ln -s` in
+the procedures is checked with `[ -L ]`; a copy is removed and the run stops. Install and
+update are the `/plugin` commands inside Claude Code, and `install.sh` is removed.
+
+**Why.** Claude Code expands `~/` on Windows, Git Bash ships `perl` with `JSON::PP`, and
+the guard tests pass there. The only real gap was symlinks, and Git Bash fails it
+silently: `ln -s` copies, so the links drifted. Checking each link closes that. The
+`/plugin` commands are the same on every system, so a shell script with its own platform
+check added nothing.
+
+**Rejected.** A Windows-specific install path. Keeping `install.sh` next to the
+`/plugin` commands.
