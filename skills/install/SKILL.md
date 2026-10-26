@@ -84,7 +84,8 @@ Working style and Agent workspace sections, or append the missing sections; crea
 
 Only the notes created in step 4. Nothing from the repo is copied in: the vault holds
 only what nothing else holds. The open questions, contradicting docs and undone harness
-steps of this run become numbered items in `State/Open Threads.md`; Session 1 of
+steps of this run become numbered items in `State/Open Threads.md`; the defects and
+improvements the passes came across, in `State/Findings.md`; Session 1 of
 `Log/<today>.md` records what was found and which vault and local files were created.
 Check that every `[[link]]` resolves (`scripts/check-links.pl`).
 
@@ -97,8 +98,8 @@ Check that every `[[link]]` resolves (`scripts/check-links.pl`).
 - **Drift guard coverage:** the notes that declare `paths:`, with their globs. None →
   say so plainly: `memory-drift-guard` and the read rules cover no code until a note
   declares an area (`/cognisphere:update <area>`).
-- **Open questions** the memory pass could not answer, and any code defect found (for
-  an issue: the vault does not track them).
+- **Open questions** the memory pass could not answer, and any code defect found, by
+  its number in `State/Findings.md`: it waits there until the maintainer opens an issue.
 - **Restart the session** so `CLAUDE.local.md` loads. Because `.claude` is a symlink,
   Claude Code treats `settings.local.json` as supplied by the repo: its allow rules and
   `additionalDirectories` wait until the folder is trusted (deny rules always apply).

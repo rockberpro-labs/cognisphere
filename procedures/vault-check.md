@@ -30,8 +30,8 @@ it (`names.sh <name>` prints its paths).
      - `State/Current State.md`, `Workflow/Working Agreement.md`,
        `Workflow/Review Checklist.md` or `Knowledge/` present → they restate git,
        `AGENTS.md`, the rules and the memory notes. Fix: move what exists nowhere else (a
-       decision → History, an open question → Open Threads, a code defect → an issue
-       linked from its memory note), then delete them and fix the links to them.
+       decision → History, an open question → Open Threads, a code defect without an
+       issue → Findings), then delete them and fix the links to them.
      - `Workflow/Vault Guide.md` with a `Bootstrap` section, or `Workflow/Session
        Protocol.md` with a `## Commands` section → an old template holding no project
        state. Fix: delete it and run `/cognisphere:install`, which re-seeds it.
@@ -53,6 +53,13 @@ it (`names.sh <name>` prints its paths).
      `State/Open Threads.md` that is not struck through. They go stale silently (a
      "not yet trusted" settings file, resolved by the next restart): the agent re-checks
      each one and closes it in a normal session, not here.
+   - **Open findings:** count the items under `## Open` in `State/Findings.md` and give
+     the oldest "Seen" date, in one line, for the maintainer to triage. Not a defect of
+     the vault: never ask to close them here.
+
+     ```bash
+     sed -n '/^## Open/,/^## /p' "$vault/Agent/State/Findings.md" | grep -c '^### [0-9]'
+     ```
    - Broken `[[links]]`: `perl "<plugin>/scripts/check-links.pl" "$vault/Agent"` prints
      each one. Report them; the agent fixes them in a normal session, not here.
 2. **`.agents/settings.local.json`.**
@@ -77,7 +84,10 @@ it (`names.sh <name>` prints its paths).
    v0.1.0 text → report the template's current section. A section without the
    end-of-session line (`Before the last reply…`, added in v0.5.0) → report the
    template's line: without it nothing makes the agent write the Log, and
-   `/cognisphere:install` never adds a line to an existing section. No
+   `/cognisphere:install` never adds a line to an existing section. A section without
+   the two Findings lines (`When you notice something outside the task…` and
+   `Asked about known issues…`, added in v0.7.0) → report the template's lines: without
+   them the agent neither records what it notices nor reads it back. No
    `## Working style` section → report.
 4. **`CLAUDE.local.md`** must be a symlink to `AGENTS.local.md`
    (`[ -L CLAUDE.local.md ] && [ "$(readlink CLAUDE.local.md)" = AGENTS.local.md ]`).

@@ -42,6 +42,7 @@ ok "configure exits 0"                '[ $r = 0 ] && ! printf "%s" "$out" | grep
 ok "vault path is not MSYS-style"     '! printf "%s" "$vault" | grep -q "^/[a-z]/"'
 ok "AGENTS.local.md names the vault"  'grep -qF "$vault/Agent/00 Home.md" AGENTS.local.md && grep -q "The agent writes code." AGENTS.local.md'
 ok "end-of-session line"              'grep -qF "Before the last reply" AGENTS.local.md'
+ok "findings lines"                  'grep -qF "State/Findings.md" AGENTS.local.md && grep -qF "Asked about known issues" AGENTS.local.md'
 ok "settings.local.json entries"      'grep -qF "Edit(~/Cognisphere/demo/Human/**)" .agents/settings.local.json'
 ok "CLAUDE.local.md is a link"        '[ -L CLAUDE.local.md ]'
 printf '# Mine\n\n## Working style\n\nTutor.\n' > AGENTS.local.md
@@ -53,6 +54,7 @@ ok "invalid JSON stops, untouched"    '[ $r = 2 ] && [ "$(cat .agents/settings.l
 
 out="$(bash "$S/seed-vault.sh" demo)"
 ok "seed creates Home and today"      '[ -f "$vault/Agent/00 Home.md" ] && [ -f "$vault/Agent/Log/$(date +%F).md" ]'
+ok "seed creates Findings"           '[ -f "$vault/Agent/State/Findings.md" ]'
 ok "placeholders filled"              '! grep -rq "{{" "$vault/Agent" "$vault/Human"'
 out="$(bash "$S/seed-vault.sh" demo)"
 ok "seed rerun creates nothing"       '! printf "%s" "$out" | grep -q "^created"'

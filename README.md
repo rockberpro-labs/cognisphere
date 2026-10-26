@@ -83,7 +83,8 @@ creating only what is missing:
 3. the rules (it asks the commit policy);
 4. the vault under `~/Cognisphere/<project>/`;
 5. the local configuration;
-6. the run's open questions in `Agent/`'s Open Threads, and Session 1 of its Log;
+6. the run's open questions in `Agent/`'s Open Threads, the defects it came across in
+   Findings, and Session 1 of its Log;
 7. a report.
 
 Restart the session afterwards so `CLAUDE.local.md` loads.
@@ -111,7 +112,7 @@ touches existing ones.
 ```
 Agent/
 ├── 00 Home.md            entry point: reading order, ground rules, map
-├── State/                Open Threads · History
+├── State/                Open Threads · Findings · History
 ├── Workflow/             Session Protocol · Vault Guide
 ├── Log/                  YYYY-MM-DD.md, one "## Session N" block per session
 └── Scratch/              README.md + throwaway work
@@ -122,13 +123,22 @@ git. The commands, conventions and area knowledge are in `AGENTS.md` and `.agent
 which load into every session anyway. A code defect belongs in an issue. A copy of any
 of those in the vault is read twice and goes stale the first time the original changes.
 What is left is the agent's own: open threads (harness work, questions and decisions
-waiting on you), events git doesn't record, the session log and scratch work.
+waiting on you), findings, events git doesn't record, the session log and scratch work.
+
+**Findings** is where the agent writes down what it notices outside its task — a bug,
+a risk, a smell, a missing test, an improvement — when it notices it, instead of
+mentioning it once in a reply that scrolls away. Ask "known issues?" or "what would you
+improve?" and it reads that note first, re-checks each item against the code and says
+which commit the answer stands at, rather than scanning the repo. You triage by telling
+the agent: an item becomes an issue, goes into your plan, or is rejected with a reason,
+and a rejected one stays struck through so the same suggestion doesn't come back. It
+covers only the areas the agent has worked in: a log of what it saw, not an audit.
 
 - Every note ships complete: frontmatter, navigation line, sections, and at most a
   one-line hint comment (`<!-- … -->`) saying what belongs there. Hints are invisible in
   Obsidian's reading view.
-- Install writes only what its run found: the open questions into Open Threads, and
-  Session 1 of today's Log.
+- Install writes only what its run found: the open questions into Open Threads, the
+  defects and improvements it came across into Findings, and Session 1 of today's Log.
 - `Workflow/Vault Guide.md` is the vault's rulebook: what it holds, where everything
   else lives instead, how to maintain it, the conventions. From then on the agent
   maintains and may restructure `Agent/` through its Session Protocol.
