@@ -33,7 +33,7 @@ Language: nothing here writes prose, only JSON keys.
      cognisphere replaces agent-kit, and with both installed every guard runs twice.
      Never add entries for cognisphere. Drop an object left empty. Say that teammates
      who relied on them keep the guards only by installing the plugin themselves
-     (README, *Install*).
+     (README, *Quick start*).
 
 2. **Guard copies from older versions** — `.agents/hooks/{master,secret,memory-drift}-guard.sh`
    and the `PreToolUse` entries in `settings.json` that run them. With the plugin installed
