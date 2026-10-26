@@ -1,6 +1,6 @@
 ---
 name: vault
-description: Sets up only your own per-project vault at ~/Cognisphere/<project>/ (Agent/ workspace and Human/ notes) and the gitignored local configuration that points the agent at it, without touching the repo's harness. Use when the user asks to set up, add, create or restore their vault, when a teammate joins a repo that already has the cognisphere harness, when the repo's harness belongs to someone else, after /cognisphere:harness, or when /cognisphere:update or /cognisphere:read reports that no vault is set up. Only creates what is missing; never overwrites.
+description: Sets up only your own per-project vault in ~/Cognisphere/, in a folder named after the project (Agent/ workspace and Human/ notes), and the gitignored local configuration that points the agent at it, without touching the repo's harness. Use when the user asks to set up, add, create or restore their vault, when a teammate joins a repo that already has the cognisphere harness, when the repo's harness belongs to someone else, after /cognisphere:harness, or when /cognisphere:update or /cognisphere:read reports that no vault is set up. Only creates what is missing; never overwrites.
 ---
 
 # vault

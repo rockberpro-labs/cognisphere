@@ -1,6 +1,6 @@
 ---
 name: read
-description: Reads a note from this project's vault given its path as Obsidian copies it - relative to the vault (Human/draft.md, or <project>/Human/draft.md when ~/Cognisphere is the open vault) - checks it against the code, and then does what the rest of the argument asks, or asks what to do.
+description: Reads a note from this project's vault given its path as Obsidian copies it - relative to the vault (Human/draft.md, or the same path under the project's folder when ~/Cognisphere is the open vault) - checks it against the code, and then does what the rest of the argument asks, or asks what to do.
 argument-hint: "<note path> [what to do with it]"
 disable-model-invocation: true
 ---
