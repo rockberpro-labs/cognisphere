@@ -62,7 +62,9 @@ it (`names.sh <name>` prints its paths).
      ```
    - Broken `[[links]]`: `perl "<plugin>/scripts/check-links.pl" "$vault/Agent"` prints
      each one. Report them; the agent fixes them in a normal session, not here.
-2. **`.agents/settings.local.json`.**
+2. **The local settings** — `.agents/settings.local.json`; with `## Repo layer` in
+   `AGENTS.local.md`, `.claude/settings.local.json` (inside the directory `.claude` links
+   to, when it is a link).
    - Missing → report; `/cognisphere:install` creates it. Not valid JSON → report.
    - `permissions.additionalDirectories` holds `~/Cognisphere/<project>` (or its absolute
      form); `allow` holds `Read(~/Cognisphere/<project>/**)` and
@@ -92,6 +94,10 @@ it (`names.sh <name>` prints its paths).
 4. **`CLAUDE.local.md`** must be a symlink to `AGENTS.local.md`
    (`[ -L CLAUDE.local.md ] && [ "$(readlink CLAUDE.local.md)" = AGENTS.local.md ]`).
    Missing → `/cognisphere:install` creates it; a regular file or another target → report.
+   **Repo layer untouched** (`## Repo layer` in `AGENTS.local.md`): each of the three
+   files must be ignored (`git check-ignore -q`) and untracked
+   (`git ls-files --error-unmatch` fails); otherwise report it, with the
+   `.git/info/exclude` line to add, or that it must leave the index.
 5. **User-level settings.** The project's files are not the only place a guard gets
    registered: a plugin or hook enabled for the user runs in every project.
 

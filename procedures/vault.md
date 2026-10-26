@@ -4,7 +4,9 @@ The vault is the unversioned half of the harness: a per-project folder outside t
 at `~/Cognisphere/<project>/`, with `Agent/` (the agent's workspace, the agent is the only
 writer) and `Human/` (the maintainer's notes, the agent only reads). The local
 configuration points the agent at it: `.agents/settings.local.json`, `AGENTS.local.md`
-and `CLAUDE.local.md`, all gitignored.
+and `CLAUDE.local.md`, all ignored by git. With the repo layer left untouched (D30), the
+settings file is `.claude/settings.local.json` and the ignore lines are in
+`.git/info/exclude`; nothing git tracks changes.
 
 Who reads what:
 
@@ -73,7 +75,7 @@ The three local files. Each is created when missing; an existing one only gains 
 lacks. Nothing in them is ever rewritten.
 
 ```bash
-bash "<plugin>/scripts/configure.sh" <project> <style-file>
+bash "<plugin>/scripts/configure.sh" <project> <style-file> [--untouched]
 ```
 
 - **`.agents/settings.local.json`** gains each entry of
@@ -94,12 +96,19 @@ bash "<plugin>/scripts/configure.sh" <project> <style-file>
   reads `AGENTS.local.md` natively; this is the bridge. Exit 3 → a regular
   `CLAUDE.local.md` sits next to `AGENTS.local.md`: diff them, show what only
   `CLAUDE.local.md` has, and **ask** before merging it in, deleting it and rerunning.
-- A `NOT IGNORED` line → that file is not gitignored: report it (`scripts/scaffold.sh`
+- **`--untouched`**, when the repo layer is left untouched: the settings file is
+  `.claude/settings.local.json`, or the same name inside the directory `.claude` links to
+  (where Claude Code reads it, whichever tool made the link); `AGENTS.local.md` gains
+  `## Repo layer`, which tells the agent and `update` that the repo is not cognisphere's
+  to change; each file git does not already ignore gets an anchored line in
+  `.git/info/exclude` (`git rev-parse --git-path info/exclude`, shared by all
+  worktrees). Exit 4 → git tracks one of the three files: nothing was written.
+- A `NOT IGNORED` line → that file is not ignored by git: report it (`scripts/scaffold.sh`
   adds the entries).
 
-The allow rules and `additionalDirectories` apply only once the folder is trusted:
-`.claude` is a symlink, so Claude Code treats `settings.local.json` as supplied by the
-repo. Deny rules always apply. The install report says so.
+The allow rules and `additionalDirectories` apply only once the folder is trusted
+when `.claude` is a symlink: Claude Code then treats `settings.local.json` as supplied
+by the repo. Deny rules always apply. The install report says so.
 
 ## Fill
 

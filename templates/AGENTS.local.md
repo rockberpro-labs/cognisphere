@@ -14,3 +14,9 @@
 - `{{vault}}/Agent/` is the agent's workspace, and the agent is its only writer. It holds only what nothing else holds: open threads, findings, the session log, scratch. Never copy into it what git, `AGENTS.md`, `.agents/` or an issue already holds.
 - `{{vault}}/Human/` is the maintainer's: read-only. Don't summarise it unless asked.
 - `00 Home.md` missing → say so; `/cognisphere:install` re-seeds the missing notes and leaves the rest alone.
+
+## Repo layer
+
+- Left untouched at install: cognisphere writes nothing git tracks in this repo. The three local files are ignored through `.git/info/exclude`, not `.gitignore`.
+- `/cognisphere:update` checks only the vault and this configuration. Don't add cognisphere's files to the repo (`.agents/` notes or rules, `AGENTS.md` sections, `.gitignore` lines) unless the maintainer asks.
+- Where the vault guide points at `.agents/memory/` and this repo has no such note, the code and `AGENTS.md` are the source.
