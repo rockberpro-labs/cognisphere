@@ -144,19 +144,29 @@ Human/                    your notes; the agent only reads them
 
 **The vault holds only what nothing else holds.** The repo's state and history are in
 git. Commands, conventions and area knowledge are in `AGENTS.md` and `.agents/`, which
-load every session anyway. A code defect belongs in an issue. A copy of any of those in
+load every session anyway. A code defect ends up in an issue. A copy of any of those in
 the vault is read twice and goes stale the first time the original changes. What is left
 is the agent's own: open threads (harness work, questions and decisions waiting on you),
-findings, events git doesn't record, the session log and scratch work.
+findings (a defect waits there until you open its issue), events git doesn't record, the
+session log and scratch work.
 
-**Findings** is where the agent writes what it notices outside its task — a bug, a risk,
-a smell, a missing test, an improvement — when it notices it. Ask "known issues?" or
-"what would you improve?" and it reads that note first, re-checks each item against the
-code and says which commit the answer stands at, rather than scanning the repo. You
-triage by telling the agent: an item becomes an issue, goes into your plan, or is
-rejected with a reason, and a rejected one stays struck through so the same suggestion
-doesn't come back. It covers only the areas the agent has worked in: a log of what it
-saw, not an audit.
+**Findings** — `~/Cognisphere/<project>/Agent/State/Findings.md` — is where the agent
+writes what it notices outside its task (a bug, a risk, a smell, a missing test, an
+improvement, an idea) the moment it notices it, without fixing it unasked:
+
+```
+### 3. [bug] retry loop ignores the timeout: `src/client.ts:88`
+Seen 2026-10-26 at `a578366`, while adding the vault command.
+<evidence> · <suggestion>
+Status: open
+```
+
+Ask "known issues?" or "what would you improve?" and it reads this file first,
+re-checks each open item against the code since its commit and says which commit the
+answer stands at, rather than scanning the repo. You triage by telling the agent: an
+item becomes an issue, goes into your plan, or is rejected with a reason; a closed one
+stays struck through with its outcome, so a rejected suggestion doesn't come back. It
+covers only the areas the agent has worked in: a log of what it saw, not an audit.
 
 **Working style.** Install asks whether the agent is your **author** (writes code when
 asked, proposes before large or risky changes) or your **tutor** (you write the code to
