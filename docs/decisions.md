@@ -526,3 +526,26 @@ wikilinks, `obsidian://` URIs and bare names: four times the code for inputs nob
 pastes, and a join of two paths is not the mechanical step D23 moves out of the
 procedures. Letting the model invoke it: it acts on a pasted path, and its description
 would sit in every session's context.
+
+## D29. Rejected: a Git-user level in the vault path
+
+*2026-10-26, v0.8.0*
+
+**Decision.** Rejected decision: the vault stays at `~/Cognisphere/<project>/` (D1). It
+does not move to `~/Cognisphere/<git-user>/<project>/`, and nothing in the plugin
+changes.
+
+**Why.** `~` is already per person: the vault lives in the OS account's home, so two
+people on one machine never share one. The risk a namespace would address, two repos
+with the same basename, is not solved by it: both are committed to by the same user and
+land in the same folder, while D1's clash prompt already catches them. `user.name` is
+not a stable key either: it can be unset, differ per repo (`includeIf`), change over
+time, or hold spaces and accents, and any change points the agent at a new, empty vault,
+orphans the old one and leaves `settings.local.json` granting the old path. Adopting it
+would touch `names.sh`, the permission rules, install, update, tests and docs, and need
+a migration for existing vaults, for no case anyone hit.
+
+**Rejected.** `~/Cognisphere/<git-user>/<project>/`, keyed on `user.name` or
+`user.email`. `~/Cognisphere/<owner>/<repo>/` taken from `origin`: it tells apart repos
+with the same name, but breaks for repos with no remote, for forks, and when a repo is
+renamed or transferred, and the clash prompt covers that case already.
