@@ -311,6 +311,7 @@ for each.
 *2026-10-25, v0.1.0*
 
 Superseded in part by D28: a third command, `read`.
+Superseded in part by D31: `harness` and `vault`, which `install` runs.
 
 **Decision.** agent-kit's seven skills (scaffold, memory, rules, update-all,
 update-hooks, update-memory, update-rules) collapse into `/cognisphere:install` and
@@ -554,6 +555,9 @@ renamed or transferred, and the clash prompt covers that case already.
 
 *2026-10-26, v0.9.0*
 
+Superseded in part by D31: the untouched setup moves to `/cognisphere:vault`, which
+detects the mode instead of asking, and `/cognisphere:harness` adds the repo layer later.
+
 **Decision.** Install's round of questions opens with one more: set up the repo layer,
 or leave it untouched. It proposes **untouched** when git already tracks another
 harness (`.agents/`, `AGENTS.md`, `CLAUDE.md` or `.claude/`, with no `rules/memory.md`
@@ -587,3 +591,55 @@ know the mode, so it would add a command without removing a branch. A flag in
 read that file. Keeping `.agents/settings.local.json` in untouched mode: with no
 `.claude -> .agents` link, Claude Code never reads it, and the `Human/` deny rule would
 silently not apply.
+
+## D31. Three setup commands: `install` is `harness` plus `vault`
+
+*2026-10-26, v0.10.0*
+
+**Decision.** Install's two halves become commands of their own.
+`/cognisphere:harness` sets up the versioned repo layer (scaffold, memory, rules) and
+writes nothing under `~/Cognisphere/` and no local file. `/cognisphere:vault` sets up
+the vault and the three local files (seed, configure, fill) and writes nothing git
+tracks. `/cognisphere:install` runs `harness` then `vault`, asking both rounds of
+questions as one, and always does both: leaving a half out means running the other
+command, never a hidden answer.
+
+No `## Agent workspace` in `AGENTS.local.md`, or no such file, means "no vault":
+`update` skips the vault and local-configuration checks with one line pointing at
+`/cognisphere:vault`, still checks the user-level settings, and reports only a vault the
+configuration lost (the folder exists, or a settings file names it). `read` stops the
+same way.
+
+D30's question leaves install. `names.sh` prints `repo_layer`: `cognisphere` when
+`.agents/rules/memory.md` names `/cognisphere:update` and `AGENTS.local.md` has no
+`## Repo layer`, otherwise `untouched`. `configure.sh` reads it in place of the
+`--untouched` flag: untouched still puts the settings in `.claude/`, ignores the files
+through `.git/info/exclude` and writes `## Repo layer`, which keeps the agent's two lines
+for such a repo and keeps `update` off the repo layer. Install, finding another tool's
+harness, proposes `/cognisphere:vault` and stops on that choice.
+
+`harness` run after `vault` moves the local configuration over: the vault's
+`.claude/settings.local.json` is merged into `.agents/settings.local.json` before
+`.claude` becomes the link, and `scripts/repo-layer.sh` removes `## Repo layer` and each
+`.git/info/exclude` line the new `.gitignore` entries make redundant. It asks first and
+never touches the vault.
+
+**Why.** The vault is personal and the repo layer is shared, so each is wanted alone: a
+teammate cloning a repo that has the harness wants only a vault, and install's whole
+round of questions was the only way there, while `update` reported the missing vault as
+broken. Someone who wants only the harness had no way to say so. A vault-only repo had
+no way to the harness: install stopped at `## Repo layer` and asked for a hand edit, and
+`scaffold.sh` then hit the real `.claude/`. An opt-out answered inside install is
+behavior nobody sees afterwards; a command named after what it sets up says it. With the
+absence of the local files meaning "no vault", each person decides for themselves and
+nothing records the choice. D30 rejected a separate command because `update` would still
+need the mode; `## Repo layer` already records it, and the mode follows from the repo
+itself.
+
+**Rejected.** A "set up the vault too?" question in install: an implicit opt-out, and two
+ways to a harness-only setup. Only `vault` as a separate command, with install handling
+the move to the harness: smaller, but the two opt-outs would work differently.
+Recording the opt-out in `AGENTS.local.md`: the file's absence already says it, and
+writing it would leave a personal file in every opted-out clone. Keeping `--untouched`
+as an override: the detection covers every case it was passed for, and a flag that
+disagrees with `## Repo layer` would split the record.

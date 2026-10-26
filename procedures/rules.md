@@ -1,6 +1,7 @@
 # rules
 
-`/cognisphere:install` runs it as a full pass after the memory bootstrap;
+`/cognisphere:harness` (and so `/cognisphere:install`) runs it as a full pass after the
+memory bootstrap;
 `/cognisphere:update <area>` runs it in area mode.
 
 `.agents/rules/` (seen as `.claude/rules/`) holds instructions that apply to part of the

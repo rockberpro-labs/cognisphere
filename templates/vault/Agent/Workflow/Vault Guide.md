@@ -6,7 +6,7 @@ updated: {{date}}
 
 Back: [[00 Home]] · [[Session Protocol]]
 
-This note is the vault's own rulebook. `/cognisphere:install` seeded the notes; it re-seeds a missing one and never touches an existing one. From here on the agent keeps `Agent/` healthy by these rules.
+This note is the vault's own rulebook. `/cognisphere:vault` (or `/cognisphere:install`) seeded the notes; `/cognisphere:vault` re-seeds a missing one and never touches an existing one. From here on the agent keeps `Agent/` healthy by these rules.
 
 ---
 
@@ -87,7 +87,7 @@ The top level stays at **one note plus four folders**. Don't add new top-level f
 - **Repo drift:** if the vault contradicts the repo, fix the vault and **tell the maintainer** about the repo note. Don't edit the repo from this workflow.
 - **Copy creep:** a note that starts restating git, `AGENTS.md`, a rule or a memory note gets cut back to a pointer, or deleted.
 - **Restructuring** (say, a note split into a folder): create the new notes first, delete the old note, rewrite every link, log the change. `Agent/` is yours to adapt; the plugin never maintains it.
-- **Missing notes:** `/cognisphere:install` re-seeds them from its templates and leaves the rest alone.
+- **Missing notes:** `/cognisphere:vault` re-seeds them from its templates and leaves the rest alone.
 
 ---
 

@@ -28,7 +28,7 @@ key. Cognisphere fixes that in two layers:
 | **Memory catalog** | `AGENTS.md` + `.agents/memory/` notes with the *why*, kept in sync with the code at commit time |
 | **Rules** | `.agents/rules/`: short instructions the harness injects when the agent reads a matching file |
 | **Vault** | `Agent/` (open threads, findings, log, scratch) and `Human/` (your notes, read-only to the agent) |
-| **Commands** | `/cognisphere:install`, `/cognisphere:update [area]`, `/cognisphere:read <note>` |
+| **Commands** | `/cognisphere:install` (= `harness` + `vault`), `/cognisphere:update [area]`, `/cognisphere:read <note>` |
 | **Agents** | explorer, planner, implementer, test-runner, reviewer |
 
 ## Quick start
@@ -41,7 +41,10 @@ Inside Claude Code, once per machine:
 /reload-plugins
 ```
 
-Then, in each project, run `/cognisphere:install` and restart the session.
+Then, in each project, run `/cognisphere:install` and restart the session. It runs
+`/cognisphere:harness` (the repo layer) and `/cognisphere:vault` (your vault); for only
+one of them, run that one. A teammate in a repo that already has the harness runs
+`/cognisphere:vault`, if they want a vault of their own.
 
 Needs `git` and `perl` with `JSON::PP` (it ships with git). Keep the default `user`
 scope, so the guards apply to every repository of yours. If agent-kit is installed,
@@ -162,7 +165,7 @@ unless asked). The answer lives in `AGENTS.local.md`, so two people on one repo 
 choose differently.
 
 - **Seeded once.** After install the vault belongs to you and the agent; the plugin never
-  maintains it. Re-running install re-seeds only missing notes.
+  maintains it. `/cognisphere:vault` re-seeds only missing notes.
 - Every note ships complete: frontmatter, navigation line, sections, and at most a
   one-line hint comment (`<!-- … -->`), invisible in Obsidian's reading view.
 - Install writes only what its run found: open questions into Open Threads, the defects
@@ -175,16 +178,19 @@ choose differently.
 ## Commands
 
 ```
-/cognisphere:install                 # sets everything up at once
+/cognisphere:install                 # harness + vault, asked in one round
+/cognisphere:harness                 # only the versioned repo layer
+/cognisphere:vault                   # only your vault and its local configuration
 /cognisphere:update [area]           # maintains the harness; with an area, maps just that one
 /cognisphere:read <note> [request]   # reads a vault note you copied in Obsidian
 ```
 
 ### `/cognisphere:install`
 
-Asks one round of questions first: whether to set up the repo layer at all, the repo
-language, the project name and vault path, the working style, and what will be created.
-Then it runs, each step creating only what is missing:
+`/cognisphere:harness` then `/cognisphere:vault`, with their questions asked in one round
+first: the repo language, the project name and vault path, the working style, and what
+will be created. It always does both; to leave one half out, run the other command. Each
+step creates only what is missing:
 
 1. the `.agents/` structure, `AGENTS.md`, the symlinks and the `.gitignore` entries;
 2. the memory catalog (it asks before writing the notes);
@@ -197,16 +203,43 @@ Then it runs, each step creating only what is missing:
 
 Restart the session afterwards so `CLAUDE.local.md` loads.
 
-**A repo you shouldn't change.** In a repo whose harness belongs to someone else (a
-company project already set up with `.agents/`, another tool's harness), answer **leave
-untouched** to the repo layer question. Install then sets up only the vault and the
-local configuration: `AGENTS.local.md`, `CLAUDE.local.md` and
-`.claude/settings.local.json` (inside the directory `.claude` links to, if it is a
-link), ignored through `.git/info/exclude`, which is never committed. `git status` shows
-nothing new. It stops, writing nothing, if git tracks one of those files.
-`AGENTS.local.md` records the choice in `## Repo layer`, so `/cognisphere:update` only
-checks the vault and the local configuration. The guards still run, and
-`memory-drift-guard` still enforces the repo's own notes, if it has any.
+In a repo whose harness belongs to someone else, install stops and proposes
+`/cognisphere:vault` instead.
+
+### `/cognisphere:harness`
+
+Steps 1–3 of install and its report: the versioned repo layer only. Nothing under
+`~/Cognisphere/`, and no `AGENTS.local.md`, `CLAUDE.local.md` or `settings.local.json`.
+The vault is personal: everyone on the repo decides for themselves, and
+`/cognisphere:vault` adds it any time.
+
+Run after `/cognisphere:vault` (a repo set up vault-only), it also moves the local
+configuration over: the vault's `.claude/settings.local.json` is merged into
+`.agents/settings.local.json` before `.claude` becomes the link, `## Repo layer` leaves
+`AGENTS.local.md`, and the `.git/info/exclude` lines the new `.gitignore` entries cover
+are removed. It asks first, and never touches the vault.
+
+### `/cognisphere:vault`
+
+Steps 4–6 of install and its report: only your vault and the local configuration that
+points the agent at it, and never anything git tracks. It's the command for a teammate
+joining a repo that already has the harness, for adding a vault after
+`/cognisphere:harness`, and for a repo you shouldn't change.
+
+Where the local files go depends on whose harness the repo has:
+
+- **cognisphere's** (`.agents/rules/memory.md` names `/cognisphere:update`):
+  `.agents/settings.local.json`, ignored by the `.gitignore` lines install committed.
+- **someone else's, or none** (a company project with its own `.agents/`, another
+  tool's harness): `.claude/settings.local.json` (inside the directory `.claude` links
+  to, if it is a link), with all three files ignored through `.git/info/exclude`, which
+  is never committed. `AGENTS.local.md` records it in `## Repo layer`, so
+  `/cognisphere:update` only checks the vault and the local configuration. The guards
+  still run, and `memory-drift-guard` still enforces the repo's own notes, if it has
+  any.
+
+Either way `git status` shows nothing new. It stops, writing nothing, if git tracks one
+of those files.
 
 ### `/cognisphere:update [area]`
 
@@ -214,7 +247,7 @@ With no argument, reviews the versioned harness: structure, settings, memory, ru
 Index integrity and the anti-drift rules are the memory contract, so it restores them
 without asking. Everything else is proposed, and written only on a yes. Then it
 **checks** the vault and the local configuration and reports what is missing or points
-elsewhere, and checks `~/.claude/settings.json` for what would run the guards twice:
+elsewhere (no vault set up is a choice, not a finding), and checks `~/.claude/settings.json` for what would run the guards twice:
 agent-kit or a second cognisphere enabled, a guard hook registered for the user. It
 never writes to any of them. In an older vault, it reports the notes of the v0.1.0
 layout (Current State, Working Agreement, Review Checklist, `Knowledge/`) with what to
@@ -279,7 +312,7 @@ cognisphere never syncs or copies it. Pick one:
 
 Test a restore once. Sync clients may create conflict copies; merge them by hand. If the
 folder goes missing, `/cognisphere:update` reports it and creates nothing. Restore it
-from the backup, or run `/cognisphere:install` to re-seed the notes.
+from the backup, or run `/cognisphere:vault` to re-seed the notes.
 `~/Cognisphere/README.md` repeats this.
 
 ## Windows
@@ -350,10 +383,10 @@ the code names them. Filenames stay English everywhere.
 
 ## What is inside
 
-- **`skills/`** — `install` and `update`, each running the steps in its `SKILL.md` and
-  reading procedures from `procedures/` on demand (`scaffold`, `memory`, `rules`,
-  `review-settings`, `review-memory`, `review-rules`, `vault`, `vault-check`); `read`,
-  with no procedure.
+- **`skills/`** — `harness`, `vault` and `update`, each running the steps in its
+  `SKILL.md` and reading procedures from `procedures/` on demand (`scaffold`, `memory`,
+  `rules`, `review-settings`, `review-memory`, `review-rules`, `vault`, `vault-check`);
+  `install`, which runs `harness` then `vault`; `read`, with no procedure.
 - **`hooks/`** — `guard.sh` and one test per guard.
 - **`agents/`** — `cognisphere:explorer` (read-only investigator; the memory passes fan
   out to it), `cognisphere:planner` (ordered steps from an explorer report),
@@ -363,6 +396,7 @@ the code names them. Filenames stay English everywhere.
   policy).
 - **`scripts/`** — the deterministic steps, so the agent runs them instead of retyping
   them: `scaffold.sh`, `seed-vault.sh`, `configure.sh`, `names.sh`, `link.sh`,
+  `repo-layer.sh` (moves a vault-only repo's local files over when the harness is added),
   `merge-json.pl` (adds missing settings entries, keeps key order), `check-links.pl`,
   `coupling.sh` (how often an area's commits already touch the doc a pointer note adopts),
   `user-settings.pl` (what in the user-level settings runs the guards twice).

@@ -9,7 +9,9 @@ disable-model-invocation: true
 
 Argument: `$ARGUMENTS` — a vault-relative note path, then optionally a request.
 
-1. **Find the note.** The vault is the path `AGENTS.local.md` names. Drop a leading
+1. **Find the note.** The vault is the path `AGENTS.local.md` § Agent workspace names.
+   No such section, or no `AGENTS.local.md` → no vault is set up for this repo: say
+   so, point at `/cognisphere:vault`, and stop. Drop a leading
    `<project>/` (the maintainer opened `~/Cognisphere` itself in Obsidian), join the rest
    to the vault and Read it, adding `.md` if the path has no extension. The path may
    hold spaces: the request is what follows the `.md`, or what is left once the longest

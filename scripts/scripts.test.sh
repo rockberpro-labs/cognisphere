@@ -36,6 +36,7 @@ out="$(bash "$S/scaffold.sh")"; r=$?
 ok "scaffold rerun creates nothing"   '[ $r = 0 ] && ! printf "%s" "$out" | grep -q "^created\|^added" && [ "$before" = "$(cat .agents/settings.json .gitignore .agents/.gitignore)" ]'
 
 echo "The agent writes code." > "$tmp/style"
+ok "scaffolded repo is cognisphere's" 'bash "$S/names.sh" demo | grep -qx repo_layer=cognisphere'
 out="$(bash "$S/configure.sh" demo "$tmp/style")"; r=$?
 vault="$(bash "$S/names.sh" demo | sed -n 's/^vault=//p')"
 ok "configure exits 0"                '[ $r = 0 ] && ! printf "%s" "$out" | grep -q "NOT IGNORED"'
@@ -63,31 +64,48 @@ ok "seeded links resolve"             'perl "$S/check-links.pl" "$vault/Agent"'
 echo "see [[Nowhere]] but not \`[[Code]]\`" >> "$vault/Agent/Scratch/README.md"
 ok "broken link reported"             '[ "$(perl "$S/check-links.pl" "$vault/Agent")" = "./Scratch/README.md: [[Nowhere]]" ]'
 
-# --untouched (D30): a repo with a harness of its own, committed. Nothing git tracks may
-# change and git status must show nothing new, with .claude absent or linked to .agents.
+# Untouched (D30, D31): a repo with a harness of its own, committed, so names.sh finds no
+# cognisphere rule. Nothing git tracks may change and git status must show nothing new,
+# with .claude absent or linked to .agents.
 for kind in plain linked; do
   u="$tmp/untouched-$kind"; mkdir -p "$u/.agents/rules" && cd "$u" && git init -q && git config user.email t@t && git config user.name t
   echo "# Theirs" > AGENTS.md; echo "rule" > .agents/rules/x.md
   [ $kind = linked ] && { ln -s .agents .claude; ln -s AGENTS.md CLAUDE.md; echo settings.local.json > .agents/.gitignore; }
   git add -A && git commit -qm harness
-  out="$(bash "$S/configure.sh" demo "$tmp/style" --untouched)"; r=$?
+  ok "untouched ($kind) detected"              'bash "$S/names.sh" demo | grep -qx repo_layer=untouched'
+  out="$(bash "$S/configure.sh" demo "$tmp/style")"; r=$?
   ok "untouched ($kind) exits 0, all ignored"  '[ $r = 0 ] && ! printf "%s" "$out" | grep -q "NOT IGNORED"'
   ok "untouched ($kind) leaves git clean"      '[ -z "$(git status --porcelain)" ]'
   ok "untouched ($kind) settings where read"   'grep -qF "Edit(~/Cognisphere/demo/Human/**)" .claude/settings.local.json'
   ok "untouched ($kind) Repo layer section"    'grep -q "^## Repo layer" AGENTS.local.md && [ -L CLAUDE.local.md ]'
   before="$(cat .git/info/exclude)"
-  bash "$S/configure.sh" demo "$tmp/style" --untouched >/dev/null
+  bash "$S/configure.sh" demo "$tmp/style" >/dev/null
   ok "untouched ($kind) rerun adds nothing"    '[ "$before" = "$(cat .git/info/exclude)" ] && [ "$(grep -c "^## " AGENTS.local.md)" = 3 ]'
 done
 ok "linked: .agents/.gitignore suffices"      '! grep -q settings.local.json .git/info/exclude'
 u="$tmp/untouched-tracked"; mkdir -p "$u" && cd "$u" && git init -q && git config user.email t@t && git config user.name t
 echo "# Team-wide" > AGENTS.local.md && git add AGENTS.local.md && git commit -qm local
-bash "$S/configure.sh" demo "$tmp/style" --untouched >/dev/null 2>&1; r=$?
+bash "$S/configure.sh" demo "$tmp/style" >/dev/null 2>&1; r=$?
 ok "untouched stops on a tracked file"        '[ $r = 4 ] && [ ! -e .claude ] && [ -z "$(git status --porcelain)" ] && ! grep -q "^/" .git/info/exclude'
 printf '# Mine\n\n## Working style\n\nTutor.\n\n## Agent workspace\n\n- x\n' > "$tmp/existing.md"
 u="$tmp/untouched-existing"; mkdir -p "$u" && cd "$u" && git init -q && cp "$tmp/existing.md" AGENTS.local.md
-bash "$S/configure.sh" demo "$tmp/style" --untouched >/dev/null
+bash "$S/configure.sh" demo "$tmp/style" >/dev/null
 ok "untouched adds § Repo layer to an existing file" '[ "$(grep -c "^## " AGENTS.local.md)" = 3 ] && grep -q "^Tutor.$" AGENTS.local.md && [ -z "$(git status --porcelain)" ]'
+mkdir -p .agents/rules && cp "$S/../templates/rules/memory.md" .agents/rules/
+ok "§ Repo layer keeps it untouched"  'bash "$S/names.sh" demo | grep -qx repo_layer=untouched'
+
+# repo-layer (D31): the harness added later to the vault-only repo above. .claude was a
+# real folder holding settings.local.json; scaffold links it once that is merged.
+git config user.email t@t && git config user.name t
+mkdir -p .agents && mv .claude/settings.local.json .agents/ && rmdir .claude
+bash "$S/scaffold.sh" >/dev/null
+out="$(bash "$S/repo-layer.sh")"
+ok "repo-layer drops § Repo layer"    '! grep -q "^## Repo layer" AGENTS.local.md && grep -q "^## Agent workspace" AGENTS.local.md && [ "$(tail -c1 AGENTS.local.md | od -An -c | tr -d " ")" = "\n" ]'
+ok "repo-layer drops covered excludes" '! grep -q "^/" .git/info/exclude'
+ok "local files still ignored"        'git check-ignore AGENTS.local.md CLAUDE.local.md .agents/settings.local.json | [ "$(wc -l)" = 3 ]'
+ok "repo layer now cognisphere's"     'bash "$S/names.sh" demo | grep -qx repo_layer=cognisphere'
+out="$(bash "$S/repo-layer.sh")"
+ok "repo-layer rerun changes nothing" '[ -z "$out" ]'
 
 # user-settings: agent-kit, a second cognisphere and a guard hook are each reported;
 # a plugin left disabled and an unrelated hook are not.
