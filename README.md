@@ -1,19 +1,66 @@
+<p align="center">
+  <img src="resources/img/Cognisphere.jpeg" alt="Cognisphere logo" width="160">
+</p>
+
 # Cognisphere
 
-Claude Code plugin that gives a project an agent harness in two layers: a versioned one
-inside the repo, and an unversioned vault outside it where the agent keeps its open
-threads, session log and scratch work next to your notes.
+A Claude Code plugin that gives the agent a memory it can't let rot, guardrails it can't
+talk its way past, and a notebook of its own that lives next to yours.
+
+Without it, every session starts cold. What the agent learned about your code last week
+is gone, the docs it reads have drifted from the code, the bug it noticed in passing
+scrolled away in a reply, and nothing stops it from committing to `main` or committing a
+key. Cognisphere fixes that in two layers:
+
+- **in the repo**, a versioned harness (`.agents/`): a memory catalog of what the code
+  doesn't say by itself, path-scoped rules that load before the first wrong edit, and
+  guards that block a commit to `main`, a commit that leaks a secret, and a commit that
+  changes code without its memory note;
+- **outside the repo**, a per-project vault (`~/Cognisphere/<project>/`, Obsidian-ready)
+  where the agent keeps its open threads, findings, session log and scratch work, and
+  where you keep notes it reads but never writes.
+
+## What you get
+
+| | |
+|---|---|
+| **Guards** | `master-guard`, `secret-guard`, `memory-drift-guard`: one Bash hook, every repo of yours |
+| **Memory catalog** | `AGENTS.md` + `.agents/memory/` notes with the *why*, kept in sync with the code at commit time |
+| **Rules** | `.agents/rules/`: short instructions the harness injects when the agent reads a matching file |
+| **Vault** | `Agent/` (open threads, findings, log, scratch) and `Human/` (your notes, read-only to the agent) |
+| **Commands** | `/cognisphere:install`, `/cognisphere:update [area]`, `/cognisphere:read <note>` |
+| **Agents** | explorer, planner, implementer, test-runner, reviewer |
+
+## Quick start
+
+Inside Claude Code, once per machine:
+
+```
+/plugin marketplace add rockberpro/cognisphere
+/plugin install cognisphere@cognisphere
+/reload-plugins
+```
+
+Then, in each project, run `/cognisphere:install` and restart the session.
+
+Needs `git` and `perl` with `JSON::PP` (it ships with git). Keep the default `user`
+scope, so the guards apply to every repository of yours. If agent-kit is installed,
+remove it first ([Coming from agent-kit](#coming-from-agent-kit)). On Windows, see
+[Windows](#windows).
+
+To update later: `/plugin marketplace update cognisphere`, then restart the session.
+
+## How it fits together
 
 The repository root is the plugin and also a one-entry marketplace, both called
-`cognisphere`, so the plugin installs as `cognisphere@cognisphere`.
+`cognisphere`, so the plugin installs as `cognisphere@cognisphere`. What it sets up in a
+project has three parts:
 
-## The three parts
-
-- **Repo** (versioned, low entropy): the `.agents/` harness — memory catalog, rules,
-  settings — plus the guards that run from this plugin. Shared with everyone who clones.
-- **Vault** (unversioned, high entropy): `~/Cognisphere/<project>/`, outside the repo.
-  `Agent/` is the agent's workspace, and the agent is its only writer. `Human/` holds
-  your notes, and the agent only reads it. You can open the folder as an Obsidian vault.
+- **Repo** (versioned, low entropy): `AGENTS.md` and the `.agents/` harness — memory
+  catalog, rules, settings. Shared with everyone who clones.
+- **Vault** (unversioned, high entropy): `~/Cognisphere/<project>/`. `Agent/` is the
+  agent's workspace, and the agent is its only writer. `Human/` holds your notes, and
+  the agent only reads it. You can open the folder as an Obsidian vault.
 - **Configuration** (local, gitignored): points the agent at the vault —
   `AGENTS.local.md` (with `CLAUDE.local.md` linked to it) and
   `.agents/settings.local.json`.
@@ -33,102 +80,54 @@ The repository root is the plugin and also a one-entry marketplace, both called
 
 When they disagree, **code** > `AGENTS.md` > `.agents/memory/` > the vault > `docs/`.
 
-## Install
+## A session, end to end
 
-Inside Claude Code, once per machine:
+1. **Start.** `CLAUDE.local.md` points the agent at the vault. Its Session Protocol has
+   it read `00 Home`, the Open Threads and the latest Log, and check `git log` for what
+   changed since.
+2. **Entering an area.** The first time the agent reads a file under `src/billing/`, the
+   billing rule loads by itself: a few imperative lines, ending with "read
+   `.agents/memory/module-billing.md`". The note says why renegotiation recalculates
+   interest at settlement, which no amount of reading the code would have told it.
+3. **Noticing something.** Outside the task, it spots an unchecked `null` in another
+   module. It doesn't fix it unasked; it writes it into Findings, now, instead of
+   mentioning it once in a reply.
+4. **Committing.** It changed billing code but not the note. `memory-drift-guard` blocks
+   the commit until the note is updated and staged with it. On `main`, `master-guard`
+   would have blocked it anyway; a `.env` in the commit, `secret-guard`.
+5. **End.** It appends `## Session N` to today's Log (asked, found, did, changed, not
+   verified, next) and opens or closes Open Threads. The next session picks up there.
 
-```
-/plugin marketplace add rockberpro/cognisphere
-/plugin install cognisphere@cognisphere
-/reload-plugins
-```
+## The memory catalog
 
-Then, in each project, `/cognisphere:install`. To update later:
-`/plugin marketplace update cognisphere`, then restart the session.
+Each fact has one place, chosen by when it must be loaded:
 
-Needs `git` and `perl` with `JSON::PP` (it ships with git). The default scope is `user`,
-which is what you want: the guards then apply to every repository of yours. If
-agent-kit is installed, remove it first (see [Coming from agent-kit](#coming-from-agent-kit)).
+| Destination | Loaded | What goes there |
+|---|---|---|
+| `AGENTS.md` | every session | the project's non-negotiables, in few lines: runtime, encoding, commands, what CI really runs |
+| `.agents/rules/` | when a file matching the rule's `paths:` is read | what to **obey** when editing that area — short, imperative |
+| `.agents/memory/` | when the agent opens the note | what to **understand** to decide — the why, the measurements, the traps already paid for |
 
-### Windows
+- **Notes record the why, not the what.** Class names and layouts are read from the code
+  in seconds; a note earns its place with what took time to find out or led someone into
+  a mistake. No code copies, no line numbers, no speculation.
+- **A note that owns an area says so** in a `paths:` frontmatter, and gets a **read
+  rule** over the same globs, so the agent reads it at its first look into the area, not
+  only at commit.
+- **Domains.** A project with several domains (billing, inventory; or transport,
+  presence) gets a `domains.md` map and one `kind: domain` note each, with a rule that
+  makes the agent read it on entering the domain.
+- **Existing docs are adopted, not copied.** A design doc or per-module notes file kept
+  current becomes a `kind: pointer` note; keeping the doc current then satisfies the
+  guard.
+- **It can't drift silently.** `memory-drift-guard` blocks a commit that touches code
+  covered by a note when the note isn't in the commit. `SKIP_MEMORY_CHECK=1` is for when
+  the note was read against the diff and still holds.
+- **It grows by use.** Install maps the minimum (non-negotiables, architecture, module
+  map, domains). After that, `/cognisphere:update <area>` deepens one area when a real
+  task enters it; Claude may run it itself, and still asks before writing.
 
-Works under Git Bash (its `perl` has `JSON::PP`), but the harness relies on symlinks
-(`.claude`, `CLAUDE.md`, `CLAUDE.local.md`), and by default Git Bash's `ln -s` copies
-instead and git checks links out as plain text files. Install retries each link with
-`MSYS=winsymlinks:nativestrict`, which often works without admin; it stops only when
-that fails too. For links that survive later checkouts, once per machine:
-
-1. Turn on **Developer Mode** (Settings → System → For developers), so links need no admin.
-2. `git config --global core.symlinks true`
-3. Add `export MSYS=winsymlinks:nativestrict` to `~/.bashrc`, so `ln -s` makes real links.
-
-Repos cloned before step 2 need `git checkout -- CLAUDE.md .claude` to turn the text
-files back into links. When install had to fall back on the retry, its report lists
-these steps as a follow-up.
-
-## Usage
-
-```
-/cognisphere:install          # sets everything up at once
-/cognisphere:update [area]    # maintains the harness; with an area, maps just that one
-/cognisphere:read <note> [request]   # reads a vault note you copied in Obsidian
-```
-
-**`/cognisphere:install`** asks one round of questions first: whether to set up the
-repo layer at all, the repo language, the project name and vault path, your working
-style (the agent as **author**, or as **tutor** while you write the code), and what will
-be created. Then it runs, each step creating only what is missing:
-
-1. the `.agents/` structure, `AGENTS.md`, the symlinks and the `.gitignore` entries;
-2. the memory catalog (it asks before writing the notes);
-3. the rules (it asks the commit policy);
-4. the vault under `~/Cognisphere/<project>/`;
-5. the local configuration;
-6. the run's open questions in `Agent/`'s Open Threads, the defects it came across in
-   Findings, and Session 1 of its Log;
-7. a report.
-
-Restart the session afterwards so `CLAUDE.local.md` loads.
-
-### A repo you shouldn't change
-
-In a repo whose harness belongs to someone else (a company project already set up with
-`.agents/`, another tool's harness), answer **leave untouched** to the repo layer
-question. Install then sets up only the vault and the local configuration:
-`AGENTS.local.md`, `CLAUDE.local.md` and `.claude/settings.local.json` (inside the
-directory `.claude` links to, if it is a link), ignored through `.git/info/exclude`,
-which is never committed. `git status` shows nothing new. It stops, writing nothing, if
-git tracks one of those files. `AGENTS.local.md` records the choice in `## Repo layer`,
-so `/cognisphere:update` only checks the vault and the local configuration. The guards
-still run, and `memory-drift-guard` still enforces the repo's own notes, if it has any.
-
-**`/cognisphere:update`** with no argument reviews the versioned harness: structure,
-settings, memory, rules. Index integrity and the anti-drift rules are the memory
-contract, so it restores them without asking. Everything else is proposed, and written
-only on a yes. Then it **checks** the vault and the local configuration and reports what
-is missing or points elsewhere, and checks `~/.claude/settings.json` for what would run
-the guards twice: agent-kit or a second cognisphere enabled, a guard hook registered for
-the user. It never writes to any of them.
-
-**`/cognisphere:update <area>`** — a directory (`src/payments`), a module (`billing`) or
-a subject (`authentication`) — maps or deepens only that area: one note with `paths:`,
-its read rule, an index line. Claude may run it itself when a task enters an unmapped
-area; it still asks before writing. This is how the catalog grows: by the tasks that
-touch it.
-
-**`/cognisphere:read <note> [request]`** takes what Obsidian copies, so you can hand the
-agent the note you are looking at: its path relative to the open vault (`Human/draft.md`,
-or `<project>/Human/draft.md` when `~/Cognisphere` itself is open). It reads the note
-from this project's vault, with its embeds and the links its content depends on, one
-level deep. It checks what the note says about the code against the code, then does the request
-(`/cognisphere:read Human/draft.md plan phase 1`), or, with none, says what it read
-and what the code contradicts, and asks. It never writes the note, and only you run it.
-
-The vault is **seeded once**. After install it belongs to you and the agent; the plugin
-never maintains it. Re-running install re-seeds only notes that are missing, and never
-touches existing ones.
-
-## The `Agent/` scaffold
+## The vault
 
 ```
 Agent/
@@ -137,35 +136,136 @@ Agent/
 ├── Workflow/             Session Protocol · Vault Guide
 ├── Log/                  YYYY-MM-DD.md, one "## Session N" block per session
 └── Scratch/              README.md + throwaway work
+Human/                    your notes; the agent only reads them
 ```
 
 **The vault holds only what nothing else holds.** The repo's state and history are in
-git. The commands, conventions and area knowledge are in `AGENTS.md` and `.agents/`,
-which load into every session anyway. A code defect belongs in an issue. A copy of any
-of those in the vault is read twice and goes stale the first time the original changes.
-What is left is the agent's own: open threads (harness work, questions and decisions
-waiting on you), findings, events git doesn't record, the session log and scratch work.
+git. Commands, conventions and area knowledge are in `AGENTS.md` and `.agents/`, which
+load every session anyway. A code defect belongs in an issue. A copy of any of those in
+the vault is read twice and goes stale the first time the original changes. What is left
+is the agent's own: open threads (harness work, questions and decisions waiting on you),
+findings, events git doesn't record, the session log and scratch work.
 
-**Findings** is where the agent writes down what it notices outside its task — a bug,
-a risk, a smell, a missing test, an improvement — when it notices it, instead of
-mentioning it once in a reply that scrolls away. Ask "known issues?" or "what would you
-improve?" and it reads that note first, re-checks each item against the code and says
-which commit the answer stands at, rather than scanning the repo. You triage by telling
-the agent: an item becomes an issue, goes into your plan, or is rejected with a reason,
-and a rejected one stays struck through so the same suggestion doesn't come back. It
-covers only the areas the agent has worked in: a log of what it saw, not an audit.
+**Findings** is where the agent writes what it notices outside its task — a bug, a risk,
+a smell, a missing test, an improvement — when it notices it. Ask "known issues?" or
+"what would you improve?" and it reads that note first, re-checks each item against the
+code and says which commit the answer stands at, rather than scanning the repo. You
+triage by telling the agent: an item becomes an issue, goes into your plan, or is
+rejected with a reason, and a rejected one stays struck through so the same suggestion
+doesn't come back. It covers only the areas the agent has worked in: a log of what it
+saw, not an audit.
 
+**Working style.** Install asks whether the agent is your **author** (writes code when
+asked, proposes before large or risky changes) or your **tutor** (you write the code to
+learn; it explains trade-offs, reviews and sketches diffs, and doesn't edit repo files
+unless asked). The answer lives in `AGENTS.local.md`, so two people on one repo can
+choose differently.
+
+- **Seeded once.** After install the vault belongs to you and the agent; the plugin never
+  maintains it. Re-running install re-seeds only missing notes.
 - Every note ships complete: frontmatter, navigation line, sections, and at most a
-  one-line hint comment (`<!-- … -->`) saying what belongs there. Hints are invisible in
-  Obsidian's reading view.
-- Install writes only what its run found: the open questions into Open Threads, the
-  defects and improvements it came across into Findings, and Session 1 of today's Log.
-- `Workflow/Vault Guide.md` is the vault's rulebook: what it holds, where everything
-  else lives instead, how to maintain it, the conventions. From then on the agent
-  maintains and may restructure `Agent/` through its Session Protocol.
-- `/cognisphere:update` reports the notes of the v0.1.0 layout (Current State, Working
-  Agreement, Review Checklist, `Knowledge/`) in an older vault, with what to move out
-  before deleting them. It never deletes them itself.
+  one-line hint comment (`<!-- … -->`), invisible in Obsidian's reading view.
+- Install writes only what its run found: open questions into Open Threads, the defects
+  and improvements it came across into Findings, and Session 1 of today's Log.
+- `Workflow/Vault Guide.md` is the vault's rulebook. From then on the agent maintains and
+  may restructure `Agent/` through its Session Protocol.
+- When the repo keeps its own plan or progress log, the session ends there first, and
+  the Log points to it rather than restating it.
+
+## Commands
+
+```
+/cognisphere:install                 # sets everything up at once
+/cognisphere:update [area]           # maintains the harness; with an area, maps just that one
+/cognisphere:read <note> [request]   # reads a vault note you copied in Obsidian
+```
+
+### `/cognisphere:install`
+
+Asks one round of questions first: whether to set up the repo layer at all, the repo
+language, the project name and vault path, the working style, and what will be created.
+Then it runs, each step creating only what is missing:
+
+1. the `.agents/` structure, `AGENTS.md`, the symlinks and the `.gitignore` entries;
+2. the memory catalog (it asks before writing the notes);
+3. the rules (it asks the commit policy);
+4. the vault under `~/Cognisphere/<project>/`;
+5. the local configuration;
+6. the run's open questions in Open Threads, the defects it came across in Findings, and
+   Session 1 of the Log;
+7. a report.
+
+Restart the session afterwards so `CLAUDE.local.md` loads.
+
+**A repo you shouldn't change.** In a repo whose harness belongs to someone else (a
+company project already set up with `.agents/`, another tool's harness), answer **leave
+untouched** to the repo layer question. Install then sets up only the vault and the
+local configuration: `AGENTS.local.md`, `CLAUDE.local.md` and
+`.claude/settings.local.json` (inside the directory `.claude` links to, if it is a
+link), ignored through `.git/info/exclude`, which is never committed. `git status` shows
+nothing new. It stops, writing nothing, if git tracks one of those files.
+`AGENTS.local.md` records the choice in `## Repo layer`, so `/cognisphere:update` only
+checks the vault and the local configuration. The guards still run, and
+`memory-drift-guard` still enforces the repo's own notes, if it has any.
+
+### `/cognisphere:update [area]`
+
+With no argument, reviews the versioned harness: structure, settings, memory, rules.
+Index integrity and the anti-drift rules are the memory contract, so it restores them
+without asking. Everything else is proposed, and written only on a yes. Then it
+**checks** the vault and the local configuration and reports what is missing or points
+elsewhere, and checks `~/.claude/settings.json` for what would run the guards twice:
+agent-kit or a second cognisphere enabled, a guard hook registered for the user. It
+never writes to any of them. In an older vault, it reports the notes of the v0.1.0
+layout (Current State, Working Agreement, Review Checklist, `Knowledge/`) with what to
+move out before deleting them; it never deletes them itself.
+
+With an area — a directory (`src/payments`), a module (`billing`) or a subject
+(`authentication`) — it maps or deepens only that area: one note with `paths:`, its read
+rule, an index line.
+
+### `/cognisphere:read <note> [request]`
+
+Takes what Obsidian copies, so you can hand the agent the note you are looking at: its
+path relative to the open vault (`Human/draft.md`, or `<project>/Human/draft.md` when
+`~/Cognisphere` itself is open). It reads the note from this project's vault, with its
+embeds and the links its content depends on, one level deep. It checks what the note
+says about the code against the code, then does the request
+(`/cognisphere:read Human/draft.md plan phase 1`), or, with none, says what it read and
+what the code contradicts, and asks. It never writes the note, and only you run it.
+
+## Guards
+
+All three are checks in one hook, `hooks/guard.sh`, run before every Bash call. They
+fail open: an internal error never blocks the session.
+
+- **`master-guard`** — on `master`/`main`, blocks anything that writes a commit there
+  (`commit`, `cherry-pick`, `revert`, `am`, `rebase`), plus `git merge`,
+  `git reset --hard` and any `push` that targets the protected branch. `--abort` /
+  `--continue` on a stuck sequencer still go through.
+- **`secret-guard`** — blocks a `git commit` whose content looks like a secret: a
+  private-key header, a well-known token format (AWS/GitHub/Slack/GCP), or a `.env` or
+  keystore (`.p12`/`.pfx`/`.jks`) being added.
+- **`memory-drift-guard`** — blocks a `git commit` that touches code covered by a memory
+  note (its `paths:` frontmatter) when the note is not in the same commit. For a
+  `kind: pointer` note, its `doc:` counts too. Prefix `SKIP_MEMORY_CHECK=1` when the
+  note still holds.
+
+The versioned `settings.json` also denies the blanket `git add` forms (`-A`, `--all`,
+`.`, `-u`) and allows the read-only git commands without prompting.
+
+## Boundaries and their limits
+
+- `Human/` is protected by a deny rule in `settings.local.json`
+  (`Edit(~/Cognisphere/<project>/Human/**)`). It covers Claude's file tools, the Bash file
+  commands Claude Code recognizes, and redirects. It does **not** cover arbitrary
+  scripts (a `python -c` that opens the file); the sandbox covers those, if you turn it
+  on.
+- Only `Read` and `Edit` rules are used: `Write(...)` rules never match, because `Edit`
+  rules cover the Write tool.
+- **Folder trust.** When `.claude` is a symlink, Claude Code treats `settings.local.json`
+  as supplied by the repo. Its allow rules and `additionalDirectories` apply only once
+  you trust the folder; until then, reading the vault prompts. Deny rules always apply.
 
 ## Backups
 
@@ -182,57 +282,44 @@ folder goes missing, `/cognisphere:update` reports it and creates nothing. Resto
 from the backup, or run `/cognisphere:install` to re-seed the notes.
 `~/Cognisphere/README.md` repeats this.
 
-## Boundaries and their limits
+## Windows
 
-- `Human/` is protected by a deny rule in `settings.local.json`
-  (`Edit(~/Cognisphere/<project>/Human/**)`). It covers Claude's file tools, the Bash file
-  commands Claude Code recognizes, and redirects. It does **not** cover arbitrary
-  scripts (a `python -c` that opens the file); the sandbox covers those, if you turn it
-  on.
-- Only `Read` and `Edit` rules are used: `Write(...)` rules never match, because `Edit`
-  rules cover the Write tool.
-- **Folder trust.** When `.claude` is a symlink, Claude Code treats `settings.local.json`
-  as supplied by the repo. Its allow rules and `additionalDirectories` apply only once
-  you trust the folder; until then, reading the vault prompts. Deny rules always apply.
-- The guards fail open: an internal error never blocks the session.
+Works under Git Bash (its `perl` has `JSON::PP`), but the harness relies on symlinks
+(`.claude`, `CLAUDE.md`, `CLAUDE.local.md`), and by default Git Bash's `ln -s` copies
+instead and git checks links out as plain text files. Install retries each link with
+`MSYS=winsymlinks:nativestrict`, which often works without admin; it stops only when
+that fails too. For links that survive later checkouts, once per machine:
 
-## What is inside
+1. Turn on **Developer Mode** (Settings → System → For developers), so links need no admin.
+2. `git config --global core.symlinks true`
+3. Add `export MSYS=winsymlinks:nativestrict` to `~/.bashrc`, so `ln -s` makes real links.
 
-All three guards are checks in one hook, `hooks/guard.sh`, run before every Bash call.
+Repos cloned before step 2 need `git checkout -- CLAUDE.md .claude` to turn the text
+files back into links. When install had to fall back on the retry, its report lists
+these steps as a follow-up.
 
-- **guard `master-guard`** — on `master`/`main`, blocks anything that writes a commit
-  there (`commit`, `cherry-pick`, `revert`, `am`, `rebase`), plus `git merge`,
-  `git reset --hard` and any `push` that targets the protected branch. `--abort` /
-  `--continue` on a stuck sequencer still go through. Test:
-  `bash hooks/master-guard.test.sh`.
-- **guard `secret-guard`** — blocks a `git commit` whose content looks like a secret: a
-  private-key header, a well-known token format (AWS/GitHub/Slack/GCP), or a `.env` or
-  keystore (`.p12`/`.pfx`/`.jks`) being added. Test: `bash hooks/secret-guard.test.sh`.
-- **guard `memory-drift-guard`** — blocks a `git commit` that touches code covered by a
-  memory note (its `paths:` frontmatter) when the note is not in the same commit. A
-  `kind: pointer` note stands for an existing doc (`doc:`), and that doc counts too.
-  `SKIP_MEMORY_CHECK=1` in front of the command when the note still holds. Test:
-  `bash hooks/memory-drift-guard.test.sh`.
-- **skills** `/cognisphere:install` and `/cognisphere:update [area]`. Each runs the steps
-  in its `SKILL.md` and reads the procedures from `procedures/` on demand:
-  `scaffold`, `memory`, `rules`, `review-settings`, `review-memory`, `review-rules`,
-  `vault`, `vault-check`. `/cognisphere:read <note>` reads one vault note
-  (`skills/read/SKILL.md`, no procedure).
-- **scripts** — the deterministic steps, so the agent runs them instead of retyping
-  them: `scaffold.sh`, `seed-vault.sh`, `configure.sh`, `names.sh`, `link.sh`,
-  `merge-json.pl` (adds missing settings entries, keeps key order), `check-links.pl`,
-  `coupling.sh` (how often an area's commits already touch the doc a pointer note adopts),
-  `user-settings.pl` (what in the user-level settings runs the guards twice).
-  Test: `bash scripts/scripts.test.sh`.
-- **agents** `cognisphere:explorer` (read-only investigator; the memory passes fan out
-  to it), `cognisphere:planner` (ordered steps from an explorer report),
-  `cognisphere:implementer` (one planned step, code plus the stale note),
-  `cognisphere:test-runner` (runs the tests, returns only the failures) and
-  `cognisphere:reviewer` (a diff against the project's own memory, rules and commit
-  policy).
-- **templates** — `settings.json` (the deny list and the read-only git allow list), `rules/memory.md` (the anti-drift
-  rule), `settings.local.json` and `AGENTS.local.md` (the local configuration), and
-  `vault/` (the vault README, `Human/README.md`, one template per `Agent/` note).
+## Coming from agent-kit
+
+cognisphere is agent-kit v0.12.0 with seven skills collapsed into two, plus the vault and
+`/cognisphere:read`. The guards and the five agents are the same, only renamed, so it
+replaces agent-kit entirely. Keeping both would run every guard twice.
+
+```
+/plugin uninstall agent-kit@agent-kit
+/plugin marketplace remove agent-kit
+```
+
+Then install cognisphere as in [Quick start](#quick-start), and in each project run
+`/cognisphere:update`. It offers to remove old agent-kit entries from `settings.json`,
+reports any agent-kit still enabled in `~/.claude/settings.json`, and replaces the
+`agent-kit:memory` pointer in `rules/memory.md`. Run `/cognisphere:install` to add the
+vault and the local configuration; the existing harness stays as it is.
+
+| agent-kit | cognisphere |
+|---|---|
+| `scaffold`, `memory`, `rules` | `/cognisphere:install` |
+| `update-all`, `update-hooks`, `update-memory`, `update-rules` | `/cognisphere:update` |
+| `memory <area>`, `rules <area>` | `/cognisphere:update <area>` |
 
 ## Uninstall
 
@@ -244,52 +331,8 @@ claude plugin marketplace remove cognisphere
 What it wrote stays: `.agents/` and `AGENTS.md` in each repo (versioned, the project's
 own), the local files, and `~/Cognisphere/`. Delete those by hand if you want them gone.
 
-## Coming from agent-kit
-
-cognisphere is agent-kit v0.12.0 with seven skills collapsed into two and the vault
-added. The guards and the five agents are the same, only renamed, so it replaces
-agent-kit entirely. Keeping both would run every guard twice.
-
-```
-/plugin uninstall agent-kit@agent-kit
-/plugin marketplace remove agent-kit
-```
-
-then install cognisphere as in [Install](#install).
-
-Then, in each project, run `/cognisphere:update`. It offers to remove old agent-kit
-entries from `settings.json`, reports any agent-kit still enabled in
-`~/.claude/settings.json`, and it replaces the `agent-kit:memory` pointer in
-`rules/memory.md`. Run `/cognisphere:install` to add the vault and the local
-configuration; the existing harness stays as it is.
-
-| agent-kit | cognisphere |
-|---|---|
-| `scaffold`, `memory`, `rules` | `/cognisphere:install` |
-| `update-all`, `update-hooks`, `update-memory`, `update-rules` | `/cognisphere:update` |
-| `memory <area>`, `rules <area>` | `/cognisphere:update <area>` |
-
-## Versioning and release gate
-
-`version` in `.claude-plugin/plugin.json` decides whether a machine gets an update.
-Without bumping it, every commit counts as a new version. Release flow:
-
-```bash
-# 1. change the code   2. bump version in plugin.json (semver)
-claude plugin validate . --strict && claude plugin validate .claude-plugin/plugin.json --strict
-for t in hooks/*.test.sh scripts/*.test.sh; do bash "$t" || break; done
-# when a skill or procedure changed: the eval fixtures (costs real runs)
-claude plugin eval . --scaffold --allow-tools Bash Write Edit --runs 3
-git commit -am "feat: <what changed>"
-claude plugin tag cognisphere     # creates cognisphere--v<version>, checking plugin.json
-                                  # and the marketplace.json entry agree
-git push --follow-tags
-```
-
-There is no CI in this repository on purpose; the line above is the gate. On each
-machine, run `/plugin marketplace update cognisphere` and
-restart the session. To pin a machine to a release:
-`claude plugin marketplace add https://github.com/rockberpro/cognisphere.git#cognisphere--v0.1.0`.
+To pin a machine to a release instead:
+`claude plugin marketplace add https://github.com/rockberpro/cognisphere.git#0.9.0`.
 
 ## Language
 
@@ -305,20 +348,29 @@ the code names them. Filenames stay English everywhere.
   readable by any of them, but this plugin ships no manifests for them and is not tested
   with them.
 
-## What does not belong here
+## What is inside
 
-Two things stay in the repository's own `.agents/`:
-
-- **a script that serves only one project** — reading a specific `.ini`, a homegrown
-  linter. It becomes a plugin when a second project needs it.
-- **a convention** — the commit standard, the target runtime, the encoding, the notes
-  and rules the procedures write. That is information about the repo, and it has to be
-  readable by whoever clones it without this plugin. The plugin carries the *procedure*;
-  the project keeps the *result*. Nothing here ships a pre-filled note or rule. The
-  exceptions are `templates/rules/memory.md`, which states how the catalog is kept, and
-  the vault templates, which hold only structure and the vault's own rules.
-
-## Design decisions
+- **`skills/`** — `install` and `update`, each running the steps in its `SKILL.md` and
+  reading procedures from `procedures/` on demand (`scaffold`, `memory`, `rules`,
+  `review-settings`, `review-memory`, `review-rules`, `vault`, `vault-check`); `read`,
+  with no procedure.
+- **`hooks/`** — `guard.sh` and one test per guard.
+- **`agents/`** — `cognisphere:explorer` (read-only investigator; the memory passes fan
+  out to it), `cognisphere:planner` (ordered steps from an explorer report),
+  `cognisphere:implementer` (one planned step, code plus the stale note),
+  `cognisphere:test-runner` (runs the tests, returns only the failures) and
+  `cognisphere:reviewer` (a diff against the project's own memory, rules and commit
+  policy).
+- **`scripts/`** — the deterministic steps, so the agent runs them instead of retyping
+  them: `scaffold.sh`, `seed-vault.sh`, `configure.sh`, `names.sh`, `link.sh`,
+  `merge-json.pl` (adds missing settings entries, keeps key order), `check-links.pl`,
+  `coupling.sh` (how often an area's commits already touch the doc a pointer note adopts),
+  `user-settings.pl` (what in the user-level settings runs the guards twice).
+- **`templates/`** — `settings.json`, `rules/memory.md` (the anti-drift rule),
+  `settings.local.json` and `AGENTS.local.md` (the local configuration), and `vault/`
+  (the vault README, `Human/README.md`, one template per `Agent/` note).
+- **`evals/`** — `claude plugin eval` fixtures for the memory and rules passes.
 
 Why the plugin is the way it is, and what was considered and rejected:
-[docs/decisions.md](docs/decisions.md).
+[docs/decisions.md](docs/decisions.md). Releasing and what belongs in the plugin:
+[CONTRIBUTING.md](CONTRIBUTING.md).
