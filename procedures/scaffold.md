@@ -77,8 +77,8 @@ CLAUDE.local.md -> AGENTS.local.md   (gitignored)
 
    - `CLAUDE.md` is a regular file and `AGENTS.md` does not exist → the script renames
      it (`git mv CLAUDE.md AGENTS.md`) and creates the symlink. Content is preserved.
-   - `.agents/settings.json` exists but is missing a `deny` entry → the script adds what
-     is missing, preserving the rest and its key order.
+   - `.agents/settings.json` exists but is missing a `deny` or `allow` entry of the
+     template → the script adds what is missing, preserving the rest and its key order.
    - `.claude` or `CLAUDE.md` exists but is **not a symlink** (`[ ! -L .claude ]`): a
      real `.claude/` directory, or a `CLAUDE.md` with its own content next to an
      `AGENTS.md` → a copy made by hand, or a harness from before this plugin. Diff it
@@ -94,7 +94,7 @@ CLAUDE.local.md -> AGENTS.local.md   (gitignored)
 
    It makes `.agents/{memory,rules}`, `.agents/.gitignore` (with `settings.local.json`),
    the `.claude -> .agents` link, `rules/memory.md` from the template, `settings.json`
-   (or the `deny` entries it lacks), `AGENTS.md` with `CLAUDE.md -> AGENTS.md`, and the
+   (or the `deny` and `allow` entries it lacks), `AGENTS.md` with `CLAUDE.md -> AGENTS.md`, and the
    root `.gitignore` lines. Exit 0 → done; 3 → a real `.claude/` or `CLAUDE.md` is in the
    way (step 1); 2 → `settings.json` is not valid JSON: report it and stop, do not
    hand-edit around it; 1 → no symlink could be made: on Windows, point at README
@@ -108,7 +108,9 @@ CLAUDE.local.md -> AGENTS.local.md   (gitignored)
    the same task that made it wrong, which `memory-drift-guard` then enforces at commit.
    Freshly created, translate it into the project's language (keep the filename).
 
-3. **`.agents/settings.json`** denies blind `git add`. Agent co-author attribution is
+3. **`.agents/settings.json`** denies blind `git add` and allows the read-only git
+   commands (`git status`, `git diff`, `git log`, `git show`) that every pass and agent
+   runs, so they don't prompt. Agent co-author attribution is
    the user's choice: `rules.md` asks it with the commit policy and writes `attribution`
    then; do not set it here. Never write `extraKnownMarketplaces` or `enabledPlugins`
    entries for this plugin: the project's config carries the project's policy, not the

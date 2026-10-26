@@ -186,7 +186,8 @@ All three guards are checks in one hook, `hooks/guard.sh`, run before every Bash
   `vault`, `vault-check`.
 - **scripts** — the deterministic steps, so the agent runs them instead of retyping
   them: `scaffold.sh`, `seed-vault.sh`, `configure.sh`, `names.sh`, `link.sh`,
-  `merge-json.pl` (adds missing settings entries, keeps key order), `check-links.pl`.
+  `merge-json.pl` (adds missing settings entries, keeps key order), `check-links.pl`,
+  `coupling.sh` (how often an area's commits already touch the doc a pointer note adopts).
   Test: `bash scripts/scripts.test.sh`.
 - **agents** `cognisphere:explorer` (read-only investigator; the memory passes fan out
   to it), `cognisphere:planner` (ordered steps from an explorer report),
@@ -194,7 +195,7 @@ All three guards are checks in one hook, `hooks/guard.sh`, run before every Bash
   `cognisphere:test-runner` (runs the tests, returns only the failures) and
   `cognisphere:reviewer` (a diff against the project's own memory, rules and commit
   policy).
-- **templates** — `settings.json` (the deny list), `rules/memory.md` (the anti-drift
+- **templates** — `settings.json` (the deny list and the read-only git allow list), `rules/memory.md` (the anti-drift
   rule), `settings.local.json` and `AGENTS.local.md` (the local configuration), and
   `vault/` (the vault README, `Human/README.md`, one template per `Agent/` note).
 

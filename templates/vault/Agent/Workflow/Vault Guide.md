@@ -41,7 +41,7 @@ What is left is the agent's own: open threads, events git doesn't record, the se
 ## 2. What goes where
 
 ### `00 Home.md`
-- The repo path, the **reading order** (Home → [[Open Threads]] → the latest Log, then git), the **ground rules** and a **map** of the folders.
+- The repo path, the **reading order** (Home → [[Session Protocol]] → [[Open Threads]] → the latest Log, then git), the **ground rules** and a **map** of the folders.
 - No facts about the project: they live in `AGENTS.md`. It's an index and stays under one screen.
 
 ### `State/`: "what is open?"
@@ -63,6 +63,7 @@ A code defect isn't a thread: it gets one home, an issue, and the area's memory 
   **Asked**, **Found**, **Did**, **Changed**, **Not verified**, **Next**.
 - **Changed** names the commit sha for repo changes, or says "uncommitted" when there is none yet; it lists files only for changes git doesn't see (the vault, the local configuration).
 - Append only. Don't rewrite past sessions.
+- When the repo keeps its own progress log (a plan with status, next steps and per-phase logs), that log owns what was built and what comes next. A session here stays at session level: Asked, Not verified, harness threads. **Did** and **Next** point to the plan's entry instead of restating it.
 
 ### `Scratch/`: "thinking space"
 - Diff sketches, maths checks, repro scripts, half-ideas. `YYYY-MM-DD topic.md`.
