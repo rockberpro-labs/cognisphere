@@ -4,14 +4,16 @@ The vault is the unversioned half of the harness: a per-project folder outside t
 at `~/Cognisphere/<project>/`, with `Agent/` (the agent's workspace, the agent is the only
 writer) and `Human/` (the maintainer's notes, the agent only reads). The local
 configuration points the agent at it: `.agents/settings.local.json`, `AGENTS.local.md`
-and `CLAUDE.local.md`, all ignored by git. With the repo layer left untouched (D30), the
-settings file is `.claude/settings.local.json` and the ignore lines are in
-`.git/info/exclude`; nothing git tracks changes.
+and `CLAUDE.local.md`, all ignored by git. When the repo layer is not cognisphere's
+(D30, D31), the settings file is `.claude/settings.local.json` and the ignore lines are in
+`.git/info/exclude`; nothing git tracks changes. The vault is personal and optional: a
+user without one has none of these files, and `update` treats that as a choice (D31).
 
 Who reads what:
 
-- `/cognisphere:install` reads this file: § Names, § Working style, § Seed, § Configure,
-  § Fill. It only **creates what is missing**: it never modifies an existing vault file,
+- `/cognisphere:vault` reads this file: § Names, § Working style, § Seed, § Configure,
+  § Fill. So does `/cognisphere:install`, after `/cognisphere:harness`. Both
+  only **create what is missing**: it never modifies an existing vault file,
   and touches an existing local file only to add what that file lacks.
 - `/cognisphere:update` reads `vault-check.md` only, and **never writes** under
   `~/Cognisphere/` or to the local configuration.
@@ -29,6 +31,8 @@ bash "<plugin>/scripts/names.sh" [<project>]   # prints main, project, vault, va
 ```
 
 `project` defaults to the main worktree's folder name, so all worktrees share one vault.
+`repo_layer` is `cognisphere` when `.agents/rules/memory.md` names `/cognisphere:update`
+and `AGENTS.local.md` has no `## Repo layer`; otherwise `untouched`. § Configure reads it.
 `vault` is absolute and, under Git Bash, in `C:/...` form, which the Read tool needs.
 The path is fixed: there is no setting for it. The one choice is the name. If the vault
 already exists and this repo's local configuration does not point at it, another repo
@@ -75,7 +79,7 @@ The three local files. Each is created when missing; an existing one only gains 
 lacks. Nothing in them is ever rewritten.
 
 ```bash
-bash "<plugin>/scripts/configure.sh" <project> <style-file> [--untouched]
+bash "<plugin>/scripts/configure.sh" <project> <style-file>
 ```
 
 - **`.agents/settings.local.json`** gains each entry of
@@ -96,13 +100,15 @@ bash "<plugin>/scripts/configure.sh" <project> <style-file> [--untouched]
   reads `AGENTS.local.md` natively; this is the bridge. Exit 3 → a regular
   `CLAUDE.local.md` sits next to `AGENTS.local.md`: diff them, show what only
   `CLAUDE.local.md` has, and **ask** before merging it in, deleting it and rerunning.
-- **`--untouched`**, when the repo layer is left untouched: the settings file is
+- **`repo_layer=untouched`** (another tool's harness, or none): the settings file is
   `.claude/settings.local.json`, or the same name inside the directory `.claude` links to
   (where Claude Code reads it, whichever tool made the link); `AGENTS.local.md` gains
   `## Repo layer`, which tells the agent and `update` that the repo is not cognisphere's
   to change; each file git does not already ignore gets an anchored line in
   `.git/info/exclude` (`git rev-parse --git-path info/exclude`, shared by all
   worktrees). Exit 4 → git tracks one of the three files: nothing was written.
+  `repo_layer=cognisphere` → `.agents/settings.local.json`, covered by the `.gitignore`
+  entries `scaffold.sh` adds.
 - A `NOT IGNORED` line → that file is not ignored by git: report it (`scripts/scaffold.sh`
   adds the entries).
 
@@ -112,9 +118,10 @@ by the repo. Deny rules always apply. The install report says so.
 
 ## Fill
 
-Writes what this install run found, into the notes § Seed **created in this run** —
-never one that existed. Nothing is copied from the repo: what `AGENTS.md`, `.agents/` or
-git already hold stays there.
+Writes what this run found, into the notes § Seed **created in this run** — never one
+that existed. Nothing is copied from the repo: what `AGENTS.md`, `.agents/` or git
+already hold stays there. A `/cognisphere:vault` run maps nothing: only Session 1, and a
+§ Harness thread for each step that failed.
 
 - **`State/Open Threads.md`**: one numbered item per open question the memory and rules
   passes could not answer (§ Direction), per doc found contradicting the code while

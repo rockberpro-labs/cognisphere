@@ -4,11 +4,18 @@ Read-only; `/cognisphere:update` runs it. **Never create, edit, move or delete a
 under `~/Cognisphere/`, nor in the three local files, nor in the user-level settings
 (`~/.claude/settings.json`).** Each finding names the path, what is wrong, the expected
 value, and the fix for the user to apply: by hand, or by running
-`/cognisphere:install`, which only creates what is missing (`vault.md`).
+`/cognisphere:vault`, which only creates what is missing (`vault.md`).
 
 ```bash
-bash "<plugin>/scripts/names.sh"   # main, project, vault (absolute), vault_tilde, vault_exists
+bash "<plugin>/scripts/names.sh"   # main, project, vault (absolute), vault_tilde, repo_layer, vault_exists
 ```
+
+**No vault.** `AGENTS.local.md` missing, or without `## Agent workspace` → this user
+has no vault (D31): a choice, not a defect. Skip steps 1–4 with one line, "no vault —
+`/cognisphere:vault` sets one up", and run step 5. Exception: `vault_exists=yes`, or a
+`settings.local.json` (`.agents/` or `.claude/`) names `~/Cognisphere/` → a vault the
+configuration lost: report it, and that `/cognisphere:vault` reconnects it without
+touching its notes.
 
 **Which name.** Expected: `project` as printed. When `AGENTS.local.md` and
 `settings.local.json` both name the same other `~/Cognisphere/<name>` and that folder
@@ -17,12 +24,12 @@ it (`names.sh <name>` prints its paths).
 
 1. **Vault.**
    - `$vault` missing → report: restore it from the backup (`~/Cognisphere/README.md`), or
-     run `/cognisphere:install` to re-seed it. Stop the vault checks there.
+     run `/cognisphere:vault` to re-seed it. Stop the vault checks there.
    - `$vault/Human/` missing → report the same way.
    - `$vault/Agent/00 Home.md`, the four folders (`State`, `Workflow`, `Log`, `Scratch`)
      and each template note (every file of `<plugin>/templates/vault/Agent/`
      but `{{…}}`) — missing ones are listed: restore from the backup, or
-     `/cognisphere:install` re-seeds them (it never touches existing notes). The agent may
+     `/cognisphere:vault` re-seeds them (it never touches existing notes). The agent may
      have restructured `Agent/` on purpose: say to check the Log before re-seeding.
    - `Log/` empty → report.
    - **The v0.1.0 layout**, which copied the repo into the vault. Each finding is
@@ -34,7 +41,7 @@ it (`names.sh <name>` prints its paths).
        issue → Findings), then delete them and fix the links to them.
      - `Workflow/Vault Guide.md` with a `Bootstrap` section, or `Workflow/Session
        Protocol.md` with a `## Commands` section → an old template holding no project
-       state. Fix: delete it and run `/cognisphere:install`, which re-seeds it.
+       state. Fix: delete it and run `/cognisphere:vault`, which re-seeds it.
      - `00 Home.md` with `## Quick facts`, `State/Open Threads.md` with `## Code`, or any
        note with `status: skeleton` → bring it in line with
        `<plugin>/templates/vault/Agent/` by hand: these hold project state, so no re-seed.
@@ -65,7 +72,7 @@ it (`names.sh <name>` prints its paths).
 2. **The local settings** — `.agents/settings.local.json`; with `## Repo layer` in
    `AGENTS.local.md`, `.claude/settings.local.json` (inside the directory `.claude` links
    to, when it is a link).
-   - Missing → report; `/cognisphere:install` creates it. Not valid JSON → report.
+   - Missing → report; `/cognisphere:vault` creates it. Not valid JSON → report.
    - `permissions.additionalDirectories` holds `~/Cognisphere/<project>` (or its absolute
      form); `allow` holds `Read(~/Cognisphere/<project>/**)` and
      `Edit(~/Cognisphere/<project>/Agent/**)`; `deny` holds
@@ -78,22 +85,21 @@ it (`names.sh <name>` prints its paths).
    - A hook in it that duplicates one in `settings.json`, or that `AGENTS.md` says not
      to install → report it: it runs twice, or against the project's own rule. Other
      local hooks are the maintainer's business: don't list them.
-3. **`AGENTS.local.md`.** Missing → report (`/cognisphere:install` creates it). Its
-   `## Agent workspace` section must name `$vault` (absolute, as `names.sh` prints it);
-   missing section or another path → report the expected text. An MSYS-style path
+3. **`AGENTS.local.md`.** Its `## Agent workspace` section must name `$vault` (absolute, as `names.sh` prints it);
+   another path → report the expected text. An MSYS-style path
    (`/c/Users/...`, from installs before v0.4.0) is a finding too: the Read tool cannot
    open it. A section still mentioning `status: skeleton` or `§ 4 Bootstrap` is the
    v0.1.0 text → report the template's current section. A section without the
    end-of-session line (`Before the last reply…`, added in v0.5.0) → report the
    template's line: without it nothing makes the agent write the Log, and
-   `/cognisphere:install` never adds a line to an existing section. A section without
+   `/cognisphere:vault` never adds a line to an existing section. A section without
    the two Findings lines (`When you notice something outside the task…` and
    `Asked about known issues…`, added in v0.7.0) → report the template's lines: without
    them the agent neither records what it notices nor reads it back. No
    `## Working style` section → report.
 4. **`CLAUDE.local.md`** must be a symlink to `AGENTS.local.md`
    (`[ -L CLAUDE.local.md ] && [ "$(readlink CLAUDE.local.md)" = AGENTS.local.md ]`).
-   Missing → `/cognisphere:install` creates it; a regular file or another target → report.
+   Missing → `/cognisphere:vault` creates it; a regular file or another target → report.
    **Repo layer untouched** (`## Repo layer` in `AGENTS.local.md`): each of the three
    files must be ignored (`git check-ignore -q`) and untracked
    (`git ls-files --error-unmatch` fails); otherwise report it, with the

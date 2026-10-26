@@ -1,6 +1,6 @@
 ---
 name: update
-description: Maintains an existing cognisphere harness - the .agents/ structure, settings and guards, the memory catalog (index, anti-drift rule, stale notes, dead or overlapping globs, domain declarations) and the rules (read rules, dead or too-broad globs, duplicates, new candidates) - and checks, without writing, the vault at ~/Cognisphere/<project>/, the local configuration and the user-level settings that would run the guards twice. Use when the user asks to update, upgrade, review, audit, refresh or repair the agent harness, the .agents, the memory, the rules, the hooks/guards or the settings of a project that already has one, typically after upgrading the plugin or a long stretch of commits. Pass an area (a directory, module or subject) to map or deepen just that one, e.g. when a task enters an area that has no note - ask before writing.
+description: Maintains an existing cognisphere harness - the .agents/ structure, settings and guards, the memory catalog (index, anti-drift rule, stale notes, dead or overlapping globs, domain declarations) and the rules (read rules, dead or too-broad globs, duplicates, new candidates) - and checks, without writing, the vault at ~/Cognisphere/<project>/ (when this user has one), the local configuration and the user-level settings that would run the guards twice. Use when the user asks to update, upgrade, review, audit, refresh or repair the agent harness, the .agents, the memory, the rules, the hooks/guards or the settings of a project that already has one, typically after upgrading the plugin or a long stretch of commits. Pass an area (a directory, module or subject) to map or deepen just that one, e.g. when a task enters an area that has no note - ask before writing.
 argument-hint: "[area]"
 ---
 
@@ -17,14 +17,21 @@ them.
 cd "$(git rev-parse --show-toplevel)" || exit 1   # not a git repo → stop and say so
 ```
 
-**Repo layer left untouched** — `AGENTS.local.md` has `## Repo layer` (D30) → passes 1–4
-and § Area write what git tracks: skip them, say so in one line, and run passes 5–7
-only. An area argument → stop: mapping writes `.agents/`, which this repo was installed
-without; the user can delete `## Repo layer` and run `/cognisphere:install` to set the
-repo layer up.
+**Repo layer left untouched** — `AGENTS.local.md` has `## Repo layer` (D30, D31) →
+passes 1–4 and § Area write what git tracks: skip them, say so in one line, and run
+passes 5–7 only. An area argument → stop: mapping writes `.agents/`, which this repo was
+set up without; `/cognisphere:harness` adds the repo layer.
 
-**Nothing in place** — no `.agents/` and no `AGENTS.md` → this is not an update: run
-`/cognisphere:install` instead (its skill, from step 0) and stop here.
+**No vault** — `AGENTS.local.md` missing, or without `## Agent workspace` → this user has
+no vault, by choice or not yet (D31): not a defect. Pass 5 and the local-configuration
+checks of pass 6 are skipped, with one line: "no vault — `/cognisphere:vault` sets one
+up". Only the user-level settings check of pass 6 runs. Exception: `$vault` exists, or a
+`settings.local.json` names `~/Cognisphere/` → a vault the configuration lost: report it,
+and that `/cognisphere:vault` reconnects it without touching its notes.
+
+**Nothing in place** — no `.agents/` and no `AGENTS.md` → this is not an update: say so,
+offer `/cognisphere:install` (both halves) or `/cognisphere:harness` (the repo layer
+only), run the chosen one (its skill, from step 0) and stop here.
 
 Area argument: `$ARGUMENTS`. Empty → the full review below; otherwise → § Area.
 
@@ -61,7 +68,7 @@ do reports "nothing to do" in one line and the next one starts.
    Home, four folders and template notes; leftovers of the v0.1.0 layout that copy the
    repo into the vault; a repo plan the Vault Guide does not name; the open Harness
    threads, listed for the agent to re-check. Missing items → restore from the backup, or
-   `/cognisphere:install` re-seeds missing notes (never touching existing ones).
+   `/cognisphere:vault` re-seeds missing notes (never touching existing ones).
    Leftovers → what to move out and delete by hand. **Never create, edit, move or
    delete anything under `~/Cognisphere/`.**
 6. **Configuration, check-only — `vault-check.md`.** `settings.local.json`
@@ -69,7 +76,7 @@ do reports "nothing to do" in one line and the next one starts.
    inert `Write(...)` rules, local hooks), `AGENTS.local.md`'s Agent workspace section
    (with its end-of-session line), the `CLAUDE.local.md` symlink, and the user-level
    `~/.claude/settings.json` (agent-kit or a second cognisphere enabled, guard hooks
-   registered for the user). **Never edit these files:** the report says what to change by hand, or to run `/cognisphere:install`
+   registered for the user). **Never edit these files:** the report says what to change by hand, or to run `/cognisphere:vault`
    for a missing one.
 7. **One consolidated report.** One section per pass: created, updated, written without
    asking (and why it was mandatory), left on purpose, what still needs the user (old

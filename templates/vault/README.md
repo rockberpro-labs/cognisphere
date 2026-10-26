@@ -20,4 +20,4 @@ Then:
 - **Test a restore** once: copy a project folder back and open it.
 - Sync clients may create conflict copies (`… (conflicted copy).md`) when two machines write at once. Merge them by hand and delete the copy.
 
-A restored or lost folder is not recreated behind your back: `/cognisphere:update` reports a missing vault, and `/cognisphere:install` re-seeds only the notes that are missing.
+A restored or lost folder is not recreated behind your back: `/cognisphere:update` reports a missing vault, and `/cognisphere:vault` re-seeds only the notes that are missing.

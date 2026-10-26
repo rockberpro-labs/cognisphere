@@ -2,8 +2,8 @@
 
 Builds and extends the project's knowledge catalog. Mapping is reading — do not ask
 permission to read. **Ask before writing**, saying how many notes and which: the user may
-want a smaller cut. `/cognisphere:install` runs it as a bootstrap,
-`/cognisphere:update <area>` in area mode.
+want a smaller cut. `/cognisphere:harness` (and so `/cognisphere:install`) runs it as a
+bootstrap, `/cognisphere:update <area>` in area mode.
 
 ## Modes
 

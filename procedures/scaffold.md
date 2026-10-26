@@ -2,7 +2,8 @@
 
 Sets up a project's `.agents/` skeleton. **Idempotent**: run again on an already
 initialized project and it only creates what is missing, touching nothing that exists.
-`/cognisphere:install` runs it first; `/cognisphere:update` runs it as its structure pass.
+`/cognisphere:harness` (and so `/cognisphere:install`) runs it first; `/cognisphere:update`
+runs it as its structure pass.
 
 ## Language
 

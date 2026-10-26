@@ -1,17 +1,18 @@
 #!/usr/bin/env bash
-# configure.sh <project> <style-file> [--untouched]: procedures/vault.md § Configure.
+# configure.sh <project> <style-file>: procedures/vault.md § Configure.
 # Creates the three local files or adds what they lack; never rewrites what is there.
-# <style-file> holds the working style text, word for word. --untouched: the repo layer
-# is left untouched (D30): settings.local.json goes where Claude Code reads it
-# (.claude/, followed through a link), AGENTS.local.md gains § Repo layer, and every
-# file is ignored through .git/info/exclude, so git status shows nothing new.
+# <style-file> holds the working style text, word for word. When the repo layer is not
+# cognisphere's (names.sh repo_layer=untouched; D30, D31): settings.local.json goes where
+# Claude Code reads it (.claude/, followed through a link), AGENTS.local.md gains
+# § Repo layer, and every file is ignored through .git/info/exclude, so git status shows
+# nothing new.
 # Exit 0 done, 2 settings.local.json is not valid JSON (left untouched), 3 a regular
-# CLAUDE.local.md sits next to AGENTS.local.md (ask, then rerun), 4 --untouched and git
+# CLAUDE.local.md sits next to AGENTS.local.md (ask, then rerun), 4 untouched and git
 # tracks one of the three files (nothing written), 1 a symlink could not be made.
 here="$(cd "$(dirname "$0")" && pwd)"
-CS_STYLE="$(cat "${2:?usage: configure.sh <project> <style-file> [--untouched]}")" || exit 1
-untouched=; [ "${3:-}" = --untouched ] && untouched=1
+CS_STYLE="$(cat "${2:?usage: configure.sh <project> <style-file>}")" || exit 1
 . "$here/names.sh" "$1" || exit 1
+untouched=; [ "$repo_layer" = untouched ] && untouched=1
 cd "$(git rev-parse --show-toplevel)" || exit 1
 rc=0; keep() { [ "$1" -gt "$rc" ] && rc="$1"; }
 tmp="$(mktemp -d)"; trap 'rm -rf "$tmp"' EXIT
@@ -22,7 +23,7 @@ if [ -n "$untouched" ]; then
   settings="$dir/settings.local.json"
   for f in "$settings" AGENTS.local.md CLAUDE.local.md; do
     git ls-files --error-unmatch -- "$f" >/dev/null 2>&1 \
-      && { echo "tracked by git: $f (--untouched writes nothing)" >&2; exit 4; }
+      && { echo "tracked by git: $f (repo layer untouched: nothing written)" >&2; exit 4; }
   done
   exclude="$(git rev-parse --git-path info/exclude)"; mkdir -p "$(dirname "$exclude")"
   for f in "$settings" AGENTS.local.md CLAUDE.local.md; do

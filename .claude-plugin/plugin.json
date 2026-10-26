@@ -1,8 +1,8 @@
 {
   "name": "cognisphere",
-  "version": "0.9.0",
+  "version": "0.10.0",
   "license": "MIT",
-  "description": "Agent harness plus a per-project vault: guards (master, secrets, memory drift), .agents scaffold, /cognisphere:read for vault notes copied in Obsidian, memory and rules mapping, explorer, planner, implementer, test-runner and reviewer agents, and an Obsidian-ready Agent/ workspace outside the repo.",
+  "description": "Agent harness plus a per-project vault: guards (master, secrets, memory drift), .agents scaffold, /cognisphere:harness and /cognisphere:vault for either half alone, /cognisphere:read for vault notes copied in Obsidian, memory and rules mapping, explorer, planner, implementer, test-runner and reviewer agents, and an Obsidian-ready Agent/ workspace outside the repo.",
   "author": { "name": "cognisphere contributors" },
   "repository": "https://github.com/rockberpro/cognisphere",
   "keywords": ["agents", "memory", "rules", "guards", "harness", "obsidian", "vault"]

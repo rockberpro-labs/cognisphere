@@ -1,6 +1,6 @@
 ---
 name: explorer
-description: Use PROACTIVELY before coding any non-trivial task, and whenever answering means sweeping many files. Covers both kinds of investigation - understanding a new demand (story, ticket, requirement) by mapping the files, business rules and constraints it touches; and mapping the blast radius of an already defined change on existing code (who calls what, what depends on the target). Also the fan-out worker of the mapping phases of `/cognisphere:install`. Read-only - edits neither code nor memory. Do not use for one-line edits, factual questions, or when you already know which file to open.
+description: Use PROACTIVELY before coding any non-trivial task, and whenever answering means sweeping many files. Covers both kinds of investigation - understanding a new demand (story, ticket, requirement) by mapping the files, business rules and constraints it touches; and mapping the blast radius of an already defined change on existing code (who calls what, what depends on the target). Also the fan-out worker of the mapping phases of `/cognisphere:harness` and `/cognisphere:install`. Read-only - edits neither code nor memory. Do not use for one-line edits, factual questions, or when you already know which file to open.
 tools: Read, Grep, Glob, Bash
 ---
 
