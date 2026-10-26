@@ -13,7 +13,7 @@ Back: [[00 Home]] · [[Vault Guide]]
 - [ ] Before touching an area, read its `.agents/memory/` note.
 
 ## During
-- [ ] `Scratch/` is your workbench for what the work produces: write freely, nothing there is authoritative. Before the first edit of a multi-step task, write the plan, the files to touch and the open questions in `Scratch/<today>/<topic>.md`; before a long investigation, what you're looking for and what you've ruled out. Keep it current. Scripts, drafts and intermediate output go there too, not in Claude Code's scratchpad. Output, not thinking aloud.
+- [ ] `Scratch/` is your workbench for what the work produces: write freely, nothing there is authoritative. Before the first edit of a multi-step task, write the plan, the files to touch and the open questions in `Scratch/<today>/<topic>.md`; before a long investigation, what you're looking for and what you've ruled out. Keep it current. Scripts, drafts and intermediate output go there too, not in Claude Code's scratchpad. Output, not thinking aloud; throwaway material (a test repo, a download, build output) goes in a `mktemp -d` folder, outside the vault.
 - [ ] The maintainer corrects you or decides something → record it in today's Log (or [[Open Threads]], if it leaves a question open) before continuing. When it is meant to hold beyond this task (how to work, what to avoid, an approach they confirmed), also add or rewrite it in [[Preferences]], with the reason. That's where Claude Code's auto-memory would have kept it.
 - [ ] Something unresolved → a new numbered item in [[Open Threads]].
 - [ ] Noticed something outside the task (a code defect, a risk, an improvement) → a new item in [[Findings]] now, not at the end. Don't fix it unasked.

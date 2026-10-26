@@ -803,7 +803,11 @@ takes what auto-memory kept about the maintainer: how they want the agent to wor
 item with its reason) and what to know about them. It is current by definition, rewritten
 when a preference changes, while the Log keeps the moment it was said. `session-start`
 loads it after Home, and `scratch-redirect` names it first when it refuses an
-auto-memory write.
+auto-memory write. `session-start` also lists any file in the project's auto-memory
+folder, written before the vault took it over, for the agent to move into its vault
+note and delete; `vault-check` reports them. Throwaway material (a test repo, a
+download, build output) is not output: the templates and the `scratch-redirect`
+message send it to a `mktemp -d` folder, outside the vault.
 
 **Why.** Claude Code keeps the agent's working state in its own folders: a per-session
 scratchpad in the temp dir, plan files and auto-memory under `~/.claude`. None of it is
@@ -820,7 +824,10 @@ produced. Most of what auto-memory holds is about the maintainer (corrections, c
 approaches, their expertise), and none of the vault's notes took it: the Log records a
 correction as an event, not as the rule that stands now, so refusing auto-memory
 without Preferences lost it. It is loaded every session, as auto-memory is, or it would
-be written and never read.
+be written and never read. Refusing new auto-memory writes left the old entries where
+they were: still loaded by Claude Code, missing from the backup, and the memory split in
+two. Sending everything to Scratch would put test repos and downloads into the vault,
+where they are backed up, synced and indexed for nothing.
 
 **Rejected.** Blocking plan files: plan mode writes and reads its own file, and
 refusing it would break plan mode; a copy keeps both. Mirroring auto-memory instead of

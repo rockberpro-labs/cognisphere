@@ -16,13 +16,16 @@ What changed in each release of cognisphere. Versions follow
 - A seeded note, `State/Preferences.md`: how the maintainer wants the agent to work and
   what to know about them, the vault's home for what auto-memory kept. `session-start`
   loads it, and `scratch-redirect` points auto-memory writes to it (D36).
+- `session-start` lists files left in the project's Claude Code auto-memory folder, for
+  the agent to move into the vault; `/cognisphere:update` reports them (D36).
 
 ### Changed
 
 - `Scratch/` keeps one folder per day, `Scratch/YYYY-MM-DD/`, and day folders stay after
   the session as history; only today's is current. Notes are no longer deleted (D36).
 - `Scratch/` is described as the agent's workbench for what its work produces, not as
-  "working memory": output, not thinking aloud (D36).
+  "working memory": output, not thinking aloud, and only output worth keeping. Throwaway
+  material (a test repo, a download, build output) goes in a `mktemp -d` folder (D36).
 - `scratch-first` counts only a note in a day folder, and refuses again once 3 or more
   repo files changed since the newest Scratch write (D36).
 - `session-start` lists today's Scratch notes and loose files outside a day folder,

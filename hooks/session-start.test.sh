@@ -13,6 +13,7 @@ perl -MJSON::PP -e1 || { echo "perl with JSON::PP is required (the hook needs it
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 export TMPDIR="$tmp" HOME="$tmp"   # `~/` expands here
+unset CLAUDE_CONFIG_DIR
 
 repo="$tmp/repo"; vault="$tmp/vault"
 # A fresh repo and a vault with Home, Open Threads, two Log notes and a Scratch README.
@@ -69,6 +70,17 @@ reset; echo p > "$vault/Agent/Scratch/2026-02-01 plan.md"; t 'a loose file is li
 reset; t 'points at the day folder, not the internal stores' "Scratch/$today/"
 reset; out="$(printf '{"cwd":"%s"}' "$repo" | bash "$H")"
   if printf '%s\n' "$out" | grep -q 'outside a day folder'; then fails=$((fails+1)); echo "FAIL <- README alone is not loose"; else echo "ok   <- README alone is not loose"; fi
+
+echo "== auto-memory left outside the vault =="
+# The folder Claude Code would use for this repo: its path, non-alphanumerics as `-`.
+slug() { perl -e '($s = shift) =~ s/[^A-Za-z0-9]/-/g; print $s' "$(git -C "$repo" rev-parse --show-toplevel)"; }
+reset; m="$tmp/.claude/projects/$(slug)/memory"; mkdir -p "$m"; echo x > "$m/feedback_tests.md"
+  t 'an auto-memory file is listed to move' 'auto-memory.*move it in'
+reset; mkdir -p "$m"; echo x > "$m/feedback_tests.md"; t 'the file is named' 'feedback_tests\.md'
+reset; rm -f "$m"/*; out="$(printf '{"cwd":"%s"}' "$repo" | bash "$H")"
+  if printf '%s\n' "$out" | grep -q 'auto-memory for this project'; then fails=$((fails+1)); echo "FAIL <- an empty auto-memory folder"; else echo "ok   <- an empty auto-memory folder is not listed"; fi
+reset; mkdir -p "$tmp/cfg/projects/$(slug)/memory"; echo x > "$tmp/cfg/projects/$(slug)/memory/MEMORY.md"
+  CLAUDE_CONFIG_DIR="$tmp/cfg" t 'under CLAUDE_CONFIG_DIR' 'MEMORY\.md'
 
 echo
 [ "$fails" -eq 0 ] && echo "all session-start cases pass" || { echo "$fails case(s) FAILED"; exit 1; }

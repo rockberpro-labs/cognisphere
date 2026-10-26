@@ -74,7 +74,8 @@ git doesn't record, the session log and scratch work.
 `Scratch/` is the exception: it is the agent's workbench for what its work produces,
 written freely (a plan before a multi-step edit, scripts, drafts and intermediate output,
 dead ends ruled out during an investigation) in one folder per day. It holds output, not
-the model's thinking aloud. Today's folder is the work in flight; older ones are kept as
+the model's thinking aloud, and only output worth keeping: throwaway material (a test
+repo, a download, build output) goes in a `mktemp -d` folder, out of your backups. Today's folder is the work in flight; older ones are kept as
 the history of how the work went, and are never read as the current state. It takes what
 Claude Code would otherwise keep in its session scratchpad and plans folder, and
 `State/Preferences.md` takes what auto-memory would keep about you (corrections, approaches

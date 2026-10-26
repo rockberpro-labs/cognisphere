@@ -74,6 +74,16 @@ it (`names.sh <name>` prints its paths).
      ```bash
      sed -n '/^## Open/,/^## /p' "$vault/Agent/State/Findings.md" | grep -c '^### [0-9]'
      ```
+   - **Auto-memory outside the vault:** files in Claude Code's auto-memory folder for
+     this repo (`${CLAUDE_CONFIG_DIR:-~/.claude}/projects/<slug>/memory/`, the slug being
+     the repo path with every non-alphanumeric turned into `-`) → list them: written
+     before the vault took auto-memory over, they are missing from its backup. The agent
+     moves each into its vault note in a normal session (`session-start` lists them),
+     not here.
+
+     ```bash
+     ls "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/projects/$(perl -e '($s = shift) =~ s/[^A-Za-z0-9]/-/g; print $s' "$(git rev-parse --show-toplevel)")/memory/" 2>/dev/null
+     ```
    - Broken `[[links]]`: `perl "<plugin>/scripts/check-links.pl" "$vault/Agent"` prints
      each one. Report them; the agent fixes them in a normal session, not here.
 2. **The local settings** — `.agents/settings.local.json`; with `## Repo layer` in

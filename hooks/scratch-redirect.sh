@@ -60,7 +60,9 @@ if [ "$store" = scratchpad ]; then
   {
     echo "scratch-redirect: this project keeps the agent's working files in its vault, not in"
     echo "Claude Code's session scratchpad, so they travel with the project (backups, Obsidian)."
-    echo "Write \`$day/${path##*/}\` instead; a script or data file goes there too."
+    echo "Write \`$day/${path##*/}\` instead when it is output worth keeping: a note, a script you"
+    echo "wrote, a result. Throwaway material (a test repo, a download, build output) isn't:"
+    echo "put it in a \`mktemp -d\` folder, outside both the vault and the scratchpad."
   } >&2
 else
   {

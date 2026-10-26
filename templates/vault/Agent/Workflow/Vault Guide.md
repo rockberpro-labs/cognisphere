@@ -79,7 +79,7 @@ Rejected findings stay, struck through with the maintainer's reason, so the same
 
 ### `Scratch/`: "what is the work producing?"
 - What the work produces (plans, scripts, drafts, diff sketches, repro scripts, intermediate output) and notes on it (files touched, dead ends ruled out). Output, not thinking aloud: what the next session would need, not the reasoning that got there. `YYYY-MM-DD/topic.md`, one folder per day.
-- Written freely: a copy of something held elsewhere is fine here. It takes what would otherwise go to Claude Code's session scratchpad, so the work travels with the vault; a plan-mode plan is copied here as `plan <name>.md`.
+- Written freely: a copy of something held elsewhere is fine here. It takes what would otherwise go to Claude Code's session scratchpad, so the work travels with the vault; a plan-mode plan is copied here as `plan <name>.md`. Throwaway material (a test repo, a download, build output) stays out: it goes in a `mktemp -d` folder.
 - Written at set moments: before the first edit of a task, and before a long investigation. The `scratch-first` hook refuses repo edits until a note exists this session, and again once 3 repo files changed since the last write; the Stop hook asks again when a session touched 3 or more repo files and nothing here changed.
 - Nothing here is authoritative. At session end, promote what's worth keeping; the day folder stays as history. Read an older day folder only when the task needs it, never as the current state.
 
@@ -116,6 +116,6 @@ The top level stays at **one note plus four folders**. Don't add new top-level f
 
 - **Don't copy the repo.** See § 1: a copy saves nothing and drifts.
 - **Don't copy secrets.** Credentials can sit in `../Human/` or in local files the agent is denied (`.env`). Never copy credentials into the vault. A value already public in the repo (a seed login in a test) is the only exception.
-- **Don't summarise `Human/` without being asked.** Those are the maintainer's notes, and summarising them invites drift between two copies.
+- **Don't fill Scratch with throwaway material.** A test repo, a download or build output in the vault is backed up, synced and indexed by Obsidian for nothing. It goes in a `mktemp -d` folder; the script that made it can stay in Scratch.- **Don't summarise `Human/` without being asked.** Those are the maintainer's notes, and summarising them invites drift between two copies.
 - **Don't invent verification.** If a check wasn't run this session, say "not verified" rather than repeating an old result as current.
 - **Don't treat the vault as the source of truth.** It loses to the code every time.

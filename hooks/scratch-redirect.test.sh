@@ -48,11 +48,13 @@ reset; t 'a relative path' 0 "src/a.txt"
 reset; t 'a vault note' 0 "$vault/Agent/Scratch/2026-01-01/plan.md"
 reset; t 'a plan-mode plan file' 0 "$tmp/.claude/plans/quiet-river.md"
 reset; t 'another file in the temp dir' 0 "$tmp/build/out.txt"
+reset; t 'a mktemp -d folder, for throwaway material' 0 "$tmp/tmp.Ab12Cd/repo/fixture.json"
 reset; t 'a scratchpad folder outside the temp dir' 0 "/srv/claude-x/scratchpad/a.md"
 
 echo "== blocks: the session scratchpad =="
 reset; t 'Write in the scratchpad' 2 "$pad/notes.md"
   printf '%s\n' "$last_out" | grep -q "Scratch/$(date +%F)/notes.md" || { fails=$((fails+1)); echo "FAIL <- names the day-folder path"; }
+  printf '%s\n' "$last_out" | grep -q 'mktemp -d' || { fails=$((fails+1)); echo "FAIL <- says where throwaway material goes"; }
 reset; t 'Edit in a scratchpad subfolder' 2 "$pad/sub/run.sh" Edit
 reset; t 'a /tmp/claude-<uid> scratchpad' 2 "/tmp/claude-1000/-home-u-repo/0b6f/scratchpad/a.md"
 reset; t 'a Windows Temp scratchpad' 2 "/c/Users/u/AppData/Local/Temp/claude/C--repo/0b6f/scratchpad/a.md"

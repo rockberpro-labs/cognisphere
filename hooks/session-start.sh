@@ -6,9 +6,10 @@
 #   Prints, for the agent: Agent/00 Home.md, State/Preferences.md (what auto-memory
 #   would otherwise load), State/Open Threads.md, the latest note in Log/ (its tail, where
 #   the newest session is), the files in today's Scratch/ day folder (the work in
-#   flight), any file loose in Scratch/ outside a day folder, and the newest earlier day
-#   folder, as history (D36). Each note is capped so a grown note
-#   can't flood the context. It ends by telling the agent to keep its working state in
+#   flight), any file loose in Scratch/ outside a day folder, the newest earlier day
+#   folder, as history, and any file left in Claude Code's auto-memory for the project,
+#   to move into the vault (D36). Each note is capped so a grown note can't flood the
+#   context. It ends by telling the agent to keep its working state in
 #   Scratch/, not in Claude Code's session scratchpad, plans or auto-memory.
 #
 # Fails OPEN: any internal error exits 0 with no output, so the session starts as usual.
@@ -44,6 +45,13 @@ latest="$(ls "$a/Log/" 2>/dev/null | grep -E '^[0-9]{4}-[0-9]{2}-[0-9]{2}\.md$' 
 current="$(cd "$a/Scratch/$today" 2>/dev/null && find . -type f 2>/dev/null | sed 's|^\./||' | sort)"
 loose="$(cd "$a/Scratch" 2>/dev/null && find . -maxdepth 1 -type f ! -name README.md 2>/dev/null | sed 's|^\./||' | sort)"
 earlier="$(ls "$a/Scratch/" 2>/dev/null | grep -E '^[0-9]{4}-[0-9]{2}-[0-9]{2}$' | grep -vx "$today" | sort | tail -n 1)"
+# Auto-memory written before the vault took it over: Claude Code names the folder after
+# the project path with every non-alphanumeric turned into `-` (git root or cwd, so both).
+# ponytail: a path long enough for Claude Code to shorten with a hash isn't found.
+config="${CLAUDE_CONFIG_DIR:-$HOME/.claude}"
+mem="$(for p in "$root" "$cwd"; do [ -n "$p" ] && perl -e '($s = shift) =~ s/[^A-Za-z0-9]/-/g; print "$s\n"' "$p"; done \
+  | sort -u | while IFS= read -r s; do d="$config/projects/$s/memory"
+    [ -d "$d" ] && find "$d" -maxdepth 1 -type f 2>/dev/null; done | sort)"
 
 {
   echo "session-start: the vault for this project is $vault. Its reading order, loaded for you:"
@@ -60,6 +68,13 @@ earlier="$(ls "$a/Scratch/" 2>/dev/null | grep -E '^[0-9]{4}-[0-9]{2}-[0-9]{2}$'
     printf '%s\n' "$loose" | sed -n '1,10s/^/  /p'
   fi
   [ -n "$earlier" ] && { echo; echo "Older Scratch/ day folders are history, not current (newest: Scratch/$earlier/): read one only when the task needs it."; }
+  if [ -n "$mem" ]; then
+    echo; echo "=== Claude Code auto-memory for this project, outside the vault: move it in ==="
+    printf '%s\n' "$mem" | sed -n '1,10s/^/  /p'
+    echo "Move each entry into the vault note it belongs to (about the maintainer or how to work"
+    echo "-> State/Preferences.md; about the code -> the area's .agents/memory/ note, or tell the"
+    echo "maintainer), then delete the file, MEMORY.md last, and say so in today's Log."
+  fi
   echo
   echo "Run \`git status\` and \`git log -5\` next. Write your working notes in $a/Scratch/$today/"
   echo "as AGENTS.local.md says. This project's working state lives in the vault: use that"
