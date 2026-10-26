@@ -6,7 +6,7 @@
 Without bumping it, every commit counts as a new version. Release flow:
 
 ```bash
-# 1. change the code on a branch   2. bump version in plugin.json (semver)
+# 1. change the code on a branch   2. bump version in plugin.json (semver) and add its CHANGELOG.md entry
 claude plugin validate . --strict && claude plugin validate .claude-plugin/plugin.json --strict
 for t in hooks/*.test.sh scripts/*.test.sh; do bash "$t" || break; done
 # when a skill or procedure changed: the eval fixtures (costs real runs)

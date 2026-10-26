@@ -98,11 +98,11 @@ CLAUDE.local.md -> AGENTS.local.md   (gitignored)
    (or the `deny` and `allow` entries it lacks), `AGENTS.md` with `CLAUDE.md -> AGENTS.md`, and the
    root `.gitignore` lines. Exit 0 → done; 3 → a real `.claude/` or `CLAUDE.md` is in the
    way (step 1); 2 → `settings.json` is not valid JSON: report it and stop, do not
-   hand-edit around it; 1 → no symlink could be made: on Windows, point at README
+   hand-edit around it; 1 → no symlink could be made: on Windows, point at GUIDE.md
    § Windows and stop.
 
    A link line saying `native link via MSYS=winsymlinks:nativestrict` worked, but this
-   machine lacks the permanent setup: report README § Windows (`core.symlinks`, the
+   machine lacks the permanent setup: report GUIDE.md § Windows (`core.symlinks`, the
    `~/.bashrc` line) as a follow-up, not a blocker.
 
    `rules/memory.md` is the anti-drift rule — the always-on instruction to fix a note in

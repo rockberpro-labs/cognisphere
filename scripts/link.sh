@@ -13,9 +13,9 @@ ln -s "$target" "$name" 2>/dev/null
 rm -rf "$name"
 MSYS=winsymlinks:nativestrict ln -s "$target" "$name" 2>/dev/null
 if [ -L "$name" ]; then
-  echo "created $name (native link via MSYS=winsymlinks:nativestrict; follow-up: README § Windows, so later links and checkouts stay links)"
+  echo "created $name (native link via MSYS=winsymlinks:nativestrict; follow-up: GUIDE.md § Windows, so later links and checkouts stay links)"
   exit 0
 fi
 rm -rf "$name"
-echo "cannot create the symlink $name -> $target: see README § Windows" >&2
+echo "cannot create the symlink $name -> $target: see GUIDE.md § Windows" >&2
 exit 1

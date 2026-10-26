@@ -685,3 +685,22 @@ added later are not covered. Shared notes straight under the root, next to `Proj
 no single folder to grant. Moving old vaults automatically: the plugin never modifies
 an existing vault (D3), and a move is one command.
 
+
+## D33. The README introduces, GUIDE.md is the reference
+
+*2026-10-26, v0.11.0*
+
+**Decision.** `README.md` keeps what someone deciding whether to install needs: the
+problem, the two layers, quick start, the session walkthrough, and a short summary of
+the memory catalog, the vault, the commands and the guards. Each summary links to
+`GUIDE.md`, which holds the step-by-step of every command, the guards' details and
+limits, backups, Windows, uninstall, language and the repository's contents. The
+backup warning from D9 stays in the README as one line in *The vault*; the full section
+moved to the guide. Procedures and scripts that send the user to setup notes point at
+`GUIDE.md § <section>`.
+
+**Why.** At 440 lines the README described the vault five times and mixed the pitch with
+per-command internals, so a first-time reader had to dig for what the plugin is.
+
+**Rejected.** Putting the reference under `docs/`: it is user-facing, and `docs/` holds
+the maintainers' decision record.
