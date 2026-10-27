@@ -1039,3 +1039,23 @@ end of a refspec for main, would block an honest push.
 
 **Rejected.** Keeping `<scope>` in the name (`feat/billing/login-form`): a nested name
 cannot coexist with a branch named `feat/billing`, and the scope belongs in the commit.
+
+## D42. A Scratch plan is rewritten in place
+
+*2026-10-27, v0.19.0*
+
+**Decision.** When a decision replaces part of a plan in `Scratch/`, the agent rewrites
+that part in place, so the note always reads as the current plan, and keeps what was
+dropped as one line under `Considered and rejected`, with the reason. It doesn't append
+a revision section.
+
+**Why.** "Keep it current" was read as "keep adding": a plan revised twice by the
+maintainer ended as three stacked versions, the last one headed "replaces the previous
+one where they differ", and a reader had to merge them by hand to learn what was
+decided. That is thinking aloud by another route. When a decision was made is the Log's
+job (the agent already records corrections and decisions there); the Scratch note keeps
+what the work is now.
+
+**Rejected.** Keeping revisions with the superseded parts struck through: the note still
+has to be read whole and merged. Dropping the rejected options entirely: the next
+session would propose them again without knowing why they were turned down.
