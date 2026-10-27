@@ -12,6 +12,9 @@ What changed in each release of cognisphere. Versions follow
   (`sk-ant-`), OpenAI (`sk-proj-`, `sk-svcacct-`, `sk-admin-`, legacy) and Stripe live
   (`sk_live_`, `rk_live_`) tokens (D40). Repos pick it up with `/cognisphere:update`,
   which refreshes their copy of `guard.sh`.
+- `master-guard` suggests `<type>/<description>` branch names (`feat/login-form`), not
+  `<type>_<scope>_<description>`, and no longer blocks a push of a branch named after
+  main, such as `fix/main` (D41).
 
 ## 0.17.0 — 2026-10-27
 

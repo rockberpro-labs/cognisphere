@@ -1023,3 +1023,19 @@ guard's bar: a prefix no ordinary text carries, plus a minimum length, so a fals
 **Rejected.** JWTs (`eyJ…`): no service prefix, often short-lived, and common in test
 fixtures, so they would block honest commits. Stripe test keys (`sk_test_`): not secrets.
 Entropy heuristics and `password=` assignments: too many false positives, as before.
+
+## D41. Branch names use slash prefixes
+
+*2026-10-27, v0.18.0*
+
+**Decision.** `master-guard`'s block message suggests `git switch -c <type>/<description>`
+(`feat/login-form`), and its refspec check counts `/main` only as `refs/heads/main`, so
+pushing `fix/main` is not a push to main.
+
+**Why.** `<type>/<description>` is the convention GitHub, GitLab and most tooling group
+branches by; `<type>_<scope>_<description>` was a house style the plugin had no reason to
+impose. With slashes in every suggested name, the old check, which took any `/main` at the
+end of a refspec for main, would block an honest push.
+
+**Rejected.** Keeping `<scope>` in the name (`feat/billing/login-form`): a nested name
+cannot coexist with a branch named `feat/billing`, and the scope belongs in the commit.

@@ -41,7 +41,8 @@ feat 'git merge origin/master' 0
 feat 'git reset --hard HEAD~1' 0
 feat 'git push -u origin my-branch' 0
 feat 'git push origin main-fix' 0
-feat 'git push origin feat_main_menu' 0
+feat 'git push origin feat/main-menu' 0
+feat 'git push origin fix/main' 0
 feat 'git push origin master:staging' 0
 feat 'git log --oneline origin/master' 0
 feat 'git fetch origin master' 0
