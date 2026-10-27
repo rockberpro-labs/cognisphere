@@ -1059,3 +1059,38 @@ what the work is now.
 **Rejected.** Keeping revisions with the superseded parts struck through: the note still
 has to be read whole and merged. Dropping the rejected options entirely: the next
 session would propose them again without knowing why they were turned down.
+
+## D43. The vault's checks follow the work, Bash included
+
+*2026-10-27, v0.20.0*
+
+Supersedes D34 and D35 in part: a Log or Scratch write early in the session no longer
+covers the rest of it.
+
+**Decision.** `session-log` measures the Log and `Scratch/` against the newest work,
+not the session start. A Log written this session is behind once 3 or more repo files
+(committed or not, by mtime) changed after its newest write, and the stop blocks again;
+a `State/` note changed after it doesn't count, since the Session Protocol updates Open
+Threads after the entry. `Scratch/` falls behind the same way, with `scratch-first`'s
+threshold. With no Log or no Scratch write, the old rules hold. The same Stop hook also
+looks for files modified this session in the session's scratchpad
+(`claude*/…/<session id>/scratchpad/` in the temp dir) and in the project's auto-memory
+folder, and asks the agent to move them into the vault. `scratch-first` also runs after
+Bash: a Bash call names no file, so it asks git which repo files the session changed,
+and only when it hasn't already said there is no note.
+
+**Why.** The checks were met by the first write. `AGENTS.local.md` asks for a Log entry
+as soon as the maintainer corrects something, and that entry silenced the
+end-of-session check; a one-line Scratch note at the start silenced the stop-time
+Scratch check, leaving only a reminder the agent could pass over. The system prompt
+tells the agent to use the session scratchpad and, in auto mode, to write files through
+Bash, which `scratch-redirect` can't see, so the vault's main promise leaked through the
+route the agent is told to prefer. Looking at the stores after the fact needs no command
+parsing (what D35 rejected) and has no false positives: nothing in either store belongs
+there in a vault project.
+
+**Rejected.** Blocking at stop on any change after the Log: a one-file follow-up would
+cost a turn every reply, the cost D34 avoided. Counting commits after the Log: the usual
+order is log, then commit. Parsing Bash commands for writes to the stores: the D35
+reason. Making `scratch-first` block again: D37's reason stands, and the Stop hook is the
+backstop.

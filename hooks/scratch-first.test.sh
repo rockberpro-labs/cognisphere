@@ -102,6 +102,20 @@ reset; p='{"transcript_path":"'"$tmp/transcript.jsonl"'","cwd":"'"$repo"'","tool
 reset; t 'the context is for PostToolUse' remind
   printf '%s\n' "$last_out" | grep -q '"hookEventName":"PostToolUse"' || { fails=$((fails+1)); echo "FAIL <- hookEventName PostToolUse"; }
 
+echo "== Bash: git says what changed (D43) =="
+bash_p() { printf '{"session_id":"s","transcript_path":"%s","cwd":"%s","hook_event_name":"PostToolUse","tool_name":"Bash","tool_input":{"command":"sed -i s/a/b/ src/f1.txt"}}' \
+  "$tmp/transcript.jsonl" "${1:-$repo}"; }
+reset; t 'Bash, no repo file changed this session' quiet "" Bash "$(bash_p)"
+reset; edits "$((start - 60))" 1; t 'Bash, a repo file changed before the session' quiet "" Bash "$(bash_p)"
+reset; edits "$((start + 60))" 1; t 'Bash, a repo file changed, no note' remind "" Bash "$(bash_p)"
+  printf '%s\n' "$last_out" | grep -q 'src/f1\.txt' || { fails=$((fails+1)); echo "FAIL <- the reminder names the file"; }
+  t 'Bash again, still no note: already said' quiet "" Bash "$(bash_p)"
+reset; note "$((start + 60))"; edits "$((start + 120))" 3; t 'Bash, 3 files since the note' remind "" Bash "$(bash_p)"
+reset; note "$((start + 60))"; edits "$((start + 120))" 2; t 'Bash, 2 files since the note' quiet "" Bash "$(bash_p)"
+reset; edits "$((start + 60))" 1; t 'Bash, cwd outside a repo' quiet "" Bash "$(bash_p "$tmp")"
+reset; p='{"session_id":"s","transcript_path":"'"$tmp/transcript.jsonl"'","cwd":"'"$repo"'","tool_name":"Read","tool_input":{}}'
+  edits "$((start + 60))" 1; t 'another tool with no path' quiet "" Edit "$p"
+
 echo "== a session started in a sub-project: only its own folder counts (D38) =="
 sub() { reset; mkdir -p "$repo/frontend/.agents"; }
 st() { CLAUDE_PROJECT_DIR="$repo/frontend" t "$@"; }
