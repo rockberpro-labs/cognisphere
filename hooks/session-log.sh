@@ -25,19 +25,31 @@
 # just stop again (`stop_hook_active` lets that through), and the same changes are never
 # reported twice: after a block, only changes newer than it count.
 #
+#   And when a reply says something lies outside the task and what is wrong with it
+#   ("unrelated, but the retry loop never backs off") and State/Findings.md wasn't
+#   written since: the entry D27 asks for the moment it's noticed. It reads that from the
+#   transcript, and hands over the item's heading, numbered after the note's, and its
+#   Seen line with today and HEAD (D45).
+#
+#   The Log entry it hands over (D44) also has Not verified filled in from the
+#   transcript's last test run, a Bash command that looks like one or the test-runner
+#   agent: none ran, it failed, or repo files changed after it (D45).
+#
 #   A session started in a sub-project (D38, vault-of.sh): only its own Scratch/<day>/<tag>/
 #   folders count, and a Log entry written without the sub-project's tag (#frontend) gets
 #   one reminder to add it.
-# Limit: a missed Findings entry changes no file, so nothing here can see it.
+# Limits: both readings of the transcript are heuristics. A test command no pattern knows
+# reads as "no tests ran", and a finding mentioned in other words is missed.
 #
 # Fails OPEN: any internal error exits 0 so the session is never wedged.
 set -uo pipefail
 
 payload="$(cat)" || exit 0
-# stop_hook_active, session_id, cwd and the session's start (epoch seconds, from the first
-# `timestamp` in the transcript), NUL-separated. perl + JSON::PP, as in guard.sh.
+# stop_hook_active, session_id, cwd, the session's start (epoch seconds, from the first
+# `timestamp` in the transcript) and the transcript's path, NUL-separated. perl +
+# JSON::PP, as in guard.sh.
 { IFS= read -r -d '' active && IFS= read -r -d '' sid && IFS= read -r -d '' cwd \
-    && IFS= read -r -d '' start; } < <(printf '%s' "$payload" | perl -MJSON::PP -MTime::Local -0777 -ne '
+    && IFS= read -r -d '' start && IFS= read -r -d '' transcript; } < <(printf '%s' "$payload" | perl -MJSON::PP -MTime::Local -0777 -ne '
   my $j = eval { decode_json($_) }; exit 0 unless ref $j eq "HASH";
   my $start = "";
   if (defined $j->{transcript_path} && open my $t, "<", $j->{transcript_path}) {
@@ -50,7 +62,8 @@ payload="$(cat)" || exit 0
     }
   }
   my $sid = $j->{session_id} // ""; $sid =~ s/[^A-Za-z0-9_-]//g;
-  print join("\0", $j->{stop_hook_active} ? 1 : 0, $sid, $j->{cwd} // "", $start), "\0";
+  print join("\0", $j->{stop_hook_active} ? 1 : 0, $sid, $j->{cwd} // "", $start,
+    $j->{transcript_path} // ""), "\0";
 ' 2>/dev/null) || exit 0
 [ "$active" = 1 ] && exit 0
 [ -n "$start" ] || exit 0
@@ -171,7 +184,88 @@ if [ -d "$vault/Agent/Scratch" ]; then
     done
   } | sort -u)"
 fi
-[ -n "$need_log$need_scratch$need_tag$strays" ] || exit 0
+
+# The transcript, read once (D45). Prints the session's last test run, "T\t<epoch>\t<ok|
+# fail|bg|ran>\t<command>": a Bash command that looks like a test run (quoted strings
+# aside), or the test-runner agent, whose outcome is in its report. A call a hook or the
+# user refused never ran, so it doesn't count. Then each sentence of the agent's replies
+# since <since> that says something lies outside the task, "N\t<epoch>\t<sentence>",
+# code blocks aside, and not one that names Findings or this hook (a reply to its block).
+scan() {
+  [ -n "$transcript" ] && [ -f "$transcript" ] || return 0
+  perl -MJSON::PP -MTime::Local -e '
+    my ($f, $since) = @ARGV; open my $t, "<", $f or exit 0;
+    sub epoch { my @d = ($_[0] // "") =~ /^(\d{4})-(\d\d)-(\d\d)T(\d\d):(\d\d):(\d\d)/ or return 0;
+      timegm($d[5], $d[4], $d[3], $d[2], $d[1] - 1, $d[0]) }
+    my $tests = qr{\b(?:pytest|jest|vitest|mocha|rspec|phpunit|ctest|tox|nox|bats|unittest)\b
+      | \b(?:npm|pnpm|yarn|bun)\s+(?:run\s+)?test\b | \b(?:go|cargo|dotnet|mix|swift|deno|zig)\s+test\b
+      | \b(?:make|just|task|rake)\s+(?:test|check)\b | \b(?:mvnw?|gradlew?)\b.*\b(?:test|verify|check)\b
+      | (?:^|[;&|(\n`]|\b(?:do|then|else|time|exec|xargs)\s)\s*(?:(?:ba|z)?sh\s+|\./)\S*test\S*\.sh\b
+      | \bfor\s+\w+\s+in\s+[^;\n]*test\S*\.sh\b}x;
+    # An aside says outright that something is wrong, or puts something outside the task
+    # and, in the same sentence, says what is wrong with it ("an unrelated commit" is not one).
+    my $aside = qr{\b(?:pre-?existing\s+(?:bug|issue|problem|failure|defect)
+      | (?:looks|might\s+be|may\s+be|seems)\s+(?:like\s+)?an?\s+(?:latent\s+|separate\s+|real\s+)?bug
+      | worth\s+(?:its\s+own|a\s+separate)\s+(?:issue|fix|PR|change))}xi;
+    my $outside = qr{\b(?:unrelated|out\s+of\s+scope|outside\s+(?:the|this|my)\s+(?:task|scope|change)
+      | not\s+part\s+of\s+(?:the|this)\s+(?:task|change|fix) | side\s+note | in\s+passing
+      | (?:also|separately)\s+(?:noticed|spotted) | already\s+(?:there|existed|present|broken)
+      | predat\w+ | before\s+(?:this|my|the)\s+(?:change|task|session))}xi;
+    my $wrong = qr{\b(?:bug|broken|breaks?|fail\w*|errors?|crash\w*|leak\w*|race|risk\w*|wrong|incorrect
+      | missing|stale|dead|unused|never|unchecked|unsafe|insecure|vulnerab\w*|smell\w*|flaky|typo|TODO
+      | should|ought)\b|n\x27t\b}xi;
+    my (%run, $last);
+    while (<$t>) {
+      next unless /"(?:tool_use|tool_result|text)"/;
+      my $l = eval { decode_json($_) } or next;
+      next unless ref $l eq "HASH" && !$l->{isSidechain} && ref $l->{message} eq "HASH";
+      my $c = $l->{message}{content}; next unless ref $c eq "ARRAY";
+      my $at = epoch($l->{timestamp}) or next;
+      for my $b (grep { ref eq "HASH" } @$c) {
+        my $type = $b->{type} // "";
+        if ($type eq "tool_use" && ref $b->{input} eq "HASH") {
+          my $in = $b->{input};
+          if (($b->{name} // "") eq "Bash" && defined $in->{command}) {
+            # Heredoc bodies and quoted strings are text (a Log entry, a commit message), not commands.
+            (my $bare = $in->{command}) =~ s/<<-?\s*(["\x27]?)(\w+)\1[^\n]*\n.*?(?:\n\s*\2[ \t]*(?=\n|\z)|\z)//gs;
+            $bare =~ s/"(?:[^"\\]|\\.)*"|\x27[^\x27]*\x27//g;
+            next unless $bare =~ $tests;
+            # Named by the test command itself, up to the next separator or redirect.
+            (my $cmd = substr $bare, $-[0]) =~ s/^[\s;&|(`]*(?:(?:do|then|else|time|exec|xargs)\s+)?//;
+            $cmd =~ s/\s*(?:[;&|\n`]|\d*[<>]).*//s;
+            $run{$b->{id} // ""} = [$cmd, $in->{run_in_background} ? "bg" : "ok"];
+          } elsif (($in->{subagent_type} // "") =~ /test-runner/) {
+            $run{$b->{id} // ""} = ["the test-runner agent", "ran"];
+          }
+        } elsif ($type eq "tool_result" and my $r = delete $run{$b->{tool_use_id} // ""}) {
+          my $out = ref $b->{content} eq "ARRAY"
+            ? join("\n", map { ref eq "HASH" ? $_->{text} // "" : "" } @{$b->{content}}) : $b->{content} // "";
+          if ($b->{is_error}) { next unless $out =~ /^Exit code \d+/; $r->[1] = "fail" }
+          $last = [$at, $r->[1], $r->[0]];
+        } elsif ($type eq "text" && ($l->{type} // "") eq "assistant" && $at > $since) {
+          (my $txt = $b->{text} // "") =~ s/```.*?(?:```|\z)//gs;
+          for my $s (split /(?<=[.!?])\s+|\n+/, $txt) {
+            $s =~ s/^[\s>*-]+|\s+$//g; $s =~ s/\s+/ /g;
+            print "N\t$at\t$s\n" if ($s =~ $aside || $s =~ $outside && $s =~ $wrong)
+              && $s !~ /Findings|session-log/i;
+          }
+        }
+      }
+    }
+    print "T\t$last->[0]\t$last->[1]\t$last->[2]\n" if $last;' "$transcript" "$since" 2>/dev/null
+}
+scanned="$(scan)"
+last_test="$(printf '%s\n' "$scanned" | sed -n 's/^T\t//p')"
+
+# A remark outside the task with nothing added to Findings since (D45): what D27 asks for
+# the moment it's noticed, and which, unlike the Log, no file change would show.
+findings="$vault/Agent/State/Findings.md" asides=
+if [ -f "$findings" ]; then
+  f_at="$(perl -e 'print +(stat $ARGV[0])[9] // 0' "$findings" 2>/dev/null)"
+  asides="$(printf '%s\n' "$scanned" | perl -ne 'BEGIN { $t = shift }
+    print "$2\n" if /^N\t(\d+)\t(.*)/ && $1 > $t && !$seen{$2}++' "${f_at:-0}" 2>/dev/null)"
+fi
+[ -n "$need_log$need_scratch$need_tag$strays$asides" ] || exit 0
 
 [ -n "$marker" ] && touch "$marker" 2>/dev/null
 
@@ -195,7 +289,31 @@ skeleton() {
   echo "## Session $n${tag:+ #$tag}"
   printf -- '- **%s:**\n' Asked Found Did
   echo "- **Changed:** $changed"
-  printf -- '- **%s:**\n' 'Not verified' Next
+  local nv; nv="$(unverified)"
+  echo "- **Not verified:**${nv:+ $nv}"
+  echo "- **Next:**"
+}
+
+# unverified: Not verified as the entry would say it, from the transcript's last test run
+# against the repo files the session touched (D45). Empty when that run passed after
+# the last change, or the session touched no repo file.
+unverified() {
+  local touched at st cmd label when after n
+  touched="$(behind "$start")"; [ -n "$touched" ] || return 0
+  [ -n "$last_test" ] || { echo "no tests ran this session"; return 0; }
+  IFS=$'\t' read -r at st cmd <<< "$last_test"
+  [ "${#cmd}" -gt 60 ] && cmd="${cmd:0:59}…"
+  if [ "$st" = ran ]; then label="$cmd"; else label="\`$cmd\`"; fi
+  when="$(perl -MPOSIX=strftime -e 'print strftime("%H:%M", localtime shift)' "$at" 2>/dev/null)"
+  after="$(printf '%s\n' "$touched" | tr '\n' '\0' | (cd "$root" && newer "$at"))"
+  if [ -n "$after" ]; then
+    n=$(( $(printf '%s\n' "$after" | wc -l) - 3 ))
+    echo "$(printf '%s\n' "$after" | sed -n '1,3s/.*/`&`/p' | paste -sd, - | sed 's/,/, /g')$([ "$n" -gt 0 ] && echo " and $n more files") changed after the last test run ($label, $when)"
+  elif [ "$st" = fail ]; then
+    echo "the last test run ($label, $when) failed"
+  elif [ "$st" = bg ]; then
+    echo "the last test run ($label, $when) ran in the background, its result not checked"
+  fi
 }
 
 list() { printf "%s\n" "$1" | sed -n "1,5s/^/    /p"; local n; n=$(( $(printf "%s\n" "$1" | wc -l) - 5 )); [ "$n" -gt 0 ] && echo "    … and $n more"; }
@@ -208,8 +326,8 @@ list() { printf "%s\n" "$1" | sed -n "1,5s/^/    /p"; local n; n=$(( $(printf "%
     [ -n "$state" ] && { echo "  vault State/ notes:"; list "${state//"$vault/Agent/"/}"; }
     echo
     echo "If this reply ends the work, do Session Protocol § End now: append this entry to"
-    echo "$day_log, filling in the blanks (Changed comes from git and the"
-    echo "vault: check it), and update State/Open Threads.md."
+    echo "$day_log, filling in the blanks (Changed comes from git and the vault, Not"
+    echo "verified from the session's test runs: check them), and update State/Open Threads.md."
     [ -f "$day_log" ] || echo "The note is new: start it with the frontmatter and Back line of an earlier Log note."
     echo
     skeleton | sed 's/^/    /'
@@ -251,6 +369,26 @@ list() { printf "%s\n" "$1" | sed -n "1,5s/^/    /p"; local n; n=$(( $(printf "%
     echo "(State/Preferences.md for the maintainer and how to work, the area's .agents/memory/"
     echo "note for the code), then delete it, MEMORY.md last. Throwaway material goes in a"
     echo "\`mktemp -d\` folder instead."
+  fi
+  if [ -n "$asides" ]; then
+    [ -n "$need_log$need_tag$need_scratch$strays" ] && echo
+    echo "session-log: this session's replies point at something outside the task, and nothing"
+    echo "was written in State/Findings.md since:"
+    printf '%s\n' "$asides" | perl -CS -ne 'chomp;
+      $_ = substr($_, 0, 159) . "\x{2026}" if length > 160; print "    \x{201C}$_\x{201D}\n" if $. <= 3;
+      END { print "    \x{2026} and ", $. - 3, " more\n" if $. > 3 }' 2>/dev/null
+    echo "If one is a finding (a bug, a risk, a missing test, an improvement), add it to"
+    echo "$findings under Open now, after checking it isn't there"
+    echo "already (Session Protocol § During), starting from:"
+    echo
+    # The next number after any item's, open or closed; the commit it was seen at.
+    n="$(perl -ne '$m = $1 if /^#+\s*(?:~~)?\s*(\d+)\./ && $1 > $m; END { print $m + 1 }' "$findings" 2>/dev/null)"
+    echo "    ### ${n:-1}. [bug|risk|smell|test|improvement|idea] what: \`path:line\`${tag:+ #$tag}"
+    echo "    Seen $(date +%F) at \`$(git -C "$root" rev-parse --short HEAD 2>/dev/null)\`, while <the task>."
+    echo "    <the evidence and a suggestion>"
+    echo "    Status: open"
+    echo
+    echo "If it belongs to the task, or is already recorded elsewhere, leave Findings as it is."
   fi
   echo
   echo "If you are pausing for the user mid-task, just stop again: this reminder comes back"

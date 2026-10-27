@@ -18,13 +18,28 @@ unset CLAUDE_PROJECT_DIR
 now="$(date +%s)"; start=$((now - 3600))
 iso() { perl -e 'my @t = gmtime shift; printf "%04d-%02d-%02dT%02d:%02d:%02d.000Z", $t[5]+1900, $t[4]+1, @t[3,2,1,0]' "$1"; }
 at() { perl -e 'my $t = shift; utime $t, $t, @ARGV or exit 1' "$@"; }   # at <epoch> <file>...
-printf '{"type":"mode"}\n{"type":"user","timestamp":"%s"}\n' "$(iso "$start")" > "$tmp/transcript.jsonl"
+tx="$tmp/transcript.jsonl"
+# say <epoch> <text> [user]: a reply (or, with user, a prompt) in the transcript.
+say() { perl -MJSON::PP -e 'my ($t, $s, $who) = @ARGV; print encode_json({ type => $who || "assistant",
+  timestamp => $t, message => { role => $who || "assistant", content => [{ type => "text", text => $s }] } }), "\n"' \
+  "$(iso "$1")" "$2" "${3:-}" >> "$tx"; }
+# ran <epoch> <ok|fail|refused|bg|agent> <command>: a Bash call (or a test-runner agent)
+# and its result.
+ran() { perl -MJSON::PP -e 'my ($t, $st, $cmd) = @ARGV; my $id = "tu" . int(rand 1e9);
+  my $use = $st eq "agent" ? { type => "tool_use", id => $id, name => "Agent", input => { subagent_type => "cognisphere:test-runner" } }
+    : { type => "tool_use", id => $id, name => "Bash", input => { command => $cmd, $st eq "bg" ? (run_in_background => JSON::PP::true) : () } };
+  my $res = { type => "tool_result", tool_use_id => $id,
+    content => $st eq "fail" ? "Exit code 1\nnot ok" : $st eq "refused" ? "PreToolUse:Bash hook error: BLOCKED" : "ok" };
+  $res->{is_error} = JSON::PP::true if $st eq "fail" || $st eq "refused";
+  print encode_json({ type => "assistant", timestamp => $t, message => { content => [$use] } }), "\n",
+    encode_json({ type => "user", timestamp => $t, message => { content => [$res] } }), "\n"' "$(iso "$1")" "$2" "${3:-}" >> "$tx"; }
 
 repo="$tmp/repo"; vault="$tmp/vault"; sid=0
 # A fresh repo whose only commit and files predate the session, and a vault with a Log,
 # a State note and a Scratch/ README from yesterday. $1 is the path form AGENTS.local.md names.
 reset() {
   rm -rf "$repo" "$vault" "$tmp"/cognisphere-session-log-* "$tmp"/claude-* "$tmp/.claude"
+  printf '{"type":"mode"}\n{"type":"user","timestamp":"%s"}\n' "$(iso "$start")" > "$tx"
   mkdir -p "$repo" "$vault/Agent/Log" "$vault/Agent/State" "$vault/Agent/Scratch"
   git -C "$repo" init -q -b feat
   echo a > "$repo/a.txt"; echo '/AGENTS.local.md' > "$repo/.gitignore"
@@ -139,6 +154,55 @@ reset; echo b >> "$repo/a.txt"; echo z >> "$vault/Agent/State/Open Threads.md"; 
   t 'uncommitted, and vault files git does not see' 2
   has '- **Changed:** uncommitted; vault: Scratch/d/plan.md, State/Open Threads.md'
 
+echo "== Not verified, from the transcript's last test run (D45) =="
+T='bash hooks/x.test.sh'
+nv() { has "- **Not verified:** $1"; }
+reset; echo b >> "$repo/a.txt"; t 'edits, no test ran' 2; nv 'no tests ran this session'
+reset; echo b >> "$repo/a.txt"; at "$((start + 60))" "$repo/a.txt"; ran "$((start + 120))" ok "$T"
+  t 'a test passed after the last change' 2; has $'- **Not verified:**\n'
+reset; echo b >> "$repo/a.txt"; at "$((start + 120))" "$repo/a.txt"; ran "$((start + 60))" ok "$T"
+  t 'a file changed after the last test run' 2; nv "\`a.txt\` changed after the last test run (\`$T\`, "
+reset; three; at "$((start + 120))" "$repo/a.txt" "$repo/n1.txt" "$repo/n2.txt"; echo n > "$repo/n3.txt"
+  at "$((start + 120))" "$repo/n3.txt"; ran "$((start + 60))" ok "$T"; logged; rm -f "$vault/Agent/Log/today.md"
+  t 'four files after it: three named' 2; has ' and 1 more files changed after'
+reset; echo b >> "$repo/a.txt"; at "$((start + 60))" "$repo/a.txt"; ran "$((start + 90))" ok "$T"; ran "$((start + 120))" fail "$T"
+  t 'the last run failed' 2; nv "the last test run (\`$T\`, "; has ') failed'
+reset; echo b >> "$repo/a.txt"; at "$((start + 60))" "$repo/a.txt"; ran "$((start + 120))" refused "$T"
+  t 'a refused run never ran' 2; nv 'no tests ran this session'
+reset; echo b >> "$repo/a.txt"; ran "$((start + 120))" ok 'git commit -m "make pytest pass"'
+  t 'a quoted mention is not a run' 2; nv 'no tests ran this session'
+reset; echo b >> "$repo/a.txt"; at "$((start + 120))" "$repo/a.txt"; ran "$((start + 60))" ok $'cd /x\nbun test 2>&1 | tail -8'
+  t 'a multi-line run: named by its test command' 2; has 'after the last test run (`bun test`, '
+reset; echo b >> "$repo/a.txt"; at "$((start + 60))" "$repo/a.txt"; ran "$((start + 120))" bg 'npm test'
+  t 'a run in the background' 2; has 'ran in the background, its result not checked'
+reset; echo b >> "$repo/a.txt"; at "$((start + 120))" "$repo/a.txt"; ran "$((start + 60))" agent
+  t 'the test-runner agent, then a change' 2; has 'after the last test run (the test-runner agent, '
+reset; echo z >> "$vault/Agent/State/Open Threads.md"; t 'no repo file touched: left blank' 2
+  has $'- **Not verified:**\n'
+
+echo "== Findings: a remark outside the task, nothing added to Findings since (D45) =="
+fnd() { printf '# Findings\n\n## Open\n### 2. [bug] x: `a.txt:1`\n\n## Closed\n### ~~4. [idea] y~~\n' > "$vault/Agent/State/Findings.md"
+  at "$((start - 86400))" "$vault/Agent/State/Findings.md"; }
+A='Done. Unrelated, but the retry loop in pay.ts never backs off.'
+reset; fnd; say "$((start + 60))" "$A"; t 'an aside, Findings untouched, nothing else changed' 2
+  has '“Unrelated, but the retry loop in pay.ts never backs off.”'; lacks 'Done.'
+  has '### 5. [bug|risk|smell|test|improvement|idea] what:'
+  has "at \`$(git -C "$repo" rev-parse --short HEAD)\`, while"; lacks 'Log has no entry'
+reset; fnd; say "$((start + 60))" "$A"; echo n >> "$vault/Agent/State/Findings.md"; logged; t 'Findings written after it' 0
+reset; say "$((start + 60))" "$A"; t 'no Findings.md: an older vault' 0
+reset; fnd; say "$((start + 60))" 'That pre-existing bug is now item 5 in Findings.'; t 'an aside that names Findings' 0
+reset; fnd; say "$((start + 60))" $'Output:\n```\nunrelated test skipped\n```'; t 'an aside inside a code block' 0
+reset; fnd; say "$((start + 60))" "$A" user; t "the user's words, not a reply" 0
+reset; fnd; say "$((start + 60))" 'The fix is in; the tests pass.'; t 'a reply with no aside' 0
+reset; fnd; say "$((start + 60))" 'The branch has an unrelated commit, so start a new one.'
+  t 'outside the task, but nothing wrong with it' 0
+reset; fnd; say "$((start + 60))" 'This looks like a latent bug in the parser.'; t 'a bug named outright' 2
+reset; fnd; say "$((start + 60))" 'This is a bug that was already there.'; t 'a bug from before the task' 2
+reset; fnd; say "$((now - 10))" "$A"; t 'aside: first stop' 2
+  t 'aside: next stop, nothing new since the block' 0
+reset; fnd; for i in 1 2 3 4; do say "$((start + 60 + i))" "Side note: thing $i is broken."; done
+  t 'four asides: three quoted' 2; has '… and 1 more'
+
 echo "== a session started in a sub-project: its tag and its Scratch folder (D38) =="
 # frontend/ is a sub-project; the session started there.
 sub() { reset; mkdir -p "$repo/frontend/.agents"; }
@@ -155,6 +219,8 @@ sub; three; echo 's #frontend' > "$vault/Agent/Log/today.md"; note backend; ft '
 sub; three; echo 's #frontend' > "$vault/Agent/Log/today.md"; ft '3 files, no Scratch note' 2
 sub; echo b >> "$repo/a.txt"; ft 'a sub-project: the heading carries its tag' 2
   has '## Session 1 #frontend'
+sub; fnd; say "$((start + 60))" "$A"; ft 'a sub-project: the Findings item carries its tag' 2
+  has 'what: `path:line` #frontend'
 
 echo
 [ "$fails" -eq 0 ] && echo "all session-log cases pass" || { echo "$fails case(s) FAILED"; exit 1; }

@@ -713,6 +713,8 @@ the maintainers' decision record.
 
 *2026-10-26, v0.12.0*
 
+Superseded in part by D45: a missed Findings entry is now looked for in the transcript.
+
 **Decision.** The plugin's `hooks/hooks.json` gains a Stop hook, `hooks/session-log.sh`.
 It is active only when `AGENTS.local.md` names a vault, and takes the path from that
 line. It blocks the stop once, with the end-of-session step as the reason, when since
@@ -1099,6 +1101,8 @@ backstop.
 
 *2026-10-27, v0.21.0*
 
+Superseded in part by D45: Not verified is filled in too.
+
 **Decision.** When `session-log` blocks for a missing Log entry, its reason includes the
 entry to paste: `## Session N`, numbered after the `## Session` headings already in
 today's note and tagged `#<tag>` in a sub-project's session; the six Session Protocol
@@ -1118,3 +1122,44 @@ agent the only writer of `Agent/`, and an entry it then ignores stays as a hollo
 that only repeats git, which the vault must not hold (D21). Listing changed repo files in Changed: the template
 asks for the sha or "uncommitted", and files only where git doesn't see them. A skeleton
 for a Log that is behind (D43): the entry exists, so it's updated, not appended.
+
+## D45. The Stop hook reads the transcript for tests and findings
+
+*2026-10-27, v0.22.0*
+
+**Decision.** `session-log` reads the session's transcript once per stop, for two
+things. First, the last test run: a Bash command that looks like one (pytest, `npm test`,
+`go test`, `make check`, a `*test*.sh` script in command position, a `for` loop over
+them; heredoc bodies and quoted strings aside), or the test-runner agent. A call a hook or
+the user refused never ran and doesn't count. The Log entry it hands over (D44) gets Not
+verified filled in from it, as the sentence the entry would carry: "no tests ran this
+session", "the last test run (`npm test`, 14:32) failed", or "`src/a.ts`, `src/b.ts`
+changed after the last test run (`npm test`, 14:32)". It stays blank when that run passed
+after the last change. Second, the agent's own replies since the last block: a sentence
+that names a defect outright ("looks like a latent bug", "a pre-existing failure"), or
+puts something outside the task ("unrelated", "out of scope", "side note", "already
+there") and says what is wrong with it in the same sentence, with
+`State/Findings.md` not written since, blocks the stop once. The reason quotes up to
+three such sentences and hands over the item's mechanical half: its heading, numbered
+after the highest in the note, kinds to pick from, `path:line`, the sub-project's tag,
+and the Seen line with today's date and HEAD's sha. Code blocks, the user's words and a
+sentence that names Findings or the hook (a reply to its block) are left out. The hook
+still writes nothing in the vault.
+
+**Why.** Not verified was the field the agent most often left optimistic, and the
+transcript already says which tests ran, when, and with what exit code. A missed
+Findings entry was the gap D34 left, "changes no file", but it leaves a trace in the
+reply where the agent mentioned it. claude-mem showed what a listener on the session
+can see; here what it sees feeds the checks and fills the mechanical half of an entry,
+and the notes stay authored and human-readable: every filled-in part is a sentence, a
+few names, a time.
+
+**Rejected.** A PostToolUse hook keeping its own trail of calls in `$TMPDIR`: the
+transcript already holds every call with its result and timestamp, and a second copy is
+one more thing to keep in step. Filling in Did from that trail: a list of commands
+restates the transcript, and Did is judgment (D21, D44). A model summarising the session,
+as claude-mem does: it costs tokens or a key, isn't deterministic, and writes text
+nobody authored in a vault whose only writer is the agent. Flagging "unrelated" or
+"noticed" alone: on real transcripts they mostly describe the task ("an unrelated
+commit on this branch"), so a weak cue needs a word for what is wrong. Detecting a Bash
+write from the transcript: D43's mtime check already sees it.
