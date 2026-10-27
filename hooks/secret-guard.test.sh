@@ -50,6 +50,20 @@ t "$r" 'git commit -m x' 2
 r="$(newrepo)"; printf -- '-----BEGIN RSA PRIVATE KEY-----\nabc\n' > "$r/id_rsa"; git -C "$r" add id_rsa
 t "$r" 'git commit -m x' 2
 
+echo "== prefixed service tokens: commit blocked =="
+# Built at runtime: a literal token in this file would trip push protection on the remote.
+pad(){ printf '%*s' "$1" '' | tr ' ' 'a'; }
+for tok in "glpat-$(pad 20)" "gldt-$(pad 20)" "glrt-$(pad 20)" "glptt-$(pad 40)" \
+           "sk-ant-api03-$(pad 95)" "sk-proj-$(pad 48)" "sk-svcacct-$(pad 48)" \
+           "sk-$(pad 20)T3Blbk""FJ$(pad 20)" "sk_live_$(pad 24)" "rk_live_$(pad 24)"; do
+  r="$(newrepo)"; printf 'token=%s\n' "$tok" > "$r/c.txt"; git -C "$r" add c.txt
+  t "$r" "git commit -m ${tok:0:10}" 2
+done
+
+echo "== test keys and too-short lookalikes pass =="
+r="$(newrepo)"; printf 'stripe=sk_test_%s\nnote=sk-proj-short glpat-short\n' "$(pad 24)" > "$r/c.txt"; git -C "$r" add c.txt
+t "$r" 'git commit -m x' 0
+
 echo "== .env staged is blocked; .env.example is not =="
 r="$(newrepo)"; printf 'X=1\n' > "$r/.env"; git -C "$r" add .env
 t "$r" 'git commit -m x' 2

@@ -1005,3 +1005,37 @@ code only for the task it was handed; the next one is the maintainer's again.
 the maintainer would have to take it back explicitly, and forgetting to turns copilot
 into author. Switching styles mid-session by editing `AGENTS.local.md`: the style is a
 standing choice, and handing over one task is not a change of style.
+
+## D40. secret-guard covers the tokens agents handle most
+
+*2026-10-27, v0.18.0*
+
+**Decision.** `secret-guard` adds the formats whose prefix names the service: GitLab
+personal, deploy, runner and pipeline-trigger tokens (`glpat-`, `gldt-`, `glrt-`,
+`glptt-`), Anthropic keys (`sk-ant-`), OpenAI project, service-account, admin and legacy
+keys, and Stripe live secret and restricted keys (`sk_live_`, `rk_live_`).
+
+**Why.** The guard knew AWS, GitHub, Slack and Google only. A repo hosted on GitLab, or one
+that calls an LLM API, holds exactly the tokens it let through. Each new pattern keeps the
+guard's bar: a prefix no ordinary text carries, plus a minimum length, so a false positive
+(which only the user can commit past) stays near zero.
+
+**Rejected.** JWTs (`eyJ…`): no service prefix, often short-lived, and common in test
+fixtures, so they would block honest commits. Stripe test keys (`sk_test_`): not secrets.
+Entropy heuristics and `password=` assignments: too many false positives, as before.
+
+## D41. Branch names use slash prefixes
+
+*2026-10-27, v0.18.0*
+
+**Decision.** `master-guard`'s block message suggests `git switch -c <type>/<description>`
+(`feat/login-form`), and its refspec check counts `/main` only as `refs/heads/main`, so
+pushing `fix/main` is not a push to main.
+
+**Why.** `<type>/<description>` is the convention GitHub, GitLab and most tooling group
+branches by; `<type>_<scope>_<description>` was a house style the plugin had no reason to
+impose. With slashes in every suggested name, the old check, which took any `/main` at the
+end of a refspec for main, would block an honest push.
+
+**Rejected.** Keeping `<scope>` in the name (`feat/billing/login-form`): a nested name
+cannot coexist with a branch named `feat/billing`, and the scope belongs in the commit.
