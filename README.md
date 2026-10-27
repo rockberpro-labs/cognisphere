@@ -29,7 +29,7 @@ MIT licensed · Claude Code on Linux, macOS and Windows (Git Bash).
 | **Memory catalog** | `AGENTS.md` + `.agents/memory/` notes with the *why*, kept in sync with the code at commit time |
 | **Rules** | `.agents/rules/`: short instructions the harness injects when the agent reads a matching file |
 | **Vault** | `Agent/` (open threads, findings, log, scratch) and `Human/` (your notes, read-only to the agent); `Shared/` across projects |
-| **Commands** | `/cognisphere:install` (= `harness` + `vault`), `/cognisphere:update [area]`, `/cognisphere:read <note>` |
+| **Commands** | `/cognisphere:install` (= `harness` + `vault`), `/cognisphere:update [module]`, `/cognisphere:read <note>` |
 | **Agents** | explorer, planner, implementer, test-runner, reviewer |
 
 ## Quick start
@@ -116,8 +116,9 @@ an area, `.agents/memory/` for what to **understand** before deciding.
 Notes record the why, not the what: what took time to find out or led someone into a
 mistake, never a copy of the code. A note says which paths it covers, and
 `memory-drift-guard` won't let a commit change those paths without it. The catalog
-starts small and grows by use: `/cognisphere:update <area>` maps an area when a real
-task enters it. → [GUIDE.md § The memory catalog](GUIDE.md#the-memory-catalog)
+starts small and grows by use: `/cognisphere:update <module>` maps a module (a directory
+such as `src/payments`, a named module such as `billing`, or a feature that spans
+folders such as `authentication`) when a real task enters it. → [GUIDE.md § The memory catalog](GUIDE.md#the-memory-catalog)
 
 ## The vault
 
@@ -155,9 +156,13 @@ writes the code) or your **tutor** (you write it; it explains and reviews).
 /cognisphere:install                 # harness + vault, asked in one round
 /cognisphere:harness                 # only the versioned repo layer
 /cognisphere:vault                   # only your vault and its local configuration
-/cognisphere:update [area]           # maintains the harness; with an area, maps just that one
+/cognisphere:update [module]           # maintains the harness; with a module, maps just that one
 /cognisphere:read <note> [request]   # reads a vault note you copied in Obsidian
 ```
+
+Each setup command also takes `--project <dir>` for a sub-project, e.g.
+`/cognisphere:install --project frontend`.
+→ [GUIDE.md § Sub-projects](GUIDE.md#sub-projects)
 
 Every setup command creates only what is missing and never overwrites.
 → [GUIDE.md § Commands](GUIDE.md#commands)

@@ -3,18 +3,26 @@
 Builds and extends the project's knowledge catalog. Mapping is reading — do not ask
 permission to read. **Ask before writing**, saying how many notes and which: the user may
 want a smaller cut. `/cognisphere:harness` (and so `/cognisphere:install`) runs it as a
-bootstrap, `/cognisphere:update <area>` in area mode.
+bootstrap, `/cognisphere:update <module>` in module mode.
 
 ## Modes
 
 - **Bootstrap** (install, or update with no `MEMORY.md`) — phases 0–4 below, then
   phase 6. If the catalog already exists, run only the phases whose output is missing;
   checking the notes that exist against the code is `review-memory.md`.
-- **Area mode** (`/cognisphere:update <area>`: a module, directory or subject) — phase 5
+- **Module mode** (`/cognisphere:update <module>`: a directory, a named module or a feature that spans
+  folders) — phase 5
   for that area only, then phase 6 to hook the note into the index. Read `MEMORY.md`
   first: if a note already covers the area, deepen that one instead of creating a
   sibling. Sections it needs: Language, Three destinations, What makes a note worth
   reading, Phase 5, Phase 6 (note format); skip phases 0–4 and the stopping criterion.
+
+**Sub-project** (`--project <dir>`, `scaffold.md` § Sub-projects) → that folder is the
+project: its `AGENTS.md`, its `.agents/`, every path and every `paths:` glob relative to
+it, as Claude Code resolves its rules and `memory-drift-guard` its notes. Run the
+commands in it. At the root, a sub-project's folder is not mapped: `architecture.md`
+names it in one line, pointing at its `AGENTS.md`, and no root note's `paths:` reach
+into it (`scripts/subprojects.sh` lists them).
 
 No `.agents/` yet → run `scaffold.md` first. Settle the language (next section) before
 anything else.
@@ -227,14 +235,14 @@ One domain → keep the single `domains.md`, no domain rules.
 
 **Do not write twelve deep notes at once.** The return drops fast, and what you wrote
 about a module nobody touched rots before its first read. Deepen a module when a real
-task touches it — that is what `/cognisphere:update <area>` is for.
+task touches it — that is what `/cognisphere:update <module>` is for.
 
 A mature module note has: main entities and tables, the non-obvious business rules with
 their why, external integrations, and the traps already paid for.
 
 When closing the note, ask whether anything is left that the agent must obey **without
 having read the note**. If so, it is a rule candidate for that area — five to ten lines,
-ending with the pointer to the note. Hand it to `rules.md` (area mode).
+ending with the pointer to the note. Hand it to `rules.md` (module mode).
 
 ## Phase 6 — Close the index → `MEMORY.md`
 

@@ -15,4 +15,8 @@ No `paths:` on purpose: it applies to any edit, so it loads in every session.
 - A note that describes an area of code declares it in `paths:`; without it the guard
   cannot see the note.
 
-Procedure and note format: `/cognisphere:update <area>`.
+Code with no note, or a note too thin to work from → `/cognisphere:update <module>`,
+where `<module>` is a directory (`src/payments`), a named module (`billing`) or a
+feature that spans folders (`authentication`). It writes the note with its `paths:`,
+the note's read rule and its index line, and asks before writing. In a sub-project:
+`/cognisphere:update --project <dir> <module>`.

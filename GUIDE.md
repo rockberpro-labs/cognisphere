@@ -42,8 +42,10 @@ Each fact has one place, chosen by when it must be loaded:
   covered by a note when the note isn't in the commit. `SKIP_MEMORY_CHECK=1` is for when
   the note was read against the diff and still holds.
 - **It grows by use.** Install maps the minimum (non-negotiables, architecture, module
-  map, domains). After that, `/cognisphere:update <area>` deepens one area when a real
-  task enters it; Claude may run it itself, and still asks before writing.
+  map, domains). After that, `/cognisphere:update <module>` deepens one module (a
+  directory, a named module or a feature that spans folders: `src/payments`, `billing`,
+  `authentication`) when a real task
+  enters it; Claude may run it itself, and still asks before writing.
 
 ## The vault
 
@@ -130,9 +132,12 @@ differently.
 /cognisphere:install                 # harness + vault, asked in one round
 /cognisphere:harness                 # only the versioned repo layer
 /cognisphere:vault                   # only your vault and its local configuration
-/cognisphere:update [area]           # maintains the harness; with an area, maps just that one
+/cognisphere:update [module]           # maintains the harness; with a module, maps just that one
 /cognisphere:read <note> [request]   # reads a vault note you copied in Obsidian
 ```
+
+Each setup command also takes `--project <dir>` for a sub-project, e.g.
+`/cognisphere:install --project frontend`. See § Sub-projects.
 
 ### `/cognisphere:install`
 
@@ -191,7 +196,7 @@ Where the local files go depends on whose harness the repo has:
 Either way `git status` shows nothing new. It stops, writing nothing, if git tracks one
 of those files.
 
-### `/cognisphere:update [area]`
+### `/cognisphere:update [--project <dir>] [module]`
 
 With no argument, reviews the versioned harness: structure, settings, memory, rules.
 Index integrity and the anti-drift rules are the memory contract, so it restores them
@@ -207,8 +212,8 @@ Then it **checks**, without writing:
   Agreement, Review Checklist, `Knowledge/`) with what to move out before deleting
   them. It never deletes them itself.
 
-With an area — a directory (`src/payments`), a module (`billing`) or a subject
-(`authentication`) — it maps or deepens only that area: one note with `paths:`, its read
+With a module — a directory (`src/payments`), a named module (`billing`) or a feature
+that spans folders (`authentication`) — it maps or deepens only that module: one note with `paths:`, its read
 rule, an index line.
 
 ### `/cognisphere:read <note> [request]`
@@ -221,6 +226,50 @@ embeds and the links its content depends on, one level deep. It checks what the 
 says about the code against the code, then does the request
 (`/cognisphere:read Human/draft.md plan phase 1`), or, with none, says what it read and
 what the code contradicts, and asks. It never writes the note, and only you run it.
+
+## Sub-projects
+
+A monorepo often gives each part its own instructions: `frontend/CLAUDE.md` with the
+Nuxt conventions, `backend/CLAUDE.md` with Laravel's, each with its own `.claude/`.
+Claude Code reads a `settings.json` only from the folder a session starts in, so a
+session started in `frontend/` runs none of the root's settings or guards. Each
+sub-project therefore gets its own harness, set up and maintained with `--project`:
+
+```
+/cognisphere:install --project frontend    # its harness, pointed at the root's vault
+/cognisphere:harness --project backend     # its harness only
+/cognisphere:vault --project backend       # its local configuration only
+/cognisphere:update --project frontend     # maintains it
+/cognisphere:update --project frontend src/pages   # maps a module inside it
+```
+
+```
+projeto/
+  AGENTS.md   CLAUDE.md -> AGENTS.md      # lists the sub-projects
+  .agents/    .claude -> .agents
+  frontend/
+    AGENTS.md   CLAUDE.md -> AGENTS.md
+    .agents/    .claude -> .agents        # its notes, rules, settings, guard copy
+  backend/
+    ...
+```
+
+- **Both layouts work.** A sub-project can be a folder of the root's repo, or a repo of
+  its own inside the root's folder (a nested clone or a submodule); git tells which.
+- **Its notes and rules** have globs relative to its own folder, as Claude Code reads a
+  nested `.claude/rules/`. The root's notes don't cover a sub-project's folder.
+- **The commit policy:** a sub-project in the root's repo links `rules/commit.md` to the
+  root's; one with a repo of its own gets its own.
+- **One vault**, the root's. In the root's repo, a sub-project needs no local file; with
+  a repo of its own, it gets a `settings.local.json` pointing at the root's vault.
+- **The drift guard** checks every note in the repo against a commit, from the root or
+  from a sub-project, and follows `cd backend && git commit` into a nested repo.
+- `/cognisphere:update` at the root lists the sub-projects and the folders that look
+  like one (a `CLAUDE.md` or `.claude/` of their own, no `.agents/`). It never
+  maintains them on its own.
+
+Not yet: telling the sub-projects apart inside the shared vault (tags, filtered threads,
+per-sub-project Scratch folders). It is planned in D38, § Pending.
 
 ## Guards
 
@@ -358,6 +407,8 @@ the code names them. Filenames stay English everywhere.
 
 ## Not supported
 
+- **A root that is not a git repo**: a plain folder holding `frontend/` and `backend/`
+  repos. Each command needs a git root to start from (D38).
 - **Other agent CLIs** (Codex, Cursor, …). `.agents/` and `AGENTS.md` are tool-neutral and
   readable by any of them, but this plugin ships no manifests for them and is not tested
   with them.
@@ -369,7 +420,7 @@ the code names them. Filenames stay English everywhere.
   `rules`, `review-settings`, `review-memory`, `review-rules`, `vault`, `vault-check`);
   `install`, which runs `harness` then `vault`; `read`, with no procedure.
 - **`hooks/`** — `guard.sh` (the source `/cognisphere:harness` copies into each repo; the
-  plugin doesn't run it), and the vault's hooks the plugin runs: `session-log.sh`, `session-start.sh`, `scratch-first.sh`, `scratch-redirect.sh`, `plan-mirror.sh` and one test per guard and hook.
+  plugin doesn't run it), and the vault's hooks the plugin runs: `session-log.sh`, `session-start.sh`, `scratch-first.sh`, `scratch-redirect.sh`, `plan-mirror.sh`, with `vault-of.sh` (the nearest `AGENTS.local.md`'s vault, for all five), and one test per guard and hook.
 - **`agents/`** — `cognisphere:explorer` (read-only investigator; the memory passes fan
   out to it), `cognisphere:planner` (ordered steps from an explorer report),
   `cognisphere:implementer` (one planned step, code plus the stale note),
@@ -382,7 +433,9 @@ the code names them. Filenames stay English everywhere.
   `merge-json.pl` (adds missing settings entries, keeps key order), `check-links.pl`,
   `coupling.sh` (how often an area's commits already touch the doc a pointer note adopts),
   `user-settings.pl` (what in the user-level settings runs a guard twice), `guards.sh`
-  (copies the guard into a repo and registers it with the team's flags).
+  (copies the guard into a repo and registers it with the team's flags), `target.sh`
+  (the root, or the sub-project `--project` names, and its layout) and
+  `subprojects.sh` (the sub-projects below the root, and the candidates).
 - **`templates/`** — `settings.json`, `rules/memory.md` (the anti-drift rule),
   `settings.local.json` and `AGENTS.local.md` (the local configuration), and `vault/`
   (the root and `Shared/` READMEs, `Human/README.md`, one template per `Agent/` note).

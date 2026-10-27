@@ -4,7 +4,7 @@
 # auto-memory, and points the agent at the vault instead, so the project's working
 # state lives where it can be backed up and opened in Obsidian (D36).
 #
-#   Active only when AGENTS.local.md, at the root of the cwd's repo, names a vault
+#   Active only when the nearest AGENTS.local.md, from the cwd's repo up, names a vault
 #   ("The vault for this project is `…`") that has an Agent/Scratch/ folder.
 #   Refused: a path under a `claude*` folder in the system temp dir that goes through
 #   a `scratchpad/` folder (the session scratchpad), and a path under
@@ -33,10 +33,10 @@ root="$(git rev-parse --show-toplevel 2>/dev/null)" || exit 0
 root="$(unix "$root")"; path="$(unix "$path")"
 case "$path" in /*) ;; *) exit 0 ;; esac   # a relative path is inside the cwd: not a store
 
-# The vault path is whatever the local configuration says, never derived here.
-vault="$(sed -n 's/^- The vault for this project is `\([^`]*\)`.*/\1/p' "$root/AGENTS.local.md" 2>/dev/null | head -n 1)"
+# The nearest AGENTS.local.md, from the repo up, names the vault (vault-of.sh).
+. "$(dirname "$0")/vault-of.sh"
+vault="$(vault_of "$root")"
 [ -n "$vault" ] || exit 0
-case "$vault" in '~/'*) vault="$HOME/${vault#'~/'}" ;; esac
 vault="$(unix "$vault")"
 [ -d "$vault/Agent/Scratch" ] || exit 0
 case "$path" in "$root"/*|"$vault"/*) exit 0 ;; esac

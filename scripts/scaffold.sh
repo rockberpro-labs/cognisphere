@@ -1,10 +1,14 @@
 #!/usr/bin/env bash
-# scaffold.sh: the mechanical part of procedures/scaffold.md steps 2-5. Create-only:
-# one line per item, "created", "exists", "added" or "moved". Exit 0 all done, 3 a real
-# .claude/ or CLAUDE.md is in the way (merge it, asking first, then rerun), 2
-# settings.json is not valid JSON (left untouched), 1 a symlink could not be made.
+# scaffold.sh [--project <dir>]: the mechanical part of procedures/scaffold.md steps 2-5,
+# at the repo root or, with --project, in a sub-project (scaffold.md § Sub-projects, D38).
+# Create-only: one line per item, "created", "exists", "added" or "moved". Exit 0 all
+# done, 3 a real .claude/ or CLAUDE.md is in the way (merge it, asking first, then rerun),
+# 2 settings.json is not valid JSON (left untouched), 1 a symlink could not be made, or
+# no such sub-project folder.
 here="$(cd "$(dirname "$0")" && pwd)"; plugin="$(dirname "$here")"
-cd "$(git rev-parse --show-toplevel)" || exit 1
+sub=; [ "${1:-}" = --project ] && sub="${2:?usage: scaffold.sh [--project <dir>]}"
+. "$here/target.sh"; target "$sub" || exit 1
+cd "$dir" || exit 1
 rc=0; keep() { [ "$1" -gt "$rc" ] && rc="$1"; }
 copy() { if [ -e "$2" ]; then echo "exists  $2"; else cp "$1" "$2" && echo "created $2"; fi; }
 
@@ -25,9 +29,21 @@ fi
 [ -e AGENTS.md ] || { touch AGENTS.md; echo "created AGENTS.md (empty)"; }
 "$here/link.sh" AGENTS.md CLAUDE.md; keep $?
 
-touch .gitignore
+# One repo, one commit policy: a same-repo sub-project links the root's, which a session
+# started in the sub-project would not load otherwise.
+if [ "$layout" = same-repo ]; then
+  up="$(printf '%s' "$tag" | sed 's|[^/]*|..|g')"
+  if [ -e .agents/rules/commit.md ] || [ -L .agents/rules/commit.md ]; then echo "exists  .agents/rules/commit.md"
+  elif [ -f "$top/.agents/rules/commit.md" ]; then
+    ( cd .agents/rules && "$here/link.sh" "../../$up/.agents/rules/commit.md" commit.md >/dev/null ); r=$?; keep $r
+    [ $r = 0 ] && echo "created .agents/rules/commit.md -> the root's"
+  else echo "skipped .agents/rules/commit.md: the root has none yet (link it once it does)"; fi
+fi
+
 for f in AGENTS.local.md CLAUDE.local.md; do
-  grep -qxF "$f" .gitignore || grep -qxF "/$f" .gitignore \
-    || { printf '%s\n' "$f" >> .gitignore; echo "added   .gitignore: $f"; }
+  grep -qsxF "$f" .gitignore || grep -qsxF "/$f" .gitignore && continue
+  # In a same-repo sub-project, the root's unanchored lines already cover it.
+  [ "$layout" = same-repo ] && git check-ignore -q "$f" 2>/dev/null && continue
+  printf '%s\n' "$f" >> .gitignore; echo "added   .gitignore: $f"
 done
 exit "$rc"

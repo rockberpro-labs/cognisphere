@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# guards.sh [--no-master] [--no-secret] [--no-memory-drift]   skills/harness § 1 (D37)
-# guards.sh --check                                           review-settings step 2
+# guards.sh [--project <dir>] [--no-master] [--no-secret] [--no-memory-drift]   skills/harness § 1 (D37)
+# guards.sh [--project <dir>] --check                                           review-settings step 2
 # The repo's own, versioned copy of the guards: hooks/guard.sh copied to
 # .agents/hooks/guard.sh and registered in .agents/settings.json, so they run for
 # everyone on the repo whether or not they have the plugin. The flags are the checks
@@ -12,9 +12,15 @@
 # --check writes nothing: one line for the copy (current, differs, missing), one for the
 # registration (registered <command>, unregistered), and one per guard copy an older
 # version left (old <path>).
-# Exit 0 done, 2 settings.json is not valid JSON (left untouched), 1 not a git repo.
+# --project: a sub-project's own copy and registration (D38). Claude Code reads
+# settings.json only from the folder a session starts in, so a session started there
+# runs that copy, and $CLAUDE_PROJECT_DIR is that folder.
+# Exit 0 done, 2 settings.json is not valid JSON (left untouched), 1 not a git repo or no
+# such sub-project folder.
 here="$(cd "$(dirname "$0")" && pwd)"; plugin="$(dirname "$here")"
-cd "$(git rev-parse --show-toplevel 2>/dev/null)" || exit 1
+sub=; [ "${1:-}" = --project ] && { sub="${2:?usage: guards.sh [--project <dir>] ...}"; shift 2; }
+. "$here/target.sh"; target "$sub" || exit 1
+cd "$dir" || exit 1
 src="$plugin/hooks/guard.sh"; copy=.agents/hooks/guard.sh; settings=.agents/settings.json
 
 # The command lines in settings.json that run the repo's copy, one per line.

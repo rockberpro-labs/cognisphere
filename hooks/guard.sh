@@ -7,10 +7,11 @@
 #                       targets master/main (by being on it or naming it in the refspec).
 #   secret-guard        blocks a `git commit` that adds an obvious secret: a private-key
 #                       header, a well-known token format, a `.env`/keystore file.
-#   memory-drift-guard  blocks a `git commit` that changes code covered by a note in
-#                       .agents/memory/ (its `paths:` frontmatter) when the note is not
-#                       in the same commit (for a `kind: pointer` note, the note or its
-#                       `doc:`). SKIP_MEMORY_CHECK=1 in front when it still holds.
+#   memory-drift-guard  blocks a `git commit` that changes code covered by a note in a
+#                       .agents/memory/ of the repo, the root's or a sub-project's (its
+#                       `paths:` frontmatter), when the note is not in the same commit
+#                       (for a `kind: pointer` note, the note or its `doc:`).
+#                       SKIP_MEMORY_CHECK=1 in front when it still holds.
 #
 #   The project picks the checks: `/cognisphere:harness` copies this file to
 #   .agents/hooks/guard.sh and registers it in .agents/settings.json, versioned (D37).
@@ -40,6 +41,12 @@ has_verb() {
   printf '%s' "$cmd" | grep -Eq \
     "(^|[^[:alnum:]_-])git([[:space:]]+(-[cC][[:space:]]+[^[:space:]]+|-[^[:space:]]+))*[[:space:]]+$1([[:space:]]|\$)"
 }
+
+# A leading `cd <dir> &&` (or `;`) moves the command, typically into a sub-project that is
+# a repo of its own (D38): follow it first, as the shell will.
+d="$(printf '%s\n' "$cmd" | head -n 1 | sed -nE "s/^[[:space:]]*cd[[:space:]]+[\"']?([^\"'[:space:];&|]+)[\"']?[[:space:]]*(&&|;).*/\1/p")"
+case "$d" in '~'|'~/'*) d="$HOME${d#\~}" ;; esac
+[ -n "$d" ] && { cd "$d" 2>/dev/null || exit 0; }
 
 # `git -C <dir>` acts on another repo, so branch, index and notes are read there and not
 # in cwd. This process is disposable, so just move: every git call below follows. Each
@@ -224,21 +231,29 @@ matches() {
   [[ $1 == $2 ]] || { [[ $2 == '**/'* ]] && [[ $1 == ${2#'**/'} ]]; }
 }
 
+# Every note in the repo: the root's and each sub-project's (D38). A sub-project's
+# `paths:` and `doc:` are relative to its own folder, so its files are matched with that
+# prefix taken off. A sub-project that is a repo of its own is not listed: its notes guard
+# its own commits.
+notes="$(git -C "$root" ls-files --cached --others --exclude-standard -- \
+  ':(glob).agents/memory/*.md' ':(glob)**/.agents/memory/*.md' 2>/dev/null | sort -u)"
 missing="$(
-  for note in "$root"/.agents/memory/*.md; do
+  while IFS= read -r rel; do
+    note="$root/$rel"
     [ -f "$note" ] || continue
-    rel=".agents/memory/${note##*/}"
+    pre="${rel%.agents/memory/*}"
     printf '%s\n' "$files" | grep -Fxq "$rel" && continue
     doc="$(note_doc "$note")"
-    [ -n "$doc" ] && printf '%s\n' "$files" | grep -Fxq "$doc" && continue
+    [ -n "$doc" ] && printf '%s\n' "$files" | grep -Fxq "$pre$doc" && continue
     globs="$(note_paths "$note")"
     [ -n "$globs" ] || continue
     while IFS= read -r f; do
+      case "$f" in "$pre"*) ;; *) continue ;; esac
       while IFS= read -r g; do
-        matches "$f" "$g" && { printf '  %s  <- %s\n' "$rel" "$f"; continue 3; }
+        matches "${f#"$pre"}" "$g" && { printf '  %s  <- %s\n' "$rel" "$f"; continue 3; }
       done <<< "$globs"
     done <<< "$files"
-  done
+  done <<< "$notes"
 )"
 [ -z "$missing" ] && exit 0
 

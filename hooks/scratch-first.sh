@@ -52,10 +52,10 @@ root="$(unix "$root")"; path="$(unix "$path")"
 case "$path" in /*) ;; *) path="$(unix "$PWD")/$path" ;; esac
 case "$path" in "$root"/*) ;; *) exit 0 ;; esac
 
-# The vault path is whatever the local configuration says, never derived here.
-vault="$(sed -n 's/^- The vault for this project is `\([^`]*\)`.*/\1/p' "$root/AGENTS.local.md" 2>/dev/null | head -n 1)"
+# The nearest AGENTS.local.md, from the repo up, names the vault (vault-of.sh).
+. "$(dirname "$0")/vault-of.sh"
+vault="$(vault_of "$root")"
 [ -n "$vault" ] || exit 0
-case "$vault" in '~/'*) vault="$HOME/${vault#'~/'}" ;; esac
 scratch="$(unix "$vault")/Agent/Scratch"
 [ -d "$scratch" ] || exit 0
 today="$(date +%F)"

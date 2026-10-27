@@ -1,7 +1,7 @@
 ---
 name: update
-description: Maintains an existing cognisphere harness - the .agents/ structure, settings and guards, the memory catalog (index, anti-drift rule, stale notes, dead or overlapping globs, domain declarations) and the rules (read rules, dead or too-broad globs, duplicates, new candidates) - and checks, without writing, the vault in ~/Cognisphere/Projects/ named after the project (when this user has one), the local configuration and the user-level settings that would run the guards twice. Use when the user asks to update, upgrade, review, audit, refresh or repair the agent harness, the .agents, the memory, the rules, the hooks/guards or the settings of a project that already has one, typically after upgrading the plugin or a long stretch of commits. Pass an area (a directory, module or subject) to map or deepen just that one, e.g. when a task enters an area that has no note - ask before writing.
-argument-hint: "[area]"
+description: Maintains an existing cognisphere harness - the .agents/ structure, settings and guards, the memory catalog (index, anti-drift rule, stale notes, dead or overlapping globs, domain declarations) and the rules (read rules, dead or too-broad globs, duplicates, new candidates) - and checks, without writing, the vault in ~/Cognisphere/Projects/ named after the project (when this user has one), the local configuration and the user-level settings that would run the guards twice. Use when the user asks to update, upgrade, review, audit, refresh or repair the agent harness, the .agents, the memory, the rules, the hooks/guards or the settings of a project that already has one, typically after upgrading the plugin or a long stretch of commits. Pass a module (a directory such as src/payments, a named module such as billing, or a feature that spans folders such as authentication) to map or deepen just that one, e.g. when a task enters code that has no note - ask before writing. Pass --project <dir> to maintain a sub-project's harness (a monorepo's frontend/ or backend/), optionally followed by a module inside it.
+argument-hint: "[--project <dir>] [module]"
 ---
 
 # update
@@ -18,8 +18,8 @@ cd "$(git rev-parse --show-toplevel)" || exit 1   # not a git repo → stop and 
 ```
 
 **Repo layer left untouched** — `AGENTS.local.md` has `## Repo layer` (D30, D31) →
-passes 1–4 and § Area write what git tracks: skip them, say so in one line, and run
-passes 5–7 only. An area argument → stop: mapping writes `.agents/`, which this repo was
+passes 1–4 and § Module write what git tracks: skip them, say so in one line, and run
+passes 5–7 only. A module argument → stop: mapping writes `.agents/`, which this repo was
 set up without; `/cognisphere:harness` adds the repo layer.
 
 **No vault** — `AGENTS.local.md` missing, or without `## Agent workspace` → this user has
@@ -33,7 +33,8 @@ and that `/cognisphere:vault` reconnects it without touching its notes.
 offer `/cognisphere:install` (both halves) or `/cognisphere:harness` (the repo layer
 only), run the chosen one (its skill, from step 0) and stop here.
 
-Area argument: `$ARGUMENTS`. Empty → the full review below; otherwise → § Area.
+Arguments: `$ARGUMENTS`. A leading `--project <dir>` → § Sub-project, and what follows
+it is the module. Then: no module → the full review below; a module → § Module.
 
 ## Full review
 
@@ -85,21 +86,60 @@ do reports "nothing to do" in one line and the next one starts.
    asking (and why it was mandatory), left on purpose, what still needs the user (old
    marketplace entries, linked hooks, rewrites declined, vault and configuration
    findings with their expected values). Then the follow-ups the passes listed —
-   `/cognisphere:update <area>` — as one list. Everything changed is staged by name;
+   `/cognisphere:update <module>` — as one list. Everything changed is staged by name;
    committing follows `rules/commit.md`. No commit unless the user asks.
 
-## Area
+   **Sub-projects:** `bash "${CLAUDE_PLUGIN_ROOT}/scripts/subprojects.sh"` (writes
+   nothing). Each `harness` line → `/cognisphere:update --project <tag>` in the
+   follow-ups; each `candidate` (a `CLAUDE.md` or `.claude/` of its own, no `.agents/`)
+   → `/cognisphere:harness --project <tag>`; a sub-project missing from the root
+   `AGENTS.md` § Sub-projects → add its line (`scaffold.md` § Sub-projects, step 4).
+   This review never maintains a sub-project itself (D38).
 
-`/cognisphere:update <area>` — a directory (`src/payments`), a module (`billing`) or a
-subject (`authentication`). It maps or deepens only that area, and nothing else:
+## Sub-project — `--project <dir>`
 
-1. **`memory.md` in area mode.** Read `MEMORY.md` first; a note already covers the area
-   → deepen that one instead of creating a sibling. The note declares the area in
+Maintains one sub-project's harness (D38). Resolve it after the preflight's `cd`, so
+`<dir>` is relative to the git root (`.` from a session started inside an own-repo
+sub-project):
+
+```bash
+bash "${CLAUDE_PLUGIN_ROOT}/scripts/target.sh" <dir>   # a message → stop and say it
+```
+
+`cd` to the printed `top`; every script runs from there with `--project <tag>`, and the
+procedures' own commands run in `dir`. No `.agents/` in `dir` → nothing to maintain:
+offer `/cognisphere:harness --project <tag>` (or `install`), run the chosen one and
+stop.
+
+A module after the flag → § Module, inside the sub-project. Otherwise the full review, with
+these changes:
+
+1. **Structure:** `scaffold.md` § Sub-projects; the sub-project's line in the root
+   `AGENTS.md`.
+2. **Settings:** `review-settings.md` on the sub-project's `settings.json` and guard
+   (`scripts/guards.sh --project <tag> --check`).
+3. **Memory** and 4. **Rules:** on the sub-project's catalog and rules, globs relative to
+   its folder. Same-repo: `rules/commit.md` should be the link to the root's.
+5. **Vault:** skipped: the vault is the root's, and `/cognisphere:update` at the root
+   checks it.
+6. **Configuration, check-only:** `vault-check.md` § Sub-projects.
+7. **Report**, as above, naming the sub-project and its layout.
+
+## Module
+
+`/cognisphere:update <module>` — a directory (`src/payments`), a named module (`billing`)
+or a feature that spans folders (`authentication`). It maps or deepens only that module,
+and nothing else. After
+`--project <dir>`, the module is inside that sub-project, and its note and rule go in the
+sub-project's `.agents/`, globs relative to its folder:
+
+1. **`memory.md` in module mode.** Read `MEMORY.md` first; a note already covers the module
+   → deepen that one instead of creating a sibling. The note declares the module in
    `paths:`. Ask before writing.
-2. **`rules.md` in area mode.** The read rule over the note's `paths:`, plus what the
+2. **`rules.md` in module mode.** The read rule over the note's `paths:`, plus what the
    area must obey without having read the note.
 3. **One index line** in `MEMORY.md` for a new note, with its hook.
 
 The vault and the local configuration are not touched or checked in this mode. Claude
-may run this on its own when a task enters an area with no note; it still asks before
+may run this on its own when a task enters a module with no note; it still asks before
 writing.

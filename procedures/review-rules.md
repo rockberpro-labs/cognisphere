@@ -18,6 +18,13 @@ now still gets the read rules: they are mandatory and carry no policy.
 `rules/memory.md` is the memory contract and `review-memory.md` already brought it in
 line with the template; it is not reviewed again here.
 
+**Sub-project** (`--project <dir>`, `scaffold.md` § Sub-projects) → that folder is the
+project: its `AGENTS.md`, its `.agents/`, and every path and glob relative to it. Run
+`git ls-files` and the other commands in it (git pathspecs are relative to the folder a
+command runs in). Same-repo: `rules/commit.md` should be the link
+to the root's (`scaffold.md` § Sub-projects); a copy, or a policy of its own → show the
+difference and ask which one holds.
+
 ## Language
 
 Settled as `scaffold.md` § Language says (the structure pass already did). Every fix you
@@ -71,7 +78,7 @@ Run all of them, then report once.
    area's note and leave the pointer.
 
 6. **Pointers.** Every rule ends pointing at a note; the note exists. A broken pointer →
-   fix it, or the note is missing: offer `/cognisphere:update <area>`.
+   fix it, or the note is missing: offer `/cognisphere:update <module>`.
 
 7. **Language.** A rule not in the declared language → list it and offer to translate
    (it is a rewrite).
@@ -84,7 +91,7 @@ Run all of them, then report once.
    git log --format=%h -1 -- .agents/memory/<note>.md
    ```
 
-   List them and offer `/cognisphere:update <area>`; do not write them in this pass.
+   List them and offer `/cognisphere:update <module>`; do not write them in this pass.
 
 To switch a rule off without deleting it (e.g. only locally), `claudeMdExcludes` in
 `.agents/settings.local.json` accepts its path — offer that when the user hesitates
@@ -94,5 +101,5 @@ the local configuration after install).
 ## Report
 
 The read rules written or fixed without asking, then created/changed/deleted rules with
-their globs and match counts, what you left and why, and the `/cognisphere:update <area>`
+their globs and match counts, what you left and why, and the `/cognisphere:update <module>`
 follow-ups. Stage the rules you changed by name.

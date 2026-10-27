@@ -1,6 +1,7 @@
 ---
 name: install
-description: Sets up the whole cognisphere harness in a repository at once - the versioned repo layer (/cognisphere:harness - .agents/ structure, memory catalog and AGENTS.md, commit policy and path-scoped rules) and then the per-project vault in ~/Cognisphere/Projects/, in a folder named after the project, with the gitignored local configuration that points the agent at it (/cognisphere:vault). Use when the user asks to install, set up, initialize or configure cognisphere, the agents directory, the memory base or the .agents of a repository, or to map the project's memory and rules for the first time. For one half only, use /cognisphere:harness or /cognisphere:vault. Only creates what is missing; never overwrites.
+description: Sets up the whole cognisphere harness in a repository at once - the versioned repo layer (/cognisphere:harness - .agents/ structure, memory catalog and AGENTS.md, commit policy and path-scoped rules) and then the per-project vault in ~/Cognisphere/Projects/, in a folder named after the project, with the gitignored local configuration that points the agent at it (/cognisphere:vault). Use when the user asks to install, set up, initialize or configure cognisphere, the agents directory, the memory base or the .agents of a repository, or to map the project's memory and rules for the first time. For one half only, use /cognisphere:harness or /cognisphere:vault. With --project <dir>, does both for a sub-project folder (a monorepo's frontend/ or backend/) that uses the root's vault. Only creates what is missing; never overwrites.
+argument-hint: "[--project <dir>]"
 ---
 
 # install
@@ -20,6 +21,10 @@ its procedures from `${CLAUDE_PLUGIN_ROOT}/procedures/` when its step starts.
 ```bash
 cd "$(git rev-parse --show-toplevel)" || exit 1   # not a git repo → stop and say so
 ```
+
+`--project <dir>` in `$ARGUMENTS` → a sub-project (D38): pass the flag on to both halves,
+which follow their own § Sub-project; the vault half then seeds nothing, the vault being
+the root's.
 
 Run both § 0 surveys. **Another tool's harness** (harness § 0) → say what was found and
 propose `/cognisphere:vault` instead: it sets up only the vault and the local

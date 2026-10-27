@@ -11,6 +11,9 @@ holds the project's policy, not the tool that wrote it.
 `.agents/settings.local.json` is not reviewed here: it is personal, and `vault-check.md`
 only reports on it.
 
+Sub-project (`--project <dir>`, D38) → the same steps on its own `settings.json` and
+guard, every script given `--project <tag>`: a session started there reads only those.
+
 Language: nothing here writes prose, only JSON keys.
 
 ## Steps

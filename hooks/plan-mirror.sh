@@ -4,7 +4,7 @@
 # the vault with the rest of the project's working state (D36). Plan mode keeps writing
 # its own file; scratch-redirect leaves that folder alone so plan mode isn't broken.
 #
-#   Active only when AGENTS.local.md, at the root of the cwd's repo, names a vault
+#   Active only when the nearest AGENTS.local.md, from the cwd's repo up, names a vault
 #   ("The vault for this project is `…`") that has an Agent/Scratch/ folder.
 #   Mirrored: a .md file directly under ${CLAUDE_CONFIG_DIR:-~/.claude}/plans/, copied to
 #   Scratch/YYYY-MM-DD/plan <name>.md and replaced on every later write of the plan.
@@ -34,10 +34,10 @@ case "$path" in "$plans"/*/*) exit 0 ;; "$plans"/*.md) ;; *) exit 0 ;; esac
 
 root="$(git rev-parse --show-toplevel 2>/dev/null)" || exit 0
 root="$(unix "$root")"
-# The vault path is whatever the local configuration says, never derived here.
-vault="$(sed -n 's/^- The vault for this project is `\([^`]*\)`.*/\1/p' "$root/AGENTS.local.md" 2>/dev/null | head -n 1)"
+# The nearest AGENTS.local.md, from the repo up, names the vault (vault-of.sh).
+. "$(dirname "$0")/vault-of.sh"
+vault="$(vault_of "$root")"
 [ -n "$vault" ] || exit 0
-case "$vault" in '~/'*) vault="$HOME/${vault#'~/'}" ;; esac
 scratch="$(unix "$vault")/Agent/Scratch"
 [ -d "$scratch" ] || exit 0
 

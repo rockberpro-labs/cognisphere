@@ -82,5 +82,12 @@ reset; rm -f "$m"/*; out="$(printf '{"cwd":"%s"}' "$repo" | bash "$H")"
 reset; mkdir -p "$tmp/cfg/projects/$(slug)/memory"; echo x > "$tmp/cfg/projects/$(slug)/memory/MEMORY.md"
   CLAUDE_CONFIG_DIR="$tmp/cfg" t 'under CLAUDE_CONFIG_DIR' 'MEMORY\.md'
 
+echo "== a sub-project that is a repo of its own finds the root's vault (D38) =="
+sub() { printf '{"session_id":"s","cwd":"%s","hook_event_name":"SessionStart","source":"startup"}' "$repo/backend"; }
+reset; mkdir -p "$repo/backend" && git -C "$repo/backend" init -q
+t 'session started in backend/' 'HOME-NOTE' "$(sub)"
+reset; mkdir -p "$repo/backend" && git -C "$repo/backend" init -q && echo '# mine' > "$repo/backend/AGENTS.local.md"
+t 'past its own AGENTS.local.md without a vault' 'HOME-NOTE' "$(sub)"
+
 echo
 [ "$fails" -eq 0 ] && echo "all session-start cases pass" || { echo "$fails case(s) FAILED"; exit 1; }

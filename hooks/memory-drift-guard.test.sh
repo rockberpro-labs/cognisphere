@@ -88,5 +88,38 @@ t 0 'git status' 'jobs/nightly.sh'
 t 0 'git log --grep commit' 'jobs/nightly.sh'
 t 0 'git -C /nope/missing commit -m x' 'jobs/nightly.sh'
 
+echo "== sub-projects (D38): each note's globs from its own folder =="
+# A root repo with a same-repo sub-project (frontend/) and an own-repo one (backend/),
+# each with a note over its src/; the root's note covers the root's src/.
+# s <expected exit> <command> <cwd, from the root> <files to stage, from the root>
+sub="$tmp/sub"; mkdir -p "$sub" && git -C "$sub" init -q -b work
+note "$sub" app.md 'src/**'
+note "$sub/frontend" pages.md 'src/**'
+mkdir -p "$sub/backend" && git -C "$sub/backend" init -q -b work && note "$sub/backend" api.md 'src/**'
+echo backend/ > "$sub/.gitignore"   # a nested clone the root's repo ignores
+for r in "$sub/backend" "$sub"; do git -C "$r" add . && git -C "$r" -c user.email=t@t -c user.name=t commit -q -m init; done
+s(){
+  n=$((n+1))
+  local f
+  for f in $4; do
+    local repo="$sub"; case "$f" in backend/*) repo="$sub/backend"; f="${f#backend/}" ;; esac
+    mkdir -p "$repo/$(dirname "$f")" && echo "x$n" >> "$repo/$f" && git -C "$repo" add "$f"
+  done
+  local out; out="$(cd "$sub/$3" && printf '{"tool_input":{"command":%s}}' "$(perl -MJSON::PP -e 'print JSON::PP->new->allow_nonref->encode($ARGV[0])' "$2")" | bash "$H" 2>&1)"
+  local r=$?; local st=ok
+  [ "$r" = "$1" ] || { st=FAIL; fails=$((fails+1)); }
+  printf '%-4s got=%s want=%s  <- %s (in %s) [%s]\n' "$st" "$r" "$1" "$2" "${3:-.}" "$4"
+  git -C "$sub" reset -q; git -C "$sub/backend" reset -q
+}
+s 2 'git commit -m x' '' 'frontend/src/a.vue'
+s 2 'git commit -m x' 'frontend' 'frontend/src/a.vue'
+s 0 'git commit -m x' '' 'frontend/src/a.vue frontend/.agents/memory/pages.md'
+s 2 'git commit -m x' '' 'src/a.php'
+s 0 'git commit -m x' '' 'frontend/README.md'
+s 2 'cd backend && git commit -m x' '' 'backend/src/a.py'
+s 2 'cd "backend"; git commit -m x' '' 'backend/src/a.py'
+s 0 'cd backend && git commit -m x' '' 'backend/src/a.py backend/.agents/memory/api.md'
+s 0 'git commit -m x' '' 'backend/src/a.py'
+
 echo "failures=$fails"
 [ "$fails" -eq 0 ]

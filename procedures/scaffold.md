@@ -151,6 +151,46 @@ CLAUDE.local.md -> AGENTS.local.md   (gitignored)
 6. Report what you created (created vs. already existed), the step 1 hits and what was
    done about each, and confirm both links are real (`[ -L .claude ] && [ -L CLAUDE.md ]`).
 
+## Sub-projects
+
+`--project <dir>` (D38) sets the same skeleton up in a folder below the root that gets a
+harness of its own — the layout Claude Code documents for large codebases, where
+`frontend/` and `backend/` each carry their `CLAUDE.md` and `.claude/`. Git tells the
+layout; never ask it:
+
+```bash
+bash "<plugin>/scripts/target.sh" <dir>   # top, dir, layout (same-repo | own-repo), tag
+```
+
+- **same-repo** — a folder of the root's repo.
+- **own-repo** — a repo of its own inside the root's folder (a nested clone or a
+  submodule).
+
+Why each sub-project needs its own: Claude Code reads `settings.json` only from the
+folder a session starts in, never from a parent, so a session started in `frontend/`
+gets neither the root's deny list nor its guards unless `frontend/` carries them.
+
+What changes from the steps above:
+
+1. **Survey** in the sub-project's folder: the same `ls`, and the `git grep` run there.
+   Its own `CLAUDE.md` and real `.claude/` are merged as step 1 says, asking first.
+2. **Script:** `bash "<plugin>/scripts/scaffold.sh" --project <dir>`, then
+   `scripts/guards.sh --project <dir>` with the root's flags as the default answer.
+   - same-repo: `rules/commit.md` becomes a link to the root's (one repo, one policy);
+     no `.gitignore` lines, the root's already cover the local files.
+   - own-repo: its own `.gitignore` lines; its commit policy is asked by `rules.md`.
+3. **Language:** declared in the sub-project's own `AGENTS.md`; propose the root's.
+4. **Root `AGENTS.md`** (when the root has one): a `Sub-projects` section, in the
+   project's language, one line per sub-project — its folder, that it carries its own
+   `AGENTS.md` and `.agents/`, and that a session started there loads only its
+   settings. Add the line for this one when missing.
+5. **Globs** in the sub-project's notes and rules are relative to its own folder, as
+   Claude Code resolves a nested `.claude/rules/` and as `memory-drift-guard` reads them.
+   No root note covers a sub-project's folder: its notes do.
+
+`scripts/subprojects.sh` lists the sub-projects below the root (with `.agents/`) and the
+candidates (a `CLAUDE.md`, `AGENTS.md` or `.claude/` of their own, no `.agents/` yet).
+
 ## What this procedure does NOT do
 
 Anything specific to a single project (a homegrown database client, a homegrown
