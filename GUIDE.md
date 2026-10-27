@@ -313,26 +313,33 @@ when the agent stops:
   files, made a commit or touched a vault `State/` note, and no file in the vault's
   `Log/` changed, it blocks the stop once and asks for Session Protocol § End: the
   `## Session N` entry and Open Threads. The vault path comes from `AGENTS.local.md`.
-  A reply that only pauses for you just stops again, and the same changes aren't
-  reported twice. It can't see a missed Findings entry: that changes no file.
-  It also blocks once when the session touched 3 or more repo files (committed or
-  not) and nothing in `Scratch/` changed, asking for the working notes.
+  A Log written early in the session (a correction recorded as it happened) covers only
+  the work before it: once 3 or more repo files changed after its newest write, the
+  stop blocks again. A reply that only pauses for you just stops again, and the same
+  changes aren't reported twice. It can't see a missed Findings entry: that changes no
+  file. It also blocks once when the session touched 3 or more repo files (committed or
+  not) and nothing in `Scratch/` changed, or when 3 or more changed after the newest
+  Scratch write, asking for the working notes. And it catches what `scratch-redirect`
+  can't see, a write through Bash into Claude Code's own stores: a file modified this
+  session in the session's scratchpad or the project's auto-memory folder, which it asks
+  the agent to move into the vault.
 
 And four more, from the plugin, in a project with a vault only:
 
 - **`scratch-first`** — `hooks/scratch-first.sh`, a PostToolUse hook on Edit, Write,
-  MultiEdit and NotebookEdit. After an edit of a repo file, reminds the agent in context
+  MultiEdit, NotebookEdit and Bash. After an edit of a repo file, reminds the agent in context
   to write its note in a `Scratch/YYYY-MM-DD/` day folder when the session has none, and
   again once 3 or more repo files (committed or not) changed since the newest Scratch
   write. It never blocks, and says each thing once: the next reminder waits until the
-  agent writes in Scratch and falls behind again. Edits outside the repo pass; edits made
-  through Bash aren't seen.
+  agent writes in Scratch and falls behind again. Edits outside the repo pass. A Bash
+  call names no file, so after one it asks git which repo files the session changed.
 
 - **`scratch-redirect`** — `hooks/scratch-redirect.sh`, a PreToolUse hook on the same
   tools. Refuses a write to Claude Code's session scratchpad (a `scratchpad/` folder
   under `claude*` in the temp dir) or to auto-memory
   (`~/.claude/projects/*/memory/`, or under `CLAUDE_CONFIG_DIR`), and says where it
-  goes in the vault instead. Writes through Bash aren't seen.
+  goes in the vault instead. Writes through Bash aren't seen here; `session-log` finds
+  them at the stop.
 
 - **`plan-mirror`** — `hooks/plan-mirror.sh`, a PostToolUse hook on Write, Edit and
   MultiEdit. Copies a plan-mode plan (`~/.claude/plans/*.md`) to

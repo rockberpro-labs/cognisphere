@@ -190,8 +190,10 @@ plan in `Scratch/` after a repo edit (and again when the note falls behind);
 `scratch-redirect` sends writes meant for Claude Code's scratchpad or auto-memory to the
 vault; `plan-mirror` copies plan-mode plans into `Scratch/`; and a Stop hook,
 `session-log`, asks once for the end-of-session Log entry when the session changed
-something and didn't log it, and for the `Scratch/` working notes when it touched 3 or
-more files without them.
+something and didn't log it (or logged early and kept working), for the `Scratch/`
+working notes when it touched 3 or more files without them or past them, and for
+anything written into Claude Code's scratchpad or auto-memory through Bash to be moved
+into the vault.
 
 The protection of `Human/` and `Shared/` covers Claude's tools, not arbitrary scripts;
 turn on the sandbox for that. → [GUIDE.md § Guards](GUIDE.md#guards),

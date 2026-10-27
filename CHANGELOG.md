@@ -4,6 +4,24 @@ What changed in each release of cognisphere. Versions follow
 [semver](https://semver.org/); the reasoning behind each change is in
 [docs/decisions.md](docs/decisions.md), referenced as `Dnn`.
 
+## 0.20.0 — 2026-10-27
+
+### Changed
+
+- The vault's checks follow the work, not the session start (D43). A Log entry written
+  early, such as a correction recorded as it happened, no longer silences the
+  end-of-session check: once 3 or more repo files changed after the newest Log write,
+  the Stop hook asks again. The same goes for `Scratch/`: a note 3 files behind the work
+  gets a block at the stop, not only `scratch-first`'s reminder.
+- The Stop hook catches writes into Claude Code's own stores made through Bash, which
+  `scratch-redirect` can't see: a file modified this session in the session's
+  scratchpad or the project's auto-memory folder is listed for the agent to move into
+  the vault.
+- `scratch-first` also runs after Bash calls, asking git which repo files the session
+  changed, so an edit made with `sed -i` or a heredoc gets the same reminder.
+  The plugin's hooks update with the plugin; to get the reworded template lines, copy
+  them from `templates/AGENTS.local.md`, the Scratch README and the Vault Guide by hand.
+
 ## 0.19.0 — 2026-10-27
 
 ### Changed
