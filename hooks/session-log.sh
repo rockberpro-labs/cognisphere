@@ -175,6 +175,29 @@ fi
 
 [ -n "$marker" ] && touch "$marker" 2>/dev/null
 
+# skeleton: the Session Protocol § End entry, numbered after today's note and with
+# Changed filled in: the session's commits, "uncommitted" for repo changes not committed
+# yet, and the vault files git doesn't see (D44). The rest is the agent's to write.
+day_log="$vault/Agent/Log/$(date +%F).md"
+skeleton() {
+  local n shas dirty vfiles changed=
+  n="$(grep -c '^## Session ' "$day_log" 2>/dev/null)"; n=$(( ${n:-0} + 1 ))
+  shas="$(git -C "$root" log --reverse --since="@$start" --format=%h 2>/dev/null | paste -sd, - | sed 's/,/, /g')"
+  dirty="$(cd "$root" && { git diff -z --name-only HEAD 2>/dev/null; git ls-files -z --others --exclude-standard 2>/dev/null; } | newer "$start")"
+  vfiles="$(newer "$start" "$vault/Agent/State" "$vault/Agent/Scratch" | sed "s|^$vault/Agent/||" | sort)"
+  [ -n "$shas" ] && changed="$shas"
+  [ -n "$dirty" ] && changed="${changed:+$changed; }uncommitted"
+  if [ -n "$vfiles" ]; then
+    local more=$(( $(printf '%s\n' "$vfiles" | wc -l) - 5 ))
+    changed="${changed:+$changed; }vault: $(printf '%s\n' "$vfiles" | sed -n '1,5p' | paste -sd, - | sed 's/,/, /g')"
+    [ "$more" -gt 0 ] && changed="$changed and $more more"
+  fi
+  echo "## Session $n${tag:+ #$tag}"
+  printf -- '- **%s:**\n' Asked Found Did
+  echo "- **Changed:** $changed"
+  printf -- '- **%s:**\n' 'Not verified' Next
+}
+
 list() { printf "%s\n" "$1" | sed -n "1,5s/^/    /p"; local n; n=$(( $(printf "%s\n" "$1" | wc -l) - 5 )); [ "$n" -gt 0 ] && echo "    … and $n more"; }
 {
   if [ -n "$need_log" ] && [ -z "$log_at" ]; then
@@ -184,9 +207,12 @@ list() { printf "%s\n" "$1" | sed -n "1,5s/^/    /p"; local n; n=$(( $(printf "%
     [ -n "$files" ] && { echo "  files:"; list "$files"; }
     [ -n "$state" ] && { echo "  vault State/ notes:"; list "${state//"$vault/Agent/"/}"; }
     echo
-    echo "If this reply ends the work, do Session Protocol § End now: append \`## Session N\`"
-    echo "to $vault/Agent/Log/$(date +%F).md and update State/Open Threads.md."
-    [ -n "$tag" ] && echo "This session started in the sub-project $tag/: tag the entry #$tag."
+    echo "If this reply ends the work, do Session Protocol § End now: append this entry to"
+    echo "$day_log, filling in the blanks (Changed comes from git and the"
+    echo "vault: check it), and update State/Open Threads.md."
+    [ -f "$day_log" ] || echo "The note is new: start it with the frontmatter and Back line of an earlier Log note."
+    echo
+    skeleton | sed 's/^/    /'
   elif [ -n "$need_log" ]; then
     echo "session-log: $(printf '%s\n' "$log_behind" | grep -c .) repo files changed since this session last wrote the vault's Log:"
     list "$log_behind"
@@ -226,6 +252,7 @@ list() { printf "%s\n" "$1" | sed -n "1,5s/^/    /p"; local n; n=$(( $(printf "%
     echo "note for the code), then delete it, MEMORY.md last. Throwaway material goes in a"
     echo "\`mktemp -d\` folder instead."
   fi
+  echo
   echo "If you are pausing for the user mid-task, just stop again: this reminder comes back"
   echo "only when something else changes."
 } >&2

@@ -313,6 +313,10 @@ when the agent stops:
   files, made a commit or touched a vault `State/` note, and no file in the vault's
   `Log/` changed, it blocks the stop once and asks for Session Protocol § End: the
   `## Session N` entry and Open Threads. The vault path comes from `AGENTS.local.md`.
+  The reason carries the entry to paste: numbered after today's note, tagged in a
+  sub-project, with Changed already filled in (the session's commits, "uncommitted",
+  the vault files it wrote), so the agent writes only Asked, Found, Did, Not verified
+  and Next. The hook never writes the Log itself.
   A Log written early in the session (a correction recorded as it happened) covers only
   the work before it: once 3 or more repo files changed after its newest write, the
   stop blocks again. A reply that only pauses for you just stops again, and the same

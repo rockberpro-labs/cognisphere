@@ -122,6 +122,23 @@ reset; mkdir -p "$mem"; echo m > "$mem/MEMORY.md"; rm -r "$vault/Agent/Scratch";
 reset; mkdir -p "$mem"; echo m > "$mem/MEMORY.md"; at "$((now - 10))" "$mem/MEMORY.md"; t 'strays: first stop' 2
   t 'strays: next stop, nothing new since the block' 0
 
+echo "== the entry to paste: numbered, with Changed filled in (D44) =="
+has() { printf '%s\n' "$out" | grep -qF -- "$1" || { fails=$((fails+1)); echo "FAIL <- the message has: $1"; }; }
+lacks() { printf '%s\n' "$out" | grep -qF -- "$1" && { fails=$((fails+1)); echo "FAIL <- the message lacks: $1"; }; }
+today_log="$vault/Agent/Log/$(date +%F).md"
+reset; echo b >> "$repo/a.txt"; t 'no note today: Session 1' 2
+  has '    ## Session 1'; has '- **Asked:**'; has '- **Next:**'; has '- **Changed:** uncommitted'
+  has 'The note is new'
+reset; printf '## Session 1\nx\n## Session 2\ny\n' > "$today_log"; at "$((start - 60))" "$today_log"
+  echo b >> "$repo/a.txt"; t "two sessions in today's note: Session 3" 2
+  has '## Session 3'; lacks 'The note is new'
+reset; git -C "$repo" -c user.email=t@t -c user.name=t commit -q --allow-empty -m s
+  sha="$(git -C "$repo" log -1 --format=%h)"; t 'a commit, clean tree: its sha' 2
+  has "- **Changed:** $sha"; lacks 'uncommitted'
+reset; echo b >> "$repo/a.txt"; echo z >> "$vault/Agent/State/Open Threads.md"; scr
+  t 'uncommitted, and vault files git does not see' 2
+  has '- **Changed:** uncommitted; vault: Scratch/d/plan.md, State/Open Threads.md'
+
 echo "== a session started in a sub-project: its tag and its Scratch folder (D38) =="
 # frontend/ is a sub-project; the session started there.
 sub() { reset; mkdir -p "$repo/frontend/.agents"; }
@@ -136,6 +153,8 @@ sub; echo 's' > "$vault/Agent/Log/today.md"; t 'started at the root: no tag aske
 sub; three; echo 's #frontend' > "$vault/Agent/Log/today.md"; note frontend; ft '3 files, its own Scratch folder' 0
 sub; three; echo 's #frontend' > "$vault/Agent/Log/today.md"; note backend; ft '3 files, only another folder written' 2
 sub; three; echo 's #frontend' > "$vault/Agent/Log/today.md"; ft '3 files, no Scratch note' 2
+sub; echo b >> "$repo/a.txt"; ft 'a sub-project: the heading carries its tag' 2
+  has '## Session 1 #frontend'
 
 echo
 [ "$fails" -eq 0 ] && echo "all session-log cases pass" || { echo "$fails case(s) FAILED"; exit 1; }
