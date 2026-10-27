@@ -315,13 +315,20 @@ when the agent stops:
   `## Session N` entry and Open Threads. The vault path comes from `AGENTS.local.md`.
   The reason carries the entry to paste: numbered after today's note, tagged in a
   sub-project, with Changed already filled in (the session's commits, "uncommitted",
-  the vault files it wrote), so the agent writes only Asked, Found, Did, Not verified
-  and Next. The hook never writes the Log itself.
+  the vault files it wrote) and Not verified from the transcript's last test run
+  ("no tests ran this session", "the last test run (`npm test`, 14:32) failed", or
+  the files that changed after it), so the agent writes only Asked, Found, Did and Next
+  and checks the rest. The hook never writes the Log itself.
   A Log written early in the session (a correction recorded as it happened) covers only
   the work before it: once 3 or more repo files changed after its newest write, the
   stop blocks again. A reply that only pauses for you just stops again, and the same
-  changes aren't reported twice. It can't see a missed Findings entry: that changes no
-  file. It also blocks once when the session touched 3 or more repo files (committed or
+  changes aren't reported twice. When a reply says something outside the task is
+  wrong ("unrelated, but the retry loop never backs off", "a pre-existing bug") and
+  `State/Findings.md` wasn't written since, it blocks once, quoting the sentence and
+  handing over the item's heading, numbered, with the Seen line's date and sha. Both
+  readings of the transcript are heuristics: a test command no pattern knows reads as
+  "no tests ran", and a finding put in other words is missed.
+  It also blocks once when the session touched 3 or more repo files (committed or
   not) and nothing in `Scratch/` changed, or when 3 or more changed after the newest
   Scratch write, asking for the working notes. And it catches what `scratch-redirect`
   can't see, a write through Bash into Claude Code's own stores: a file modified this

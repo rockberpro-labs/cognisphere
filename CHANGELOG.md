@@ -4,6 +4,19 @@ What changed in each release of cognisphere. Versions follow
 [semver](https://semver.org/); the reasoning behind each change is in
 [docs/decisions.md](docs/decisions.md), referenced as `Dnn`.
 
+## 0.22.0 — 2026-10-27
+
+### Changed
+
+- The Stop hook reads the session's transcript (D45). The Log entry it hands over has
+  Not verified filled in from the last test run, as a sentence: no tests ran, the last
+  run failed, or which files changed after it. A refused call, a heredoc or a commit
+  message that mentions a test command doesn't count as a run.
+- A reply that says something outside the task is wrong ("unrelated, but the retry
+  loop never backs off") with nothing written in `State/Findings.md` since now blocks
+  the stop once, quoting the sentence and handing over the item's numbered heading and
+  its Seen line with today's date and HEAD. The hook still never writes the vault.
+
 ## 0.21.0 — 2026-10-27
 
 ### Changed
