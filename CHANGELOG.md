@@ -4,6 +4,18 @@ What changed in each release of cognisphere. Versions follow
 [semver](https://semver.org/); the reasoning behind each change is in
 [docs/decisions.md](docs/decisions.md), referenced as `Dnn`.
 
+## 0.19.0 — 2026-10-27
+
+### Changed
+
+- A Scratch note reads as the current plan (D42): when a decision replaces part of it,
+  the agent rewrites that part in place and keeps what was dropped as one line under
+  `Considered and rejected`, with why, instead of appending revisions. `AGENTS.local.md`,
+  the Scratch README, the Session Protocol, the Vault Guide and GUIDE.md say so;
+  `/cognisphere:update` reports an `AGENTS.local.md` without the line. Existing vault
+  notes aren't rewritten: copy the Scratch README, Session Protocol and Vault Guide
+  lines by hand if you want them.
+
 ## 0.18.0 — 2026-10-27
 
 ### Changed
