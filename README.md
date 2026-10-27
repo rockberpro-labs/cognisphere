@@ -144,7 +144,8 @@ conventions; what's left is the agent's own:
 
 Your notes go in `Human/` (this project) or `Shared/` (every project). The agent reads
 them and never writes them. Install also asks whether the agent is your **author** (it
-writes the code) or your **tutor** (you write it; it explains and reviews).
+writes the code), your **copilot** (you drive; it helps when asked and takes the wheel
+when you hand it over) or your **tutor** (you write it; it explains and reviews).
 
 **Back it up.** The vault isn't in git and cognisphere never syncs it; add
 `~/Cognisphere` to a sync client, Obsidian Sync, Syncthing or a scheduled copy.

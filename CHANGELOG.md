@@ -4,6 +4,15 @@ What changed in each release of cognisphere. Versions follow
 [semver](https://semver.org/); the reasoning behind each change is in
 [docs/decisions.md](docs/decisions.md), referenced as `Dnn`.
 
+## 0.17.0 — 2026-10-27
+
+### Added
+
+- A third working style, **copilot** (D39): the maintainer drives, the agent helps when
+  asked, and it writes the code only for a task the maintainer hands over, then hands
+  the wheel back. `/cognisphere:install` and `/cognisphere:vault` offer it next to
+  author and tutor.
+
 ## 0.16.0 — 2026-10-27
 
 ### Added
