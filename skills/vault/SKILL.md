@@ -41,7 +41,8 @@ Then ask **one round of questions, before writing anything**, in the user's lang
 - **Project name and vault path** — `~/Cognisphere/Projects/<project>/`. The folder
   exists and this repo's local configuration does not point at it → another repo may own
   it: reuse it, or pick another name.
-- **Working style** — author or tutor (`vault.md` § Working style), quoting both texts.
+- **Working style** — author, copilot or tutor (`vault.md` § Working style), quoting the
+  three texts.
   Skip it when `AGENTS.local.md` already has `## Working style`.
 - **What will be created** — the vault tree and the three local files, each marked
   "create" or "exists, kept", plus the `.git/info/exclude` lines when untouched. Nothing

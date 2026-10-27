@@ -130,6 +130,8 @@ keeps the templates, the Vault Guide and the checks aligned.
 
 *2026-10-25, v0.1.0*
 
+Superseded in part by D39: a third style, **copilot**.
+
 **Decision.** Install asks whether the agent is an **author** or a **tutor**. The answer
 is written into `AGENTS.local.md` § Working style and the Working Agreement's Roles. Both
 texts are defined once, in `procedures/vault.md`:
@@ -981,3 +983,25 @@ A session started at the root that works in one sub-project is not seen by any o
 these: its tagging stays the Session Protocol's instruction. Rejected: filtering
 Findings too (it is read on demand, not injected) and a Log note per sub-project
 (one day's sessions would be split across notes, and the hooks would have to pick one).
+
+## D39. A third working style: copilot
+
+*2026-10-27, v0.17.0*
+
+**Decision.** Install offers a third working style between author and tutor, defined in
+`procedures/vault.md` § Working style with the other two:
+
+- **Copilot:** "The maintainer drives. Help when asked — answer, explain, review,
+  suggest — and don't edit repo files unprompted. When the maintainer hands a task over,
+  take the wheel: implement it as an author would, following the project's rules and
+  proposing before large or risky changes, then hand the wheel back."
+
+**Why.** Author and tutor are both fixed: one always writes, the other never does and
+teaches unasked. A maintainer who writes their own code but wants to hand off a task now
+and then had neither. Copilot answers on demand, without a teaching agenda, and writes
+code only for the task it was handed; the next one is the maintainer's again.
+
+**Rejected.** A copilot that takes the wheel for the rest of the session once handed it:
+the maintainer would have to take it back explicitly, and forgetting to turns copilot
+into author. Switching styles mid-session by editing `AGENTS.local.md`: the style is a
+standing choice, and handing over one task is not a change of style.

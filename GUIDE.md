@@ -108,7 +108,9 @@ covers only the areas the agent has worked in: a log of what it saw, not an audi
 ### Working style
 
 Install asks whether the agent is your **author** (writes code when asked, proposes
-before large or risky changes) or your **tutor** (you write the code to learn; it
+before large or risky changes), your **copilot** (you drive; it answers, reviews and
+suggests when asked, and writes the code only for a task you hand over, then hands the
+wheel back) or your **tutor** (you write the code to learn; it
 explains trade-offs, reviews and sketches diffs, and doesn't edit repo files unless
 asked). The answer lives in `AGENTS.local.md`, so two people on one repo can choose
 differently.
