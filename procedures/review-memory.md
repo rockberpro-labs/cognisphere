@@ -10,6 +10,11 @@ Two kinds of finding, and they are handled differently:
 - **Proposed** (checks 3–8) — everything else. **Ask before writing**, with the list of
   findings and the fix proposed for each; write on a yes.
 
+**Sub-project** (`--project <dir>`, `scaffold.md` § Sub-projects) → that folder is the
+project: its `AGENTS.md`, its `.agents/`, and every path and glob relative to it. Run
+`git ls-files` and the other commands in it (git pathspecs are relative to the folder a
+command runs in).
+
 No `.agents/memory/MEMORY.md` → there is nothing to review: `/cognisphere:update` runs
 `memory.md` (bootstrap) instead.
 
@@ -30,8 +35,9 @@ write goes in it.
 
    - present → compare it with `<plugin>/templates/rules/memory.md`. An instruction the
      template has and the project's copy lacks → add it, translated; the project's own
-     additions stay. A last line pointing at the obsolete `agent-kit:memory` skill (in
-     any language) → replace it with the template's last line, translated.
+     additions stay. A last line pointing at the obsolete `agent-kit:memory` skill, or the
+     older pointer "Procedure and note format: `/cognisphere:update <area>`" or the
+     paragraph that named `<area>` (in any language) → replace it with the template's closing paragraph, translated.
 
 2. **Index integrity.** Every link in `MEMORY.md` resolves; every note in `memory/` is
    linked from the index (an orphan is never found); every note links back to the
@@ -52,7 +58,8 @@ Run all of them, then report once. Each finding: note, what is wrong, proposed f
    A dead glob means the area moved or was deleted — find where it went, or the note
    itself is obsolete. Globs of two notes matching the same files → one file demands two
    notes; narrow one. `{a,b}` in a note's glob → split it, `memory-drift-guard` does not
-   expand braces.
+   expand braces. At the root, a glob that reaches into a sub-project's folder
+   (`scripts/subprojects.sh`) → that folder's own notes cover it: narrow the root's.
 
 4. **Staleness — the one that matters.** For each note with `paths:`, the commits that
    touched its area since the note was last changed:
@@ -89,7 +96,7 @@ Run all of them, then report once. Each finding: note, what is wrong, proposed f
 
 8. **Gaps.** Foundation notes the index promises but that do not exist, or an area with
    heavy recent activity (`git log --since=6.months --name-only`) and no note → do not
-   write them here: list them and offer `/cognisphere:update <area>`.
+   write them here: list them and offer `/cognisphere:update <module>`.
 
 ## Fixing
 
@@ -101,5 +108,5 @@ Stage the notes you changed by name, together with nothing else (plus
 ## Report
 
 The mandatory fixes made without asking, then the findings per proposed check (cut the
-empty ones), what you fixed, what you left and why, and the `/cognisphere:update <area>`
+empty ones), what you fixed, what you left and why, and the `/cognisphere:update <module>`
 follow-ups — a fixed note that now holds a new "never"/"always" is a rule candidate.

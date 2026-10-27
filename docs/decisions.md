@@ -896,3 +896,75 @@ the team's branch policy, the other two rarely get in the way. Recording the unc
 guards anywhere but the registration: it is where the team sees and changes them, and
 Claude Code's settings have no place for a custom key. A reminder on every edit: it
 would be noise after the first.
+
+## D38. Sub-projects: one harness per folder, one vault per project
+
+*2026-10-27, v0.15.0*
+
+**Decision.** A project can hold sub-projects, each with a harness of its own: the
+layout Claude Code documents for large codebases (`frontend/CLAUDE.md`,
+`frontend/.claude/`), in cognisphere's form (`frontend/.agents/` as the folder,
+`frontend/.claude -> .agents`, `frontend/CLAUDE.md -> AGENTS.md`). Both layouts are
+supported, and git tells which one a folder is, never a question:
+
+- **same-repo** — the sub-project is a folder of the root's repo.
+- **own-repo** — it is a repo of its own inside the root's folder (a nested clone or a
+  submodule).
+
+Every setup command takes it as an explicit flag: `/cognisphere:install`, `harness`,
+`vault` and `update` with `--project <dir>`; without it they work on the root, as
+before. `/cognisphere:update --project frontend src/pages` maps an area inside the
+sub-project. The scripts take the same flag, resolved by `scripts/target.sh`.
+
+A sub-project's harness is the root's skeleton, created in its folder: `.agents/memory`
+and `rules`, `rules/memory.md`, `settings.json` with the deny and allow lists, the guard
+copy and its registration, `AGENTS.md`. Its notes' `paths:` and its rules' globs are
+relative to its own folder, as Claude Code resolves a nested `.claude/rules/`. A
+same-repo sub-project links `rules/commit.md` to the root's (one repo, one policy); an
+own-repo one is asked its own. The root `AGENTS.md` lists the sub-projects, and no root
+note covers a sub-project's folder. `memory-drift-guard` reads every `.agents/memory/`
+the commit's repo holds, each note's globs taken from its own folder, and follows a
+leading `cd <dir> &&` as it follows `git -C`, so a commit in an own-repo sub-project is
+checked there.
+
+The vault stays one per project, named after the root. A same-repo sub-project needs no
+local file: Claude Code reads `settings.local.json` from the git root and
+`CLAUDE.local.md` from the folders above the session's. An own-repo sub-project gets
+`.agents/settings.local.json` pointing at the root's vault. The vault hooks look for the
+nearest `AGENTS.local.md` from the session's repo upwards, so they find the root's from
+an own-repo sub-project.
+
+**Why.** Claude Code reads `settings.json` only from the folder a session starts in,
+with no fallback to a parent (checked: a session started in `frontend/` ran only
+`frontend/.claude/settings.json`'s hooks, with `$CLAUDE_PROJECT_DIR` set to `frontend/`).
+A session started in a sub-project of a cognisphere repo ran without the deny list and
+without the guards, and nothing said so; an own-repo sub-project also lost the vault and
+the drift guard. That is the layout Claude Code recommends for monorepos, so these users
+were not just unassisted but believed they were covered. Each sub-project carrying the
+same harness as the root adds no new concept, only a target folder.
+
+**Rejected.** A bare path argument (`/cognisphere:update frontend`): `update` already
+takes an area, which may be a directory, and the same command would do different things
+depending on what is on disk; the flag says which. Detecting sub-projects and setting
+them all up in one run: a choice made once inside a command is invisible afterwards
+(D31). A vault per sub-project, nested in the root's (`Projects/projeto/frontend/`):
+the lasting split already lives in each sub-project's `.agents/`, the vault's working
+state (threads, findings, the log) often spans sub-projects, and every vault hook would
+have to choose between several `Agent/` folders. A root that is a plain folder holding
+the repos, with no git of its own: every command needs a git root to start from; left
+for when someone needs it.
+
+**Pending: phase 2, the vault's separation by sub-project.** Shipped apart, to be tried
+on a real nested project first:
+
+1. Tags: Log entries, threads and findings carry the sub-project's Obsidian tag, its
+   path from the root (`#frontend`, `#apps/web`); the Session Protocol and the Vault
+   Guide say so, and `vault-check` reports an older Session Protocol without the rule.
+2. `session-start`, in a session started in a sub-project, injects only the open
+   threads tagged with it or untagged, and says how many it left out.
+3. `session-log` (Stop) asks for the tag in the session's Log entry when the session
+   started in a sub-project.
+4. `scratch-redirect`, `scratch-first` and `plan-mirror` use `Scratch/<day>/<tag>/`.
+
+A session started at the root that works in one sub-project is not seen by any of
+these: its tagging stays the Session Protocol's instruction.

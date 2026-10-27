@@ -153,4 +153,17 @@ it (`names.sh <name>` prints its paths).
      Remove its entry from `~/.claude/settings.json` by hand. A script of the user's own
      that only shares the name is theirs: say so and leave it.
 
+## Sub-projects
+
+`/cognisphere:update --project <dir>` runs only this, and step 5 (D38). The vault is the
+root's; its checks belong to the root's update.
+
+- **same-repo** → no local file of its own is expected. An `AGENTS.local.md` in the
+  sub-project that names another vault → it shadows the root's for the vault hooks: say
+  so, and that deleting it restores the root's.
+- **own-repo** → `<dir>/.agents/settings.local.json` (or `.claude/`'s, when its repo
+  layer is untouched) must hold the template's entries for the root's vault, as
+  step 2 checks a root's; missing → `/cognisphere:vault --project <tag>`. The same
+  `AGENTS.local.md` check as above.
+
 Nothing wrong → one line: "vault, local and user-level configuration: nothing to do".

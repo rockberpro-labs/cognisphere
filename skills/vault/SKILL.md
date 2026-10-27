@@ -1,6 +1,7 @@
 ---
 name: vault
-description: Sets up only your own per-project vault in ~/Cognisphere/Projects/, in a folder named after the project (Agent/ workspace and Human/ notes, plus read access to ~/Cognisphere/Shared), and the gitignored local configuration that points the agent at it, without touching the repo's harness. Use when the user asks to set up, add, create or restore their vault, when a teammate joins a repo that already has the cognisphere harness, when the repo's harness belongs to someone else, after /cognisphere:harness, or when /cognisphere:update or /cognisphere:read reports that no vault is set up. Only creates what is missing; never overwrites.
+description: Sets up only your own per-project vault in ~/Cognisphere/Projects/, in a folder named after the project (Agent/ workspace and Human/ notes, plus read access to ~/Cognisphere/Shared), and the gitignored local configuration that points the agent at it, without touching the repo's harness. Use when the user asks to set up, add, create or restore their vault, when a teammate joins a repo that already has the cognisphere harness, when the repo's harness belongs to someone else, after /cognisphere:harness, or when /cognisphere:update or /cognisphere:read reports that no vault is set up. With --project <dir>, points a sub-project folder at the root's vault. Only creates what is missing; never overwrites.
+argument-hint: "[--project <dir>]"
 ---
 
 # vault
@@ -52,6 +53,14 @@ Everything already answered in the user's request counts as answered.
 `~/Cognisphere/`) → seeding now would start an empty vault beside it. Stop before the
 questions and give the move from `vault-check.md` step 1 for the user to run; this
 skill never moves a vault.
+
+**`--project <dir>`** in `$ARGUMENTS` → a sub-project (D38, `vault.md` § Sub-projects):
+it uses the root's vault, so steps 1 and 3 are skipped and nothing under `~/Cognisphere/`
+is written. `bash scripts/target.sh <dir>` (a message → stop and say it), `cd` to its
+`top`, then `scripts/names.sh --project <tag>` for the survey and
+`scripts/configure.sh --project <tag> <project>` for step 2. The questions round shrinks
+to what will be created. Exit 5 → the root has no vault yet: say to run
+`/cognisphere:vault` at the root first, and stop.
 
 ## 1. Vault — `vault.md` § Seed
 

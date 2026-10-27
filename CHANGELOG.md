@@ -4,6 +4,31 @@ What changed in each release of cognisphere. Versions follow
 [semver](https://semver.org/); the reasoning behind each change is in
 [docs/decisions.md](docs/decisions.md), referenced as `Dnn`.
 
+## 0.15.0 — 2026-10-27
+
+### Added
+
+- Sub-projects: `/cognisphere:install`, `harness`, `vault` and `update` take
+  `--project <dir>` to set up or maintain the harness of a folder below the root
+  (a monorepo's `frontend/`, `backend/`), whether it is a folder of the root's repo or a
+  repo of its own. Claude Code reads `settings.json` only from the folder a session
+  starts in, so a session started in a sub-project used to run without the root's deny
+  list and guards (D38).
+- `scripts/target.sh` resolves `--project` and its layout; `scaffold.sh`, `guards.sh`,
+  `names.sh` and `configure.sh` take the flag. `scripts/subprojects.sh` lists the
+  sub-projects and the folders that look like one, for `/cognisphere:update` (D38).
+
+### Changed
+
+- `memory-drift-guard` checks every `.agents/memory/` in the commit's repo, each note's
+  globs relative to its own folder, and follows a leading `cd <dir> &&` as it follows
+  `git -C` (D38).
+- `/cognisphere:update`'s argument is `<module>`, not `<area>`: a directory, a named
+  module or a feature that spans folders. The anti-drift rule's last line says what it
+  is and does; `/cognisphere:update` replaces the old pointer in existing repos.
+- The vault hooks find the nearest `AGENTS.local.md` from the session's repo upwards,
+  so a sub-project that is a repo of its own uses the root's vault (D38).
+
 ## 0.14.0 — 2026-10-26
 
 ### Added

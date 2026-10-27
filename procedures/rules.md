@@ -2,7 +2,7 @@
 
 `/cognisphere:harness` (and so `/cognisphere:install`) runs it as a full pass after the
 memory bootstrap;
-`/cognisphere:update <area>` runs it in area mode.
+`/cognisphere:update <module>` runs it in module mode.
 
 `.agents/rules/` (seen as `.claude/rules/`) holds instructions that apply to part of the
 repository and must arrive **before** the first wrong line. Every `.md` in there is
@@ -44,12 +44,17 @@ Every rule's text and heading go in that language, the commit policy included �
   read rules (one per note that owns an area, below), then one rule per area that has a
   candidate. Reviewing rules that already exist — dead globs, duplicates, language — is
   `review-rules.md`.
-- **Area mode** (`/cognisphere:update <area>`) — only that area's rule: the read rule
+- **Module mode** (`/cognisphere:update <module>`) — only that area's rule: the read rule
   over the note's `paths:`, plus what the area must obey. Read its memory note first; if
-  there is none, `memory.md` in area mode writes it first, or ask the user whether to
+  there is none, `memory.md` in module mode writes it first, or ask the user whether to
   write the rule without one. Sections it needs: Language, Rule or memory note?, Read
   rules, Path-scoped rules, Report; skip the always-on rules and where candidates come
   from.
+
+**Sub-project** (`--project <dir>`, `scaffold.md` § Sub-projects) → globs relative to
+its folder, checked with `git ls-files` run in it. Same-repo: `rules/commit.md` is the
+link to the root's, so the commit-policy question is skipped; own-repo: asked as for a
+root.
 
 ## Rule or memory note?
 
@@ -85,7 +90,7 @@ If not, it stays a note.
 Paid in every session, so keep them to the few that apply to **any** file.
 
 **`rules/memory.md` — mandatory whenever `.agents/memory/` exists**, on any pass, with or
-without an area argument. It is the anti-drift rule: fix the note in the same task that
+without a module argument. It is the anti-drift rule: fix the note in the same task that
 made it wrong. If it is missing, create it — no need to ask, it carries no policy:
 
 ```bash

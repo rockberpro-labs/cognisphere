@@ -44,10 +44,10 @@ payload="$(cat)" || exit 0
 [ -n "$cwd" ] && { cd "$cwd" 2>/dev/null || exit 0; }
 root="$(git rev-parse --show-toplevel 2>/dev/null)" || exit 0
 
-# The vault path is whatever the local configuration says, never derived here.
-vault="$(sed -n 's/^- The vault for this project is `\([^`]*\)`.*/\1/p' "$root/AGENTS.local.md" 2>/dev/null | head -n 1)"
+# The nearest AGENTS.local.md, from the repo up, names the vault (vault-of.sh).
+. "$(dirname "$0")/vault-of.sh"
+vault="$(vault_of "$root")"
 [ -n "$vault" ] || exit 0
-case "$vault" in '~/'*) vault="$HOME/${vault#'~/'}" ;; esac
 [ -d "$vault/Agent/Log" ] || exit 0
 
 # After a block, only what changed since then counts: the marker's mtime is that time.

@@ -162,5 +162,43 @@ for i in 1 2 3; do echo $i > src/a.c; [ $i = 3 ] || echo $i > docs/notes.md; git
 echo x > docs/notes.md && git commit -qam doc-only
 ok "coupling counts the area"         'bash "$S/coupling.sh" docs/notes.md "src/**" | grep -q "^2 of 3 .* blocked 1$"'
 
+# Sub-projects (D38): a root with a same-repo sub-project (frontend/, and apps/web/ one
+# level deeper), an own-repo one (backend/, a nested clone the root ignores) and a folder
+# with only a CLAUDE.md of its own (docs-site/).
+m="$tmp/mono"; mkdir -p "$m/frontend" "$m/apps/web" "$m/backend" "$m/docs-site" && cd "$m" && git init -q
+git -C backend init -q && echo backend/ > .gitignore && echo "# Docs" > docs-site/CLAUDE.md
+bash "$S/scaffold.sh" >/dev/null && echo "# Commit policy" > .agents/rules/commit.md
+ok "target: same-repo"                '[ "$(bash "$S/target.sh" frontend | sed -n "s/^layout=//p;s/^tag=//p" | tr "\n" " ")" = "same-repo frontend " ]'
+ok "target: own-repo"                 '[ "$(bash "$S/target.sh" backend | sed -n "s/^layout=//p;s/^tag=//p" | tr "\n" " ")" = "own-repo backend " ]'
+ok "target: the root is not one"      '! bash "$S/target.sh" . >/dev/null 2>&1'
+ok "target: a missing folder"         '! bash "$S/target.sh" nope >/dev/null 2>&1'
+before="$(cat AGENTS.md .gitignore .agents/settings.json; ls -A .agents .agents/rules)"
+out="$(bash "$S/scaffold.sh" --project frontend)"; r=$?
+ok "scaffold --project exits 0"       '[ $r = 0 ]'
+ok "sub-project skeleton"             '[ -L frontend/.claude ] && [ -L frontend/CLAUDE.md ] && [ -f frontend/.agents/rules/memory.md ] && grep -q "git add" frontend/.agents/settings.json'
+ok "commit.md links the root's"       '[ -L frontend/.agents/rules/commit.md ] && grep -q "Commit policy" frontend/.agents/rules/commit.md'
+ok "same-repo: no .gitignore of its own" '[ ! -e frontend/.gitignore ] && git check-ignore -q frontend/AGENTS.local.md'
+ok "root left alone"                  '[ "$before" = "$(cat AGENTS.md .gitignore .agents/settings.json; ls -A .agents .agents/rules)" ]'
+bash "$S/scaffold.sh" --project apps/web >/dev/null
+ok "deeper commit.md link resolves"   'grep -q "Commit policy" apps/web/.agents/rules/commit.md'
+out="$(bash "$S/scaffold.sh" --project frontend)"
+ok "scaffold --project rerun"         '! printf "%s" "$out" | grep -q "^created\|^added"'
+bash "$S/scaffold.sh" --project backend >/dev/null
+ok "own-repo: own ignores, own policy" 'grep -qx AGENTS.local.md backend/.gitignore && [ ! -e backend/.agents/rules/commit.md ]'
+bash "$S/guards.sh" --project frontend --no-master >/dev/null
+ok "guards --project"                 '[ -x frontend/.agents/hooks/guard.sh ] && grep -qF "guard.sh\\\" --no-master" frontend/.agents/settings.json && [ ! -e .agents/hooks/guard.sh ]'
+ok "names --project: the root's vault" 'bash "$S/names.sh" --project backend | grep -qx project=mono && bash "$S/names.sh" --project backend | grep -qx layout=own-repo'
+bash "$S/configure.sh" --project backend mono >/dev/null 2>&1; r=$?
+ok "configure --project: root first"  '[ $r = 5 ] && [ ! -e backend/.agents/settings.local.json ]'
+bash "$S/configure.sh" mono "$tmp/style" >/dev/null
+out="$(bash "$S/configure.sh" --project frontend mono)"; r=$?
+ok "same-repo: covered by the root"   '[ $r = 0 ] && printf "%s" "$out" | grep -q "^covered frontend/" && [ ! -e frontend/.agents/settings.local.json ]'
+out="$(bash "$S/configure.sh" --project backend mono)"; r=$?
+ok "own-repo: its settings.local.json" '[ $r = 0 ] && grep -qF "Projects/mono/Agent/**" backend/.agents/settings.local.json && [ ! -e backend/AGENTS.local.md ] && ! printf "%s" "$out" | grep -q "NOT IGNORED"'
+ok "own-repo: git status clean"       '[ -z "$(git -C backend status --porcelain -- .agents/settings.local.json)" ]'
+out="$(bash "$S/subprojects.sh")"
+ok "subprojects lists them"           'printf "%s\n" "$out" | grep -qx "frontend	same-repo	harness" && printf "%s\n" "$out" | grep -qx "backend	own-repo	harness" && printf "%s\n" "$out" | grep -qx "docs-site	same-repo	candidate"'
+ok "subprojects skips the root"       '! printf "%s\n" "$out" | grep -q "^\.\|^	"'
+
 echo "failures=$fails"
 [ "$fails" -eq 0 ]

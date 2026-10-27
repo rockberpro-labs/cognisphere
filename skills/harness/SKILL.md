@@ -1,6 +1,7 @@
 ---
 name: harness
-description: Sets up only the versioned harness in the repo - the .agents/ structure (memory, rules, settings, .claude symlink), the memory catalog and AGENTS.md, the commit policy and path-scoped rules - without the vault or any local file. Also adds the harness to a repo where /cognisphere:vault set up only the vault. Use when the user asks to set up the harness, the .agents, the memory base or the rules without a vault, or to add the harness after setting up only the vault. Only creates what is missing; never overwrites.
+description: Sets up only the versioned harness in the repo - the .agents/ structure (memory, rules, settings, .claude symlink), the memory catalog and AGENTS.md, the commit policy and path-scoped rules - without the vault or any local file. Also adds the harness to a repo where /cognisphere:vault set up only the vault. With --project <dir>, sets the same harness up in a sub-project folder (a monorepo's frontend/ or backend/, in the root's repo or a repo of its own). Use when the user asks to set up the harness, the .agents, the memory base or the rules without a vault, or to add the harness after setting up only the vault. Only creates what is missing; never overwrites.
+argument-hint: "[--project <dir>]"
 ---
 
 # harness
@@ -21,6 +22,9 @@ cd "$(git rev-parse --show-toplevel)" || exit 1   # not a git repo → stop and 
 
 The mechanical steps are scripts in `${CLAUDE_PLUGIN_ROOT}/scripts/`: run them as the
 procedures say, never retype their contents into the shell.
+
+`--project <dir>` in `$ARGUMENTS` → a sub-project: § Sub-project below says what changes
+in each step. No flag → the root, as below.
 
 Survey without writing: `scaffold.md` step 1 (including its `git grep` for what names
 `.claude/` or `CLAUDE.md`), and whether `AGENTS.local.md` has `## Repo layer` and
@@ -98,6 +102,34 @@ Only when `AGENTS.local.md` has `## Repo layer`. It removes the section and each
 `.git/info/exclude` line the new `.gitignore` entries make redundant, keeping any line
 nothing else covers. From then on `/cognisphere:update` reviews the repo layer too.
 
+## Sub-project — `--project <dir>`
+
+A folder below the root that gets a harness of its own (`scaffold.md` § Sub-projects,
+D38). Resolve it after the preflight's `cd`, so `<dir>` is relative to the git root
+(`.` from a session started inside an own-repo sub-project):
+
+```bash
+bash "${CLAUDE_PLUGIN_ROOT}/scripts/target.sh" <dir>   # a message → stop and say it
+```
+
+Then `cd` to the printed `top` and run every script from there with `--project <tag>`;
+the procedures' own commands (`ls`, `git grep`, `git ls-files`) run in `dir`. Say the
+layout (same-repo or own-repo) in the questions round. The steps change as follows:
+
+- **§ 0:** the survey and the questions are the sub-project's. Repo language → propose
+  the root's. Guards → the root's registration (`scripts/guards.sh --check` at the root)
+  is the default answer. The vault-only question does not apply.
+- **§ 1:** `scripts/scaffold.sh --project <tag>`, then `scripts/guards.sh --project
+  <tag>` with the flags; then the line in the root `AGENTS.md` § Sub-projects
+  (`scaffold.md` § Sub-projects, step 4).
+- **§ 2:** `memory.md` maps the sub-project only, with `paths:` relative to its folder;
+  tell each explorer which folder is the project.
+- **§ 3:** same-repo → `rules/commit.md` is already the link to the root's: no policy
+  question. Own-repo → asked like a root's. Globs are relative to the sub-project.
+- **§ 4:** skipped: the local files are the root's.
+- **§ 5:** the report also gives the layout, and that a session started in the
+  sub-project loads its settings and guards, not the root's.
+
 ## 5. Report
 
 - **Repo:** created vs. already existed, per file.
@@ -106,7 +138,7 @@ nothing else covers. From then on `/cognisphere:update` reviews the repo layer t
   session.
 - **Drift guard coverage:** the notes that declare `paths:`, with their globs. None →
   say so plainly: `memory-drift-guard` and the read rules cover no code until a note
-  declares an area (`/cognisphere:update <area>`).
+  declares its paths (`/cognisphere:update <module>`).
 - **Open questions** the memory pass could not answer, and any code defect it came
   across. With a vault (`## Agent workspace` in `AGENTS.local.md`) the agent records
   them there, as its Session Protocol says, like in any session. Without one (or when

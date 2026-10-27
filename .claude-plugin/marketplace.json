@@ -6,7 +6,7 @@
     {
       "name": "cognisphere",
       "source": "./",
-      "description": "Commit/secret/memory-drift guards, /cognisphere:install (= /cognisphere:harness + /cognisphere:vault), /cognisphere:update [area] and /cognisphere:read <note>, explorer/planner/implementer/test-runner/reviewer agents, and a ~/Cognisphere/Projects/<project>/ vault, with ~/Cognisphere/Shared/ readable from every project. Claude Code on Linux, macOS and Windows (Git Bash)."
+      "description": "Commit/secret/memory-drift guards, /cognisphere:install (= /cognisphere:harness + /cognisphere:vault), /cognisphere:update [module] and /cognisphere:read <note>, explorer/planner/implementer/test-runner/reviewer agents, and a ~/Cognisphere/Projects/<project>/ vault, with ~/Cognisphere/Shared/ readable from every project. Claude Code on Linux, macOS and Windows (Git Bash)."
     }
   ]
 }

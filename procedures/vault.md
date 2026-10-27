@@ -124,6 +124,24 @@ The allow rules and `additionalDirectories` apply only once the folder is truste
 when `.claude` is a symlink: Claude Code then treats `settings.local.json` as supplied
 by the repo. Deny rules always apply. The install report says so.
 
+## Sub-projects
+
+A sub-project (`--project <dir>`, D38) has no vault of its own: it uses the root's, and
+nothing here seeds or fills anything for it. Only § Configure runs:
+
+```bash
+bash "<plugin>/scripts/configure.sh" --project <tag> <project>
+```
+
+- **same-repo** → nothing to write (`covered`): Claude Code reads `settings.local.json`
+  from the git root and `CLAUDE.local.md` from the folders above the session's.
+- **own-repo** → `.agents/settings.local.json` in the sub-project (or `.claude/`'s, when
+  its repo layer is untouched), from the same template and pointing at the root's vault:
+  Claude Code reads it from that repo's root. No `AGENTS.local.md`: the root's
+  `CLAUDE.local.md` loads from the folder above, and the vault hooks find the nearest
+  `AGENTS.local.md` upwards.
+- Exit 5 → the root has no vault configured: `/cognisphere:vault` at the root first.
+
 ## Fill
 
 Writes what this run found, into the notes § Seed **created in this run** — never one
