@@ -10,6 +10,8 @@
 #   the session began (its first transcript timestamp); a loose file in Scratch/ doesn't.
 #   Once one exists, it stays quiet until 3 or more repo files (committed or not) have
 #   changed since the newest Scratch write: then the note is due an update.
+#   A session started in a sub-project (D38, vault-of.sh) counts only notes in its own
+#   folder, Scratch/YYYY-MM-DD/<tag>/, and is pointed there.
 #
 # Soft (D37): it never blocks an edit, and it says each thing once. A stamp per session
 # in the temp dir holds what it last reminded of (no note, or the note it found behind),
@@ -58,15 +60,17 @@ vault="$(vault_of "$root")"
 [ -n "$vault" ] || exit 0
 scratch="$(unix "$vault")/Agent/Scratch"
 [ -d "$scratch" ] || exit 0
-today="$(date +%F)"
+subproject_of "${CLAUDE_PROJECT_DIR:-$PWD}"
+today="$(date +%F)${tag:+/$tag}"
 
-# The newest file written this session in a day folder: "<mtime>\t<path>", or nothing.
+# The newest file written this session in a day folder (its <tag>/ in a sub-project's
+# session): "<mtime>\t<path>", or nothing.
 last="$(perl -MFile::Find -e '
-  my ($t, $s) = @ARGV; my ($m, $p) = (0, "");
+  my ($t, $s, $g) = @ARGV; my ($m, $p) = (0, ""); $g = length $g ? "\Q$g\E/" : "";
   find({ no_chdir => 1, wanted => sub {
-    return unless -f && m{^\Q$s\E/\d{4}-\d\d-\d\d/};
+    return unless -f && m{^\Q$s\E/\d{4}-\d\d-\d\d/$g};
     my $x = (stat _)[9]; ($m, $p) = ($x, $_) if $x > $t && $x > $m } }, $s);
-  print "$m\t$p\n" if $p;' "$start" "$scratch" 2>/dev/null)"
+  print "$m\t$p\n" if $p;' "$start" "$scratch" "$tag" 2>/dev/null)"
 
 # remind <key> <text>: the text to the agent as context, unless <key> is what this session
 # was last reminded of.

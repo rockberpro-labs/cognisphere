@@ -899,7 +899,7 @@ would be noise after the first.
 
 ## D38. Sub-projects: one harness per folder, one vault per project
 
-*2026-10-27, v0.15.0*
+*2026-10-27, v0.15.0; phase 2 v0.16.0*
 
 **Decision.** A project can hold sub-projects, each with a harness of its own: the
 layout Claude Code documents for large codebases (`frontend/CLAUDE.md`,
@@ -954,17 +954,30 @@ have to choose between several `Agent/` folders. A root that is a plain folder h
 the repos, with no git of its own: every command needs a git root to start from; left
 for when someone needs it.
 
-**Pending: phase 2, the vault's separation by sub-project.** Shipped apart, to be tried
-on a real nested project first:
+**Phase 2, the vault's separation by sub-project** *(v0.16.0)*. Shipped apart from the
+harness, as planned:
 
-1. Tags: Log entries, threads and findings carry the sub-project's Obsidian tag, its
-   path from the root (`#frontend`, `#apps/web`); the Session Protocol and the Vault
-   Guide say so, and `vault-check` reports an older Session Protocol without the rule.
+1. Tags: Log entries, threads and findings a sub-project's session adds carry its
+   Obsidian tag, its path from the root (`#frontend`, `#apps/web`; a character a tag
+   can't hold becomes `-`). The Session Protocol (§ During) and the Vault Guide (§ 4)
+   say so; `vault-check` reports a Session Protocol without the bullet when the repo has
+   sub-projects, since `/cognisphere:vault` never rewrites an existing note.
 2. `session-start`, in a session started in a sub-project, injects only the open
-   threads tagged with it or untagged, and says how many it left out.
-3. `session-log` (Stop) asks for the tag in the session's Log entry when the session
-   started in a sub-project.
-4. `scratch-redirect`, `scratch-first` and `plan-mirror` use `Scratch/<day>/<tag>/`.
+   threads tagged with it or with no sub-project's tag, says how many it left out, and
+   lists today's Scratch notes but those in other sub-projects' folders.
+3. `session-log` (Stop) blocks once when the session's Log entry lacks the tag, and
+   counts only the sub-project's own `Scratch/<day>/<tag>/` folders.
+4. `scratch-redirect`, `scratch-first` and `plan-mirror` use `Scratch/<day>/<tag>/`;
+   `scratch-first` counts only notes there.
+
+The session's sub-project is the nearest folder with an `.agents/` of its own, from the
+folder the session started in (`$CLAUDE_PROJECT_DIR`, not the cwd, which a `cd` moves)
+up to the one whose `AGENTS.local.md` names the vault (`subproject_of` in
+`hooks/vault-of.sh`). A tag counts as a sub-project's only when it names one's folder,
+so `#bug` or an issue number never hides a thread; a thread tagged with several
+sub-projects reaches each of their sessions.
 
 A session started at the root that works in one sub-project is not seen by any of
-these: its tagging stays the Session Protocol's instruction.
+these: its tagging stays the Session Protocol's instruction. Rejected: filtering
+Findings too (it is read on demand, not injected) and a Log note per sub-project
+(one day's sessions would be split across notes, and the hooks would have to pick one).

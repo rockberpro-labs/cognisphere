@@ -13,6 +13,7 @@ perl -MJSON::PP -e1 || { echo "perl with JSON::PP is required (the hook needs it
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 export TMPDIR="$tmp" HOME="$tmp"   # the hook's marker lands here; `~/` expands here
+unset CLAUDE_PROJECT_DIR
 
 now="$(date +%s)"; start=$((now - 3600))
 iso() { perl -e 'my @t = gmtime shift; printf "%04d-%02d-%02dT%02d:%02d:%02d.000Z", $t[5]+1900, $t[4]+1, @t[3,2,1,0]' "$1"; }
@@ -89,6 +90,21 @@ reset; three; t 'no Log and no Scratch: one block for both' 2
 reset; three; logged; t 'stop_hook_active: the agent stopped again' 0 true
 reset; three; logged; at "$((now - 10))" "$repo/a.txt" "$repo/n1.txt" "$repo/n2.txt"; t 'first stop' 2
 t 'next stop, nothing new since the block' 0
+
+echo "== a session started in a sub-project: its tag and its Scratch folder (D38) =="
+# frontend/ is a sub-project; the session started there.
+sub() { reset; mkdir -p "$repo/frontend/.agents"; }
+ft() { CLAUDE_PROJECT_DIR="$repo/frontend" t "$@"; }
+note() { mkdir -p "$vault/Agent/Scratch/d/$1"; echo p > "$vault/Agent/Scratch/d/$1/plan.md"; }
+sub; echo b >> "$repo/a.txt"; echo 's #frontend' > "$vault/Agent/Log/today.md"; ft 'Log tagged' 0
+sub; echo b >> "$repo/a.txt"; echo 's' > "$vault/Agent/Log/today.md"; ft 'Log without the tag' 2
+sub; echo b >> "$repo/a.txt"; echo 's #frontendx' > "$vault/Agent/Log/today.md"; ft 'a longer tag is not it' 2
+sub; echo 's' > "$vault/Agent/Log/today.md"; at "$((now - 10))" "$vault/Agent/Log/today.md"; ft 'first stop, untagged' 2
+  ft 'next stop, the Log unchanged since' 0
+sub; echo 's' > "$vault/Agent/Log/today.md"; t 'started at the root: no tag asked' 0
+sub; three; echo 's #frontend' > "$vault/Agent/Log/today.md"; note frontend; ft '3 files, its own Scratch folder' 0
+sub; three; echo 's #frontend' > "$vault/Agent/Log/today.md"; note backend; ft '3 files, only another folder written' 2
+sub; three; echo 's #frontend' > "$vault/Agent/Log/today.md"; ft '3 files, no Scratch note' 2
 
 echo
 [ "$fails" -eq 0 ] && echo "all session-log cases pass" || { echo "$fails case(s) FAILED"; exit 1; }

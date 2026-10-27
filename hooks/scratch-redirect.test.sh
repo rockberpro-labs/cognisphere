@@ -13,7 +13,7 @@ perl -MJSON::PP -e1 || { echo "perl with JSON::PP is required (the hook needs it
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 export TMPDIR="$tmp" HOME="$tmp"   # `~/` and ~/.claude expand here
-unset CLAUDE_CONFIG_DIR
+unset CLAUDE_CONFIG_DIR CLAUDE_PROJECT_DIR
 
 repo="$tmp/repo"; vault="$tmp/vault"
 pad="$tmp/claude/-home-u-repo/0b6f-session/scratchpad"
@@ -66,6 +66,11 @@ reset; t 'Write in auto-memory' 2 "$mem/feedback.md"
   printf '%s\n' "$last_out" | grep -q 'State/Preferences.md' || { fails=$((fails+1)); echo "FAIL <- names Preferences for what auto-memory keeps about the maintainer"; }
 reset; t 'Edit of MEMORY.md' 2 "$mem/MEMORY.md" Edit
 reset; CLAUDE_CONFIG_DIR="$tmp/cfg" t 'under CLAUDE_CONFIG_DIR' 2 "$tmp/cfg/projects/x/memory/a.md"
+
+echo "== a session started in a sub-project: its own day folder (D38) =="
+reset; mkdir -p "$repo/frontend/.agents"
+  CLAUDE_PROJECT_DIR="$repo/frontend" t 'Write in the scratchpad' 2 "$pad/notes.md"
+  printf '%s\n' "$last_out" | grep -q "Scratch/$(date +%F)/frontend/notes.md" || { fails=$((fails+1)); echo "FAIL <- names its tag's folder"; }
 
 echo
 [ "$fails" -eq 0 ] && echo "all scratch-redirect cases pass" || { echo "$fails case(s) FAILED"; exit 1; }

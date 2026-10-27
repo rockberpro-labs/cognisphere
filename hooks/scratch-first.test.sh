@@ -13,6 +13,7 @@ perl -MJSON::PP -e1 || { echo "perl with JSON::PP is required (the hook needs it
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 export TMPDIR="$tmp" HOME="$tmp"   # `~/` expands here
+unset CLAUDE_PROJECT_DIR
 
 now="$(date +%s)"; start=$((now - 3600))
 iso() { perl -e 'my @t = gmtime shift; printf "%04d-%02d-%02dT%02d:%02d:%02d.000Z", $t[5]+1900, $t[4]+1, @t[3,2,1,0]' "$1"; }
@@ -100,6 +101,15 @@ reset; p='{"transcript_path":"'"$tmp/transcript.jsonl"'","cwd":"'"$repo"'","tool
   t 'no session id in the payload' remind "" Edit "$p"
 reset; t 'the context is for PostToolUse' remind
   printf '%s\n' "$last_out" | grep -q '"hookEventName":"PostToolUse"' || { fails=$((fails+1)); echo "FAIL <- hookEventName PostToolUse"; }
+
+echo "== a session started in a sub-project: only its own folder counts (D38) =="
+sub() { reset; mkdir -p "$repo/frontend/.agents"; }
+st() { CLAUDE_PROJECT_DIR="$repo/frontend" t "$@"; }
+sub; st 'no note' remind
+  printf '%s\n' "$last_out" | grep -q "$(date +%F)/frontend/<topic>.md" || { fails=$((fails+1)); echo "FAIL <- points at its tag's folder"; }
+sub; mkdir -p "$day/frontend"; echo p > "$day/frontend/plan.md"; st 'a note in its folder' quiet
+sub; note "$now"; st "a note in the day folder, not its own" remind
+sub; mkdir -p "$day/backend"; echo p > "$day/backend/plan.md"; st "a note in another sub-project's folder" remind
 
 echo
 [ "$fails" -eq 0 ] && echo "all scratch-first cases pass" || { echo "$fails case(s) FAILED"; exit 1; }

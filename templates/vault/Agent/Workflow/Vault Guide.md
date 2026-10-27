@@ -78,7 +78,7 @@ Rejected findings stay, struck through with the maintainer's reason, so the same
 - When the repo keeps its own progress log (a plan with status, next steps and per-phase logs), that log owns what was built and what comes next. A session here stays at session level: Asked, Not verified, harness threads. **Did** and **Next** point to the plan's entry instead of restating it.
 
 ### `Scratch/`: "what is the work producing?"
-- What the work produces (plans, scripts, drafts, diff sketches, repro scripts, intermediate output) and notes on it (files touched, dead ends ruled out). Output, not thinking aloud: what the next session would need, not the reasoning that got there. `YYYY-MM-DD/topic.md`, one folder per day.
+- What the work produces (plans, scripts, drafts, diff sketches, repro scripts, intermediate output) and notes on it (files touched, dead ends ruled out). Output, not thinking aloud: what the next session would need, not the reasoning that got there. `YYYY-MM-DD/topic.md`, one folder per day; a sub-project's session uses `YYYY-MM-DD/<tag>/topic.md` (§ 4).
 - Written freely: a copy of something held elsewhere is fine here. It takes what would otherwise go to Claude Code's session scratchpad, so the work travels with the vault; a plan-mode plan is copied here as `plan <name>.md`. Throwaway material (a test repo, a download, build output) stays out: it goes in a `mktemp -d` folder.
 - Written at set moments: before the first edit of a task, and before a long investigation. The `scratch-first` hook reminds the agent after a repo edit while no note exists this session, and again once 3 repo files changed since the last write, each time once and without blocking; the Stop hook asks again when a session touched 3 or more repo files and nothing here changed.
 - Nothing here is authoritative. At session end, promote what's worth keeping; the day folder stays as history. Read an older day folder only when the task needs it, never as the current state.
@@ -107,6 +107,7 @@ The top level stays at **one note plus four folders**. Don't add new top-level f
 - **Names:** Title Case with spaces for notes, ISO dates for Log notes and Scratch day folders, `00 ` prefix only for Home.
 - **Dates:** absolute, never "yesterday" or "last week".
 - **Anchors:** a status that depends on the code (tests pass, a bug reproduces) names the commit: "at `<sha>`". A date alone means nothing after the next commit.
+- **Sub-projects:** in a project whose sub-projects have their own `.agents/` (`frontend/`, `apps/web/`), what a sub-project's session adds to the Log, [[Open Threads]] and [[Findings]] carries its tag, the path from the root (`#frontend`, `#apps/web`), and its Scratch notes go in `Scratch/YYYY-MM-DD/<tag>/`. A session started in a sub-project is shown only the threads tagged with it or with no sub-project's tag, and the Stop hook asks for the tag in its Log entry. Untagged means the root, or the whole project.
 - **Language:** English for the vault. Keep domain terms as the code's language names them.
 - **People:** "the maintainer". No names, no assumed pronouns.
 

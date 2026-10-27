@@ -11,6 +11,9 @@
 #   ${CLAUDE_CONFIG_DIR:-~/.claude}/projects/*/memory/ (auto-memory). Plan files are
 #   left alone: plan mode needs them, and plan-mirror copies them into Scratch/.
 #
+#   A session started in a sub-project (D38, vault-of.sh) is pointed at its own folder,
+#   Scratch/YYYY-MM-DD/<tag>/.
+#
 # Limit: a write made through Bash (a redirect, cp) isn't seen.
 #
 # Fails OPEN: any internal error exits 0 so the session is never wedged.
@@ -43,7 +46,8 @@ case "$path" in "$root"/*|"$vault"/*) exit 0 ;; esac
 
 config="$(unix "${CLAUDE_CONFIG_DIR:-$HOME/.claude}")"
 tmp="$(unix "${TMPDIR:-/tmp}")"
-day="$vault/Agent/Scratch/$(date +%F)"
+subproject_of "${CLAUDE_PROJECT_DIR:-$PWD}"
+day="$vault/Agent/Scratch/$(date +%F)${tag:+/$tag}"
 store=
 case "$path" in "$config"/projects/*/memory/*) store=memory ;; esac
 if [ -z "$store" ]; then

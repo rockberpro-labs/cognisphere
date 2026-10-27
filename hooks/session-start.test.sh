@@ -13,7 +13,7 @@ perl -MJSON::PP -e1 || { echo "perl with JSON::PP is required (the hook needs it
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 export TMPDIR="$tmp" HOME="$tmp"   # `~/` expands here
-unset CLAUDE_CONFIG_DIR
+unset CLAUDE_CONFIG_DIR CLAUDE_PROJECT_DIR
 
 repo="$tmp/repo"; vault="$tmp/vault"
 # A fresh repo and a vault with Home, Open Threads, two Log notes and a Scratch README.
@@ -88,6 +88,47 @@ reset; mkdir -p "$repo/backend" && git -C "$repo/backend" init -q
 t 'session started in backend/' 'HOME-NOTE' "$(sub)"
 reset; mkdir -p "$repo/backend" && git -C "$repo/backend" init -q && echo '# mine' > "$repo/backend/AGENTS.local.md"
 t 'past its own AGENTS.local.md without a vault' 'HOME-NOTE' "$(sub)"
+
+echo "== a session started in a sub-project sees its own threads and Scratch (D38) =="
+# frontend/ and apps/web/ are sub-projects; docs/ is a plain folder. Threads: one for
+# frontend (wrapped onto a second line), one for apps/web, one untagged, one naming
+# a tag that is no sub-project and an issue number, one for both frontend and apps/web.
+subs() {
+  reset; mkdir -p "$repo/frontend/.agents" "$repo/frontend/src" "$repo/apps/web/.agents" "$repo/docs"
+  printf '%s\n' '# Open Threads' '' '## Harness' '1. FRONT-ONE #frontend' 'FRONT-WRAP' '' \
+    '2. WEB-ONE #apps/web' '   WEB-WRAP' '3. SHARED-ONE' '' '## Direction' '4. BUG-ONE #bug #docs, issue #12' \
+    '5. BOTH-ONE #apps/web #frontend' \
+    > "$vault/Agent/State/Open Threads.md"
+  mkdir -p "$vault/Agent/Scratch/$today/frontend" "$vault/Agent/Scratch/$today/apps/web"
+  echo f > "$vault/Agent/Scratch/$today/frontend/front-plan.md"
+  echo w > "$vault/Agent/Scratch/$today/apps/web/web-plan.md"
+  echo r > "$vault/Agent/Scratch/$today/root-plan.md"
+}
+# from <dir> <name> <pattern> [!]: the session started in <dir>; with !, the pattern must not show.
+from() {
+  local out; out="$(printf '{"cwd":"%s"}' "$1" | CLAUDE_PROJECT_DIR="$1" bash "$H" 2>&1)"
+  if printf '%s\n' "$out" | grep -Eq "$3"; then [ "${4:-}" = '!' ] && s=FAIL || s=ok
+  else [ "${4:-}" = '!' ] && s=ok || s=FAIL; fi
+  [ "$s" = ok ] || { fails=$((fails+1)); printf '%s\n' "$out" | sed 's/^/       /'; }
+  printf '%-4s <- %s\n' "$s" "$2"
+}
+subs; from "$repo/frontend/src" 'its own thread, with its wrapped line' 'FRONT-WRAP'
+subs; from "$repo/frontend" 'untagged and non-sub-project tags stay' 'SHARED-ONE'
+subs; from "$repo/frontend" 'a tag that is no sub-project stays' 'BUG-ONE'
+subs; from "$repo/frontend" "another sub-project's thread is left out" 'WEB-ONE|WEB-WRAP' !
+subs; from "$repo/frontend" 'one tagged with it and another stays' 'BOTH-ONE'
+subs; from "$repo/frontend" 'says how many it left out' '\[1 thread\(s\) tagged with other'
+subs; from "$repo/frontend" 'names its tag' 'sub-project frontend/: tag #frontend'
+subs; from "$repo/frontend" 'its Scratch folder' "Scratch/$today/frontend/"
+subs; from "$repo/frontend" "its and the root's Scratch notes" 'front-plan\.md'
+subs; from "$repo/frontend" "the root's Scratch notes" 'root-plan\.md'
+subs; from "$repo/frontend" "another sub-project's Scratch notes are left out" 'web-plan' !
+subs; from "$repo/apps/web" 'a nested tag' 'WEB-WRAP'
+subs; from "$repo/apps/web" 'a nested tag leaves frontend out' 'FRONT-ONE' !
+subs; from "$repo" 'at the root, every thread' 'WEB-ONE'
+subs; from "$repo" 'at the root, every Scratch note' 'web-plan\.md'
+subs; from "$repo" 'at the root, no tag line' 'started in the sub-project' !
+subs; from "$repo/docs" 'a plain folder is the root' 'WEB-ONE'
 
 echo
 [ "$fails" -eq 0 ] && echo "all session-start cases pass" || { echo "$fails case(s) FAILED"; exit 1; }
