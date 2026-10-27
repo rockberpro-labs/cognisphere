@@ -13,7 +13,7 @@ perl -MJSON::PP -e1 || { echo "perl with JSON::PP is required (the hook needs it
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 export TMPDIR="$tmp" HOME="$tmp"   # `~/` and ~/.claude expand here
-unset CLAUDE_CONFIG_DIR
+unset CLAUDE_CONFIG_DIR CLAUDE_PROJECT_DIR
 
 repo="$tmp/repo"; vault="$tmp/vault"; plans="$tmp/.claude/plans"
 copy="$vault/Agent/Scratch/$(date +%F)/plan quiet-river.md"
@@ -56,6 +56,10 @@ reset; t 'a written plan' yes
 reset; t 'first write' yes; echo 'PLAN-V2' > "$plans/quiet-river.md"; t 'a rewrite replaces the copy' yes
   grep -q PLAN-V2 "$copy" 2>/dev/null || { fails=$((fails+1)); echo "FAIL <- the copy is the latest plan"; }
 reset "~/vault"; t 'vault named in the ~/ form' yes
+
+echo "== a session started in a sub-project: its own day folder (D38) =="
+reset; mkdir -p "$repo/apps/web/.agents"; copy="$vault/Agent/Scratch/$(date +%F)/apps/web/plan quiet-river.md"
+  CLAUDE_PROJECT_DIR="$repo/apps/web" t 'copied under apps/web/' yes
 
 echo
 [ "$fails" -eq 0 ] && echo "all plan-mirror cases pass" || { echo "$fails case(s) FAILED"; exit 1; }

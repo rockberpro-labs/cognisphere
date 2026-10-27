@@ -12,6 +12,11 @@
 #   context. It ends by telling the agent to keep its working state in
 #   Scratch/, not in Claude Code's session scratchpad, plans or auto-memory.
 #
+#   A session started in a sub-project (D38, vault-of.sh) gets only the open threads
+#   tagged with it or with no sub-project's tag, told how many it left out, and today's
+#   Scratch notes but those of other sub-projects' folders; it is told its tag and its
+#   Scratch/<day>/<tag>/ folder.
+#
 # Fails OPEN: any internal error exits 0 with no output, so the session starts as usual.
 set -uo pipefail
 
@@ -29,15 +34,49 @@ vault="$(vault_of "$root")"
 [ -n "$vault" ] || exit 0
 a="$vault/Agent"
 [ -f "$a/00 Home.md" ] || exit 0
+subproject_of "${CLAUDE_PROJECT_DIR:-$PWD}"
 
-# note <title> <file> <head|tail> <lines>
+# note <title> <file> <head|tail> <lines> [the path to show, when <file> is a copy]
 note() {
   [ -f "$2" ] || return 0
   local n; n=$(wc -l < "$2")
-  echo; echo "=== $1 ($2) ==="
+  echo; echo "=== $1 (${5:-$2}) ==="
   "$3" -n "$4" "$2"
   [ "$n" -gt "$4" ] && echo "[… $((n - $4)) more lines: read the note for the rest]"
   return 0
+}
+
+# owner <path>: the sub-project a Scratch/ path, relative to its day folder, belongs to:
+# its longest leading folder that is one (has an .agents/ under home). Empty when none.
+owner() {
+  local d="$1"
+  while [ "$d" != "${d%/*}" ]; do
+    d="${d%/*}"; [ -d "$home/$d/.agents" ] && { printf '%s' "$d"; return 0; }
+  done
+}
+
+# threads <file>: Open Threads without the numbered items ("N. …" and the lines that
+# continue it) tagged only with other sub-projects, then a last line with how many it
+# left out. A tag naming no sub-project's folder (#bug) doesn't count.
+threads() {
+  perl -e '
+    my ($tag, $home) = @ARGV; my (@item, @blank); my $left = 0;
+    # Tagged with sub-projects, none of them this one.
+    sub other { my $n = 0; for (/(?<![\w&\/])#([A-Za-z0-9_\/-]*[A-Za-z_\/-][A-Za-z0-9_\/-]*)/g) {
+        (my $t = $_) =~ s{/+$}{}; return 0 if $t eq $tag; $n++ if -d "$home/$t/.agents" } $n }
+    sub flush { if (@item) { local $_ = join "", @item; if (other()) { $left++ } else { print } }
+      print @blank; @item = (); @blank = () }
+    while (<STDIN>) {
+      if (/^\d+\.\s/) { flush(); push @item, $_; next }
+      if (@item) {
+        if (/^\s*$/) { push @blank, $_; next }
+        # Indented, or straight after the item with no blank line: still the item.
+        if (/^\s+\S/ || (!@blank && !/^(#|<!--)/)) { push @item, @blank, $_; @blank = (); next }
+        flush();
+      }
+      print;
+    }
+    flush(); print "$left\n";' "$tag" "$home" < "$1"
 }
 
 today="$(date +%F)"
@@ -53,16 +92,35 @@ mem="$(for p in "$root" "$cwd"; do [ -n "$p" ] && perl -e '($s = shift) =~ s/[^A
   | sort -u | while IFS= read -r s; do d="$config/projects/$s/memory"
     [ -d "$d" ] && find "$d" -maxdepth 1 -type f 2>/dev/null; done | sort)"
 
+# A sub-project's session: other sub-projects' threads and Scratch notes left out.
+threads_note="$a/State/Open Threads.md" left=0 hidden=0 work="$a/Scratch/$today/"
+if [ -n "$tag" ]; then
+  work="$a/Scratch/$today/$tag/"
+  if [ -f "$threads_note" ]; then
+    tmp="$(mktemp)" || exit 0; trap 'rm -f "$tmp"' EXIT
+    threads "$threads_note" > "$tmp" || exit 0
+    left="$(tail -n 1 "$tmp")"; perl -i -ne 'print unless eof' "$tmp"; threads_note="$tmp"
+  fi
+  if [ -n "$current" ]; then
+    mine="$(printf '%s\n' "$current" | while IFS= read -r f; do
+      o="$(owner "$f")"; [ -z "$o" ] || [ "$o" = "$tag" ] && printf '%s\n' "$f"; done)"
+    hidden=$(( $(printf '%s\n' "$current" | grep -c .) - $(printf '%s' "$mine" | grep -c .) ))
+    current="$mine"
+  fi
+fi
+
 {
   echo "session-start: the vault for this project is $vault. Its reading order, loaded for you:"
   note "00 Home" "$a/00 Home.md" head 60
   note "Preferences" "$a/State/Preferences.md" head 80
-  note "Open Threads" "$a/State/Open Threads.md" head 150
+  note "Open Threads" "$threads_note" head 150 "$a/State/Open Threads.md"
+  [ "$left" -gt 0 ] && echo "[$left thread(s) tagged with other sub-projects left out: read the note for them]"
   [ -n "$latest" ] && note "latest Log" "$a/Log/$latest" tail 80
   if [ -n "$current" ]; then
     echo; echo "=== Scratch/$today/: today's working notes, the work in flight ==="
     printf '%s\n' "$current" | sed -n '1,10s/^/  /p'
   fi
+  [ "$hidden" -gt 0 ] && echo "[$hidden more in Scratch/$today/, in other sub-projects' folders]"
   if [ -n "$loose" ]; then
     echo; echo "=== Scratch/ files outside a day folder: move each into its Scratch/YYYY-MM-DD/ ==="
     printf '%s\n' "$loose" | sed -n '1,10s/^/  /p'
@@ -75,8 +133,12 @@ mem="$(for p in "$root" "$cwd"; do [ -n "$p" ] && perl -e '($s = shift) =~ s/[^A
     echo "-> State/Preferences.md; about the code -> the area's .agents/memory/ note, or tell the"
     echo "maintainer), then delete the file, MEMORY.md last, and say so in today's Log."
   fi
+  if [ -n "$tag" ]; then
+    echo; echo "This session started in the sub-project $tag/: tag #$tag what it adds to the Log,"
+    echo "Open Threads and Findings (Session Protocol § During)."
+  fi
   echo
-  echo "Run \`git status\` and \`git log -5\` next. Write your working notes in $a/Scratch/$today/"
+  echo "Run \`git status\` and \`git log -5\` next. Write your working notes in $work"
   echo "as AGENTS.local.md says. This project's working state lives in the vault: use that"
   echo "folder instead of Claude Code's session scratchpad, plans folder or auto-memory."
 }

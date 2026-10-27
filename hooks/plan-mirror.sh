@@ -7,7 +7,8 @@
 #   Active only when the nearest AGENTS.local.md, from the cwd's repo up, names a vault
 #   ("The vault for this project is `…`") that has an Agent/Scratch/ folder.
 #   Mirrored: a .md file directly under ${CLAUDE_CONFIG_DIR:-~/.claude}/plans/, copied to
-#   Scratch/YYYY-MM-DD/plan <name>.md and replaced on every later write of the plan.
+#   Scratch/YYYY-MM-DD/plan <name>.md and replaced on every later write of the plan; in
+#   a session started in a sub-project (D38, vault-of.sh), to Scratch/YYYY-MM-DD/<tag>/.
 #
 # Limit: a `plansDirectory` set in Claude Code's settings isn't followed.
 #
@@ -41,7 +42,8 @@ vault="$(vault_of "$root")"
 scratch="$(unix "$vault")/Agent/Scratch"
 [ -d "$scratch" ] || exit 0
 
-day="$scratch/$(date +%F)"
+subproject_of "${CLAUDE_PROJECT_DIR:-$PWD}"
+day="$scratch/$(date +%F)${tag:+/$tag}"
 copy="$day/plan ${path##*/}"
 mkdir -p "$day" 2>/dev/null && cp "$path" "$copy" 2>/dev/null || exit 0
 

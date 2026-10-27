@@ -63,6 +63,12 @@ it (`names.sh <name>` prints its paths).
    - The repo keeps a plan or status doc (a pointer note's `doc:`, or one `AGENTS.md`
      names) that the `Workflow/Vault Guide.md` § 1 table does not name → report the row
      to add (`vault.md` § Fill), so the Log and the plan don't both record progress.
+   - **Sub-project tags** (D38): the repo has sub-projects (`bash "<plugin>/scripts/subprojects.sh"`
+     prints a `harness` line) and `Workflow/Session Protocol.md` has no sub-project
+     bullet (`grep -q 'Session in a sub-project' "$vault/Agent/Workflow/Session Protocol.md"`
+     fails) → report the template's bullet (§ During) and its `Vault Guide.md` § 4 line, to
+     add by hand: without them a session started at the root doesn't know to tag a
+     sub-project's work, and the threads it opens reach every sub-project's session.
    - **Open Harness threads:** list each item under `## Harness` in
      `State/Open Threads.md` that is not struck through. They go stale silently (a
      "not yet trusted" settings file, resolved by the next restart): the agent re-checks

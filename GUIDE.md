@@ -268,8 +268,13 @@ projeto/
   like one (a `CLAUDE.md` or `.claude/` of their own, no `.agents/`). It never
   maintains them on its own.
 
-Not yet: telling the sub-projects apart inside the shared vault (tags, filtered threads,
-per-sub-project Scratch folders). It is planned in D38, § Pending.
+- **Inside the vault, a tag.** What a sub-project's session adds to the Log, Open Threads
+  and Findings carries its path from the root as an Obsidian tag (`#frontend`,
+  `#apps/web`), and its Scratch notes go in `Scratch/<day>/<tag>/`. A session started in
+  `frontend/` is shown only the threads tagged `#frontend` or with no sub-project's tag
+  (it is told how many it left out), and the Stop hook asks for the tag when its Log
+  entry lacks it. A session started at the root sees everything and tags by hand, as
+  the Session Protocol says.
 
 ## Guards
 

@@ -15,6 +15,10 @@
 # Soft, because a stop is often a pause waiting on the user, not the end: the agent may
 # just stop again (`stop_hook_active` lets that through), and the same changes are never
 # reported twice: after a block, only changes newer than it count.
+#
+#   A session started in a sub-project (D38, vault-of.sh): only its own Scratch/<day>/<tag>/
+#   folders count, and a Log entry written without the sub-project's tag (#frontend) gets
+#   one reminder to add it.
 # Limit: a missed Findings entry changes no file, so nothing here can see it.
 #
 # Fails OPEN: any internal error exits 0 so the session is never wedged.
@@ -49,6 +53,7 @@ root="$(git rev-parse --show-toplevel 2>/dev/null)" || exit 0
 vault="$(vault_of "$root")"
 [ -n "$vault" ] || exit 0
 [ -d "$vault/Agent/Log" ] || exit 0
+subproject_of "${CLAUDE_PROJECT_DIR:-$PWD}"
 
 # After a block, only what changed since then counts: the marker's mtime is that time.
 marker=
@@ -82,8 +87,24 @@ touched() {
 
 log_done=; [ -n "$(newer "$logged_since" "$vault/Agent/Log")" ] && log_done=1
 scratch_done=1
-[ -d "$vault/Agent/Scratch" ] && [ -z "$(touched "$start" "$vault/Agent/Scratch")" ] && scratch_done=
-[ -n "$log_done" ] && [ -n "$scratch_done" ] && exit 0
+if [ -d "$vault/Agent/Scratch" ]; then
+  if [ -n "$tag" ]; then
+    # Only this sub-project's folders, Scratch/<day>/<tag>/ for any day.
+    [ -z "$(touched "$start" "$vault/Agent/Scratch"/*/"$tag")" ] && scratch_done=
+  else
+    [ -z "$(touched "$start" "$vault/Agent/Scratch")" ] && scratch_done=
+  fi
+fi
+# A Log written since the last reminder without the sub-project's tag.
+need_tag=
+if [ -n "$tag" ] && [ -n "$log_done" ]; then
+  logs="$(newer "$since" "$vault/Agent/Log")"
+  [ -n "$logs" ] && ! printf '%s\n' "$logs" | perl -e '
+    my $t = shift; while (my $f = <STDIN>) { chomp $f; open my $h, "<", $f or next;
+      local $/; exit 0 if <$h> =~ /(?<![\w&\/])#\Q$t\E(?![\w\/-])/ } exit 1' "$tag" 2>/dev/null \
+    && need_tag=1
+fi
+[ -n "$log_done" ] && [ -n "$scratch_done" ] && [ -z "$need_tag" ] && exit 0
 
 commits="$(git -C "$root" log --since="@$since" --format='%h %s' 2>/dev/null)"
 files="$(cd "$root" && { git diff -z --name-only HEAD 2>/dev/null; git ls-files -z --others --exclude-standard 2>/dev/null; } | newer "$since")"
@@ -98,7 +119,7 @@ if [ -z "$scratch_done" ] && [ -n "$commits$files" ]; then
     | newer "$start" | sort -u | grep -c .)"
   [ "${touched_files:-0}" -ge 3 ] && need_scratch=1
 fi
-[ -n "$need_log$need_scratch" ] || exit 0
+[ -n "$need_log$need_scratch$need_tag" ] || exit 0
 
 [ -n "$marker" ] && touch "$marker" 2>/dev/null
 
@@ -113,11 +134,17 @@ list() { printf "%s\n" "$1" | sed -n "1,5s/^/    /p"; local n; n=$(( $(printf "%
     echo
     echo "If this reply ends the work, do Session Protocol § End now: append \`## Session N\`"
     echo "to $vault/Agent/Log/$(date +%F).md and update State/Open Threads.md."
+    [ -n "$tag" ] && echo "This session started in the sub-project $tag/: tag the entry #$tag."
+  fi
+  if [ -n "$need_tag" ]; then
+    echo "session-log: this session started in the sub-project $tag/, and its Log entry has no #$tag."
+    echo "Add #$tag to the entry, and to the Open Threads and Findings items it added, so a"
+    echo "session started in $tag/ finds them (Session Protocol § During)."
   fi
   if [ -n "$need_scratch" ]; then
-    [ -n "$need_log" ] && echo
-    echo "session-log: this session touched $touched_files repo files and wrote nothing in $vault/Agent/Scratch/."
-    echo "Write \`Scratch/$(date +%F)/<topic>.md\` now: the plan, the files touched, what you ruled"
+    [ -n "$need_log$need_tag" ] && echo
+    echo "session-log: this session touched $touched_files repo files and wrote nothing in $vault/Agent/Scratch/${tag:+*/$tag/}."
+    echo "Write \`Scratch/$(date +%F)/${tag:+$tag/}<topic>.md\` now: the plan, the files touched, what you ruled"
     echo "out and what is still open. If this reply ends the work, promote what matters to the"
     echo "Log, Open Threads or Findings; the day folder stays, as the history of the work."
   fi

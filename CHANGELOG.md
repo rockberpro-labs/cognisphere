@@ -4,6 +4,18 @@ What changed in each release of cognisphere. Versions follow
 [semver](https://semver.org/); the reasoning behind each change is in
 [docs/decisions.md](docs/decisions.md), referenced as `Dnn`.
 
+## 0.16.0 — 2026-10-27
+
+### Added
+
+- The vault tells sub-projects apart (D38, phase 2). A session started in a sub-project
+  gets only the Open Threads tagged with it (`#frontend`, `#apps/web`) or with no
+  sub-project's tag, told how many were left out; keeps its Scratch notes in
+  `Scratch/<day>/<tag>/` (`scratch-first`, `scratch-redirect`, `plan-mirror`); and is
+  asked by the Stop hook to tag its Log entry. The Session Protocol and the Vault Guide
+  say how to tag; `/cognisphere:update` reports a vault whose Session Protocol predates
+  it, when the repo has sub-projects.
+
 ## 0.15.0 — 2026-10-27
 
 ### Added
