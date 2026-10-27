@@ -1094,3 +1094,27 @@ cost a turn every reply, the cost D34 avoided. Counting commits after the Log: t
 order is log, then commit. Parsing Bash commands for writes to the stores: the D35
 reason. Making `scratch-first` block again: D37's reason stands, and the Stop hook is the
 backstop.
+
+## D44. The Stop hook hands over the Log entry with Changed filled in
+
+*2026-10-27, v0.21.0*
+
+**Decision.** When `session-log` blocks for a missing Log entry, its reason includes the
+entry to paste: `## Session N`, numbered after the `## Session` headings already in
+today's note and tagged `#<tag>` in a sub-project's session; the six Session Protocol
+fields; and Changed filled in with what the hook already knows: the session's commit
+shas, `uncommitted` when repo changes aren't committed, and the `State/` and `Scratch/`
+files the session wrote, which git doesn't see. Asked, Found, Did, Not verified and Next
+stay blank. A new day's note gets one line saying to start it like an earlier one. The
+hook writes nothing in the vault.
+
+**Why.** The entry has a mechanical half and a judgment half, and the agent was doing
+both from a bare "append `## Session N`": counting sessions, looking up shas, deciding
+what Changed holds. Handing over the mechanical half makes the right entry the easiest
+one to write and leaves the agent only what nothing else knows.
+
+**Rejected.** The hook appending the skeleton to the Log itself: `AGENTS.local.md` makes the
+agent the only writer of `Agent/`, and an entry it then ignores stays as a hollow block
+that only repeats git, which the vault must not hold (D21). Listing changed repo files in Changed: the template
+asks for the sha or "uncommitted", and files only where git doesn't see them. A skeleton
+for a Log that is behind (D43): the entry exists, so it's updated, not appended.

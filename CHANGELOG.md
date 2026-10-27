@@ -4,6 +4,16 @@ What changed in each release of cognisphere. Versions follow
 [semver](https://semver.org/); the reasoning behind each change is in
 [docs/decisions.md](docs/decisions.md), referenced as `Dnn`.
 
+## 0.21.0 — 2026-10-27
+
+### Changed
+
+- The Stop hook's request for the end-of-session Log entry carries the entry itself
+  (D44): `## Session N` numbered after today's note (tagged in a sub-project), the six
+  Session Protocol fields, and Changed filled in from git and the vault (the session's
+  commits, "uncommitted", the vault files it wrote). The agent pastes it and writes
+  the rest; the hook still never writes the Log.
+
 ## 0.20.0 — 2026-10-27
 
 ### Changed

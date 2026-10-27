@@ -189,8 +189,9 @@ into context; `scratch-first` reminds the agent, once and without blocking, to w
 plan in `Scratch/` after a repo edit (and again when the note falls behind);
 `scratch-redirect` sends writes meant for Claude Code's scratchpad or auto-memory to the
 vault; `plan-mirror` copies plan-mode plans into `Scratch/`; and a Stop hook,
-`session-log`, asks once for the end-of-session Log entry when the session changed
-something and didn't log it (or logged early and kept working), for the `Scratch/`
+`session-log`, asks once for the end-of-session Log entry, handing over the entry with
+its Changed line filled in, when the session changed something and didn't log it (or
+logged early and kept working), for the `Scratch/`
 working notes when it touched 3 or more files without them or past them, and for
 anything written into Claude Code's scratchpad or auto-memory through Bash to be moved
 into the vault.
