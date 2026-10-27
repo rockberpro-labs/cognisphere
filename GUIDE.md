@@ -295,8 +295,8 @@ error never blocks the session.
   `git reset --hard` and any `push` that targets the protected branch. `--abort` /
   `--continue` on a stuck sequencer still go through.
 - **`secret-guard`** — blocks a `git commit` whose content looks like a secret: a
-  private-key header, a well-known token format (AWS/GitHub/Slack/GCP), or a `.env` or
-  keystore (`.p12`/`.pfx`/`.jks`) being added.
+  private-key header, a well-known token format (AWS, GitHub, Slack, GCP, GitLab, Anthropic, OpenAI,
+  Stripe live keys), or a `.env` or keystore (`.p12`/`.pfx`/`.jks`) being added.
 - **`memory-drift-guard`** — blocks a `git commit` that touches code covered by a memory
   note (its `paths:` frontmatter) when the note is not in the same commit. For a
   pointer note, its `doc:` counts too. Prefix `SKIP_MEMORY_CHECK=1` when the note still

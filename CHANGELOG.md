@@ -4,6 +4,15 @@ What changed in each release of cognisphere. Versions follow
 [semver](https://semver.org/); the reasoning behind each change is in
 [docs/decisions.md](docs/decisions.md), referenced as `Dnn`.
 
+## 0.18.0 — 2026-10-27
+
+### Changed
+
+- `secret-guard` also catches GitLab (`glpat-`, `gldt-`, `glrt-`, `glptt-`), Anthropic
+  (`sk-ant-`), OpenAI (`sk-proj-`, `sk-svcacct-`, `sk-admin-`, legacy) and Stripe live
+  (`sk_live_`, `rk_live_`) tokens (D40). Repos pick it up with `/cognisphere:update`,
+  which refreshes their copy of `guard.sh`.
+
 ## 0.17.0 — 2026-10-27
 
 ### Added

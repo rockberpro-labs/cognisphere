@@ -178,8 +178,11 @@ env_hit="$(printf '%s\n' "$files" | grep -E '(^|/)\.env' | grep -Evi '\.(example
 # public certs (also `.pem`) from tripping the guard.
 key_hit="$(printf '%s\n' "$files" | grep -Ei '\.(p12|pfx|jks|keystore)$')"
 
-# Well-known token formats. Precise on purpose.
-patterns='-----BEGIN [A-Z ]*PRIVATE KEY-----|AKIA[0-9A-Z]{16}|gh[opsur]_[0-9A-Za-z]{36}|xox[baprs]-[0-9A-Za-z-]{10,}|AIza[0-9A-Za-z_-]{35}'
+# Well-known token formats. Precise on purpose: a prefix that names the service, never a
+# bare `eyJ` JWT, which fills test fixtures. Private key, AWS, GitHub, Slack, Google, GitLab
+# (personal, deploy, runner, trigger), Anthropic, OpenAI (project, service account, admin,
+# legacy), Stripe live secret and restricted keys (`sk_test_` is not a secret).
+patterns='-----BEGIN [A-Z ]*PRIVATE KEY-----|AKIA[0-9A-Z]{16}|gh[opsur]_[0-9A-Za-z]{36}|xox[baprs]-[0-9A-Za-z-]{10,}|AIza[0-9A-Za-z_-]{35}|gl(pat|dt|rt|ptt)-[0-9A-Za-z_-]{20,}|sk-ant-[0-9A-Za-z_-]{80,}|sk-(proj|svcacct|admin)-[0-9A-Za-z_-]{40,}|sk-[0-9A-Za-z]{20}T3BlbkFJ[0-9A-Za-z]{20}|[sr]k_live_[0-9A-Za-z]{24,}'
 tok_hit="$(printf '%s\n' "$added" | grep -Eo -- "$patterns" | sort -u)"
 
 if [ "$secret" = 1 ] && [ -n "$env_hit$key_hit$tok_hit" ]; then
