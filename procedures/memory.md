@@ -14,7 +14,8 @@ bootstrap, `/cognisphere:update <module>` in module mode.
   folders) — phase 5
   for that area only, then phase 6 to hook the note into the index. Read `MEMORY.md`
   first: if a note already covers the area, deepen that one instead of creating a
-  sibling. Sections it needs: Language, Three destinations, What makes a note worth
+  sibling. Given `--note <path>` instead, deepen that note: its `paths:` are the area (its
+  subject, for a conceptual note). Sections it needs: Language, Three destinations, What makes a note worth
   reading, Phase 5, Phase 6 (note format); skip phases 0–4 and the stopping criterion.
 
 **Sub-project** (`--project <dir>`, `scaffold.md` § Sub-projects) → that folder is the

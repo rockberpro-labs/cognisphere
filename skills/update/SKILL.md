@@ -1,7 +1,7 @@
 ---
 name: update
-description: Maintains an existing cognisphere harness - the .agents/ structure, settings and guards, the memory catalog (index, anti-drift rule, stale notes, dead or overlapping globs, domain declarations) and the rules (read rules, dead or too-broad globs, duplicates, new candidates) - and checks, without writing, the vault in ~/Cognisphere/Projects/ named after the project (when this user has one), the local configuration and the user-level settings that would run the guards twice. Use when the user asks to update, upgrade, review, audit, refresh or repair the agent harness, the .agents, the memory, the rules, the hooks/guards or the settings of a project that already has one, typically after upgrading the plugin or a long stretch of commits. Pass a module (a directory such as src/payments, a named module such as billing, or a feature that spans folders such as authentication) to map or deepen just that one, e.g. when a task enters code that has no note - ask before writing. Pass --project <dir> to maintain a sub-project's harness (a monorepo's frontend/ or backend/), optionally followed by a module inside it.
-argument-hint: "[--project <dir>] [module]"
+description: Maintains an existing cognisphere harness - the .agents/ structure, settings and guards, the memory catalog (index, anti-drift rule, stale notes, dead or overlapping globs, domain declarations) and the rules (read rules, dead or too-broad globs, duplicates, new candidates) - and checks, without writing, the vault in ~/Cognisphere/Projects/ named after the project (when this user has one), the local configuration and the user-level settings that would run the guards twice. Use when the user asks to update, upgrade, review, audit, refresh or repair the agent harness, the .agents, the memory, the rules, the hooks/guards or the settings of a project that already has one, typically after upgrading the plugin or a long stretch of commits. Pass a module (a directory such as src/payments, a named module such as billing, or a feature that spans folders such as authentication) to map or deepen just that one, e.g. when a task enters code that has no note - ask before writing. Pass --note <path> (--note .agents/memory/payments.md) to deepen just that one note. Pass --project <dir> to maintain a sub-project's harness (a monorepo's frontend/ or backend/), optionally followed by a module inside it.
+argument-hint: "[--project <dir>] [module | --note <path>]"
 ---
 
 # update
@@ -34,7 +34,9 @@ offer `/cognisphere:install` (both halves) or `/cognisphere:harness` (the repo l
 only), run the chosen one (its skill, from step 0) and stop here.
 
 Arguments: `$ARGUMENTS`. A leading `--project <dir>` → § Sub-project, and what follows
-it is the module. Then: no module → the full review below; a module → § Module.
+it is the module. Then: no module → the full review below; a module or `--note <path>` →
+§ Module. A bare argument is always a module: a file under `.agents/memory/` given
+without `--note` → stop and offer `--note <path>`.
 
 ## Full review
 
@@ -139,6 +141,13 @@ sub-project's `.agents/`, globs relative to its folder:
 2. **`rules.md` in module mode.** The read rule over the note's `paths:`, plus what the
    area must obey without having read the note.
 3. **One index line** in `MEMORY.md` for a new note, with its hook.
+
+**`--note <path>`** — a `.md` file under `.agents/memory/` (relative to the repo root,
+or to the sub-project's folder after `--project`) → that note is the one to deepen, and its `paths:` are the module; with no `paths:` (a conceptual note), its
+subject is, and it owes no read rule. Steps 1–2 work on that note and its read rule,
+never a sibling; step 3 does not apply. The file doesn't exist, or isn't under
+`.agents/memory/` → stop and say so. `MEMORY.md` → stop: it is the index, not a note;
+`/cognisphere:update` with no argument reviews it.
 
 The vault and the local configuration are not touched or checked in this mode. Claude
 may run this on its own when a task enters a module with no note; it still asks before

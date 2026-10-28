@@ -4,6 +4,15 @@ What changed in each release of cognisphere. Versions follow
 [semver](https://semver.org/); the reasoning behind each change is in
 [docs/decisions.md](docs/decisions.md), referenced as `Dnn`.
 
+## 0.23.1 — 2026-10-28
+
+### Added
+
+- `/cognisphere:update --note <path>` deepens a single memory note
+  (`/cognisphere:update --note .agents/memory/payments.md`): its `paths:` are the module, and
+  only that note and its read rule are touched (D47). After `--project <dir>`, the path
+  may be relative to the sub-project's folder.
+
 ## 0.23.0 — 2026-10-28
 
 ### Added
