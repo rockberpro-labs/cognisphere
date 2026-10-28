@@ -4,6 +4,21 @@ What changed in each release of cognisphere. Versions follow
 [semver](https://semver.org/); the reasoning behind each change is in
 [docs/decisions.md](docs/decisions.md), referenced as `Dnn`.
 
+## 0.23.2 — 2026-10-28
+
+### Added
+
+- `/cognisphere:update --index` repairs just the memory index, `MEMORY.md`: merge-conflict
+  markers, broken links, notes with no line or no way back (D48). No other pass runs.
+  `--note .agents/memory/MEMORY.md` now points to it.
+
+### Fixed
+
+- The memory review resolves merge-conflict markers in `MEMORY.md` without asking, as
+  part of index integrity: both sides' lines are kept, one per note (D48). It had no step
+  for them. A note with conflict markers is a proposed fix, its sides read against the
+  code.
+
 ## 0.23.1 — 2026-10-28
 
 ### Added

@@ -140,7 +140,7 @@ switch it (see § Commands).
 /cognisphere:install                 # harness + vault, asked in one round
 /cognisphere:harness                 # only the versioned repo layer
 /cognisphere:vault                   # only your vault and its local configuration
-/cognisphere:update [module | --note <path>]  # maintains the harness; with a module or note, just that one
+/cognisphere:update [module | --note <path> | --index]  # maintains the harness; with a module, note or the index, just that one
 /cognisphere:read <note> [request]   # reads a vault note you copied in Obsidian
 /cognisphere:auto                    # working style: you give the goal, the agent drives
 /cognisphere:copilot                 # working style: you drive, the agent helps
@@ -207,7 +207,7 @@ Where the local files go depends on whose harness the repo has:
 Either way `git status` shows nothing new. It stops, writing nothing, if git tracks one
 of those files.
 
-### `/cognisphere:update [--project <dir>] [module | --note <path>]`
+### `/cognisphere:update [--project <dir>] [module | --note <path> | --index]`
 
 With no argument, reviews the versioned harness: structure, settings, memory, rules.
 Index integrity and the anti-drift rules are the memory contract, so it restores them
@@ -227,6 +227,8 @@ With a module — a directory (`src/payments`), a named module (`billing`) or a 
 that spans folders (`authentication`) — it maps or deepens only that module: one note with `paths:`, its read
 rule, an index line. With `--note <path>` instead (`--note .agents/memory/payments.md`), it
 deepens just that note against the code its `paths:` cover, and that note's read rule.
+With `--index`, it repairs only the memory index, `MEMORY.md`: merge-conflict markers,
+broken links, notes with no line. Nothing else runs, so it fits right after a merge.
 
 ### `/cognisphere:read <note> [request]`
 

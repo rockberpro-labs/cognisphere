@@ -1238,3 +1238,26 @@ it to the argument's shape (as D31 chose named commands over a detected branch).
 then invisible in the command. A separate command for one note: it is module mode with
 the module named by its note, not a different job, and `--project` already set the
 flag precedent.
+
+## D48. Update takes `--index` to repair the memory index
+
+*2026-10-28, v0.23.2*
+
+**Decision.** `/cognisphere:update --index` runs only index integrity, the mandatory
+memory check, on `MEMORY.md` (the sub-project's after `--project <dir>`), and that check
+now starts by resolving merge-conflict markers: the union of both sides' lines, one per
+note, the hook that matches the note when the sides differ. The flag takes no path: a
+project has one index. `--note MEMORY.md` still stops (D47) and offers `--index`. In the
+full review, conflict markers in a note are a proposed check: its sides are read against
+the code and the merged note is offered before writing.
+
+**Why.** A merge where two branches each added a note conflicts in `MEMORY.md` almost
+every time. D47 sent `--note MEMORY.md` to the full review, which had no step for
+markers and runs seven passes to repair a few lines. An index line is a link and a hook,
+so both sides' lines are kept without a policy call; a note's sides can disagree on what
+the code does, which needs a look. A named flag keeps the variant visible in the command
+(D31, D47).
+
+**Rejected.** Accepting `--note MEMORY.md` for the repair: the index is not a note to
+deepen against code, and a second meaning of the flag hides the variant (D47). A path
+after `--index`: there is only one index per project, so it could only be mistyped.
