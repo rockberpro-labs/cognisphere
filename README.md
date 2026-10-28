@@ -29,7 +29,7 @@ MIT licensed · Claude Code on Linux, macOS and Windows (Git Bash).
 | **Memory catalog** | `AGENTS.md` + `.agents/memory/` notes with the *why*, kept in sync with the code at commit time |
 | **Rules** | `.agents/rules/`: short instructions the harness injects when the agent reads a matching file |
 | **Vault** | `Agent/` (open threads, findings, log, scratch) and `Human/` (your notes, read-only to the agent); `Shared/` across projects |
-| **Commands** | `/cognisphere:install` (= `harness` + `vault`), `/cognisphere:update [module \| --note <path> \| --index]`, `/cognisphere:read <note>`, `/cognisphere:auto` / `copilot` / `tutor` |
+| **Commands** | `/cognisphere:install` (= `harness` + `vault`), `/cognisphere:update [module \| --note <path> \| --index \| --catalog]`, `/cognisphere:read <note>`, `/cognisphere:auto` / `copilot` / `tutor` |
 | **Agents** | explorer, planner, implementer, test-runner, reviewer |
 
 ## Quick start
@@ -159,7 +159,7 @@ drive; it helps when asked and takes the wheel when you hand it over) or as your
 /cognisphere:install                 # harness + vault, asked in one round
 /cognisphere:harness                 # only the versioned repo layer
 /cognisphere:vault                   # only your vault and its local configuration
-/cognisphere:update [module | --note <path> | --index]  # maintains the harness; with a module, note or the index, just that one
+/cognisphere:update [module | --note <path> | --index | --catalog]  # maintains the harness; with a module, note, the index or the catalog, just that one
 /cognisphere:read <note> [request]   # reads a vault note you copied in Obsidian
 /cognisphere:auto                    # working style: you give the goal, the agent drives
 /cognisphere:copilot                 # working style: you drive, the agent helps

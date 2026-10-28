@@ -1,7 +1,7 @@
 ---
 name: update
-description: Maintains an existing cognisphere harness - the .agents/ structure, settings and guards, the memory catalog (index, anti-drift rule, stale notes, dead or overlapping globs, domain declarations) and the rules (read rules, dead or too-broad globs, duplicates, new candidates) - and checks, without writing, the vault in ~/Cognisphere/Projects/ named after the project (when this user has one), the local configuration and the user-level settings that would run the guards twice. Use when the user asks to update, upgrade, review, audit, refresh or repair the agent harness, the .agents, the memory, the rules, the hooks/guards or the settings of a project that already has one, typically after upgrading the plugin or a long stretch of commits. Pass a module (a directory such as src/payments, a named module such as billing, or a feature that spans folders such as authentication) to map or deepen just that one, e.g. when a task enters code that has no note - ask before writing. Pass --note <path> (--note .agents/memory/payments.md) to deepen just that one note. Pass --index to repair just the memory index, MEMORY.md (merge-conflict markers, broken links, missing lines), e.g. after a merge. Pass --project <dir> to maintain a sub-project's harness (a monorepo's frontend/ or backend/), optionally followed by a module inside it.
-argument-hint: "[--project <dir>] [module | --note <path> | --index]"
+description: Maintains an existing cognisphere harness - the .agents/ structure, settings and guards, the memory catalog (index, anti-drift rule, stale notes, dead or overlapping globs, domain declarations) and the rules (read rules, dead or too-broad globs, duplicates, new candidates) - and checks, without writing, the vault in ~/Cognisphere/Projects/ named after the project (when this user has one), the local configuration and the user-level settings that would run the guards twice. Use when the user asks to update, upgrade, review, audit, refresh or repair the agent harness, the .agents, the memory, the rules, the hooks/guards or the settings of a project that already has one, typically after upgrading the plugin or a long stretch of commits. Pass a module (a directory such as src/payments, a named module such as billing, or a feature that spans folders such as authentication) to map or deepen just that one, e.g. when a task enters code that has no note - ask before writing. Pass --note <path> (--note .agents/memory/payments.md) to deepen just that one note. Pass --index to repair just the memory index, MEMORY.md (merge-conflict markers, broken links, missing lines), e.g. after a merge. Pass --catalog to review just the memory catalog (index, anti-drift rule, stale notes, dead or overlapping globs, domain declarations) and the read rules its notes owe, without the settings, other rules, vault or configuration. Pass --project <dir> to maintain a sub-project's harness (a monorepo's frontend/ or backend/), optionally followed by a module inside it.
+argument-hint: "[--project <dir>] [module | --note <path> | --index | --catalog]"
 ---
 
 # update
@@ -19,7 +19,7 @@ cd "$(git rev-parse --show-toplevel)" || exit 1   # not a git repo → stop and 
 
 **Repo layer left untouched** — `AGENTS.local.md` has `## Repo layer` (D30, D31) →
 passes 1–4 and § Module write what git tracks: skip them, say so in one line, and run
-passes 5–7 only. A module argument or `--index` → stop: mapping writes `.agents/`, which this repo was
+passes 5–7 only. A module argument, `--index` or `--catalog` → stop: mapping writes `.agents/`, which this repo was
 set up without; `/cognisphere:harness` adds the repo layer.
 
 **No vault** — `AGENTS.local.md` missing, or without `## Agent workspace` → this user has
@@ -35,7 +35,7 @@ only), run the chosen one (its skill, from step 0) and stop here.
 
 Arguments: `$ARGUMENTS`. A leading `--project <dir>` → § Sub-project, and what follows
 it is the module. Then: no module → the full review below; a module or `--note <path>` →
-§ Module; `--index` → § Index. A bare argument is always a module: a file under `.agents/memory/` given
+§ Module; `--index` → § Index; `--catalog` → § Catalog. A bare argument is always a module: a file under `.agents/memory/` given
 without `--note` → stop and offer `--note <path>`.
 
 ## Full review
@@ -113,7 +113,7 @@ procedures' own commands run in `dir`. No `.agents/` in `dir` → nothing to mai
 offer `/cognisphere:harness --project <tag>` (or `install`), run the chosen one and
 stop.
 
-A module after the flag → § Module, `--index` → § Index, inside the sub-project. Otherwise the full review, with
+A module after the flag → § Module, `--index` → § Index, `--catalog` → § Catalog, inside the sub-project. Otherwise the full review, with
 these changes:
 
 1. **Structure:** `scaffold.md` § Sub-projects; the sub-project's line in the root
@@ -165,3 +165,23 @@ edited, save a missing back-to-index line; a note with conflict markers is liste
 `/cognisphere:update` (check 5) to merge it. Stage `MEMORY.md` and the notes that got a
 back link by name, then report what changed. No other pass runs: no settings, rules,
 vault or configuration.
+
+## Catalog
+
+`/cognisphere:update --catalog` reviews the memory catalog and nothing else (D49): pass 3
+of the full review, plus the read rules the notes owe. After `--project <dir>`, the
+sub-project's. No `MEMORY.md` → stop: there is no catalog to review;
+`/cognisphere:update` with no argument maps the memory. The language is the one
+`AGENTS.md` declares; none declared → stop and offer the full review, whose structure
+pass settles it.
+
+1. **`review-memory.md`, whole.** Mandatory checks without asking, proposed ones on a
+   yes, as in the full review.
+2. **`review-rules.md` check 1 (read rules) alone, without asking.** A fixed glob, a new
+   `paths:` or a `kind: domain` declared in step 1 changes the rule a note owes; leaving
+   it would put the rules out of step with the catalog. The proposed rule checks
+   (2–8) do not run: list `/cognisphere:update` for them when step 1 changed globs.
+
+Stage what changed by name, then one report: the memory section and the read-rule
+section of pass 7. No other pass runs: no structure, settings, other rules, vault or
+configuration.
