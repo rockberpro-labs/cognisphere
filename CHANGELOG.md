@@ -4,6 +4,16 @@ What changed in each release of cognisphere. Versions follow
 [semver](https://semver.org/); the reasoning behind each change is in
 [docs/decisions.md](docs/decisions.md), referenced as `Dnn`.
 
+## 0.23.3 — 2026-10-28
+
+### Added
+
+- `/cognisphere:update --catalog` reviews just the memory catalog: index, anti-drift
+  rule, stale notes, globs, domain declarations, with the same ask-before-writing split
+  as the full review (D49). The read rules the notes owe are brought in line too, so a
+  fixed glob never leaves its rule behind. Settings, the other rules, the vault and the
+  configuration are skipped.
+
 ## 0.23.2 — 2026-10-28
 
 ### Added

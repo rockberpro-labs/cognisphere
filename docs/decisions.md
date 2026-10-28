@@ -1261,3 +1261,27 @@ the code does, which needs a look. A named flag keeps the variant visible in the
 **Rejected.** Accepting `--note MEMORY.md` for the repair: the index is not a note to
 deepen against code, and a second meaning of the flag hides the variant (D47). A path
 after `--index`: there is only one index per project, so it could only be mistyped.
+
+## D49. Update takes `--catalog` to review the memory catalog alone
+
+*2026-10-28, v0.23.3*
+
+**Decision.** `/cognisphere:update --catalog` runs the memory pass of the full review
+(`review-memory.md`, mandatory and proposed checks) and then only the mandatory check of
+the rules pass, the read rules, on the project's catalog (the sub-project's after
+`--project <dir>`). No `MEMORY.md`, or no language declared in `AGENTS.md`, stops and
+offers the full review, which bootstraps or settles them. The flag takes no path: a
+project has one catalog.
+
+**Why.** After a stretch of commits, the memory is what drifts; the full review also
+walks structure, settings, every rule, the vault and the configuration, and asks about
+each. The read rules come along because the memory pass can change what a note owns (a
+glob, `paths:`, `kind: domain`), and a catalog reviewed without them would leave rules
+narrower than their notes. A named flag keeps the variant visible in the command (D31,
+D47, D48).
+
+**Rejected.** `--memory-catalog`: clearer alone, but `--index` and `--note` are already
+memory-scoped without the prefix, and one prefixed sibling would make them look like
+something else. Running the whole rules pass too: its proposed checks are about rules,
+not the catalog, and are what the full review is for.
+
