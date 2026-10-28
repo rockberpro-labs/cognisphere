@@ -1285,3 +1285,26 @@ memory-scoped without the prefix, and one prefixed sibling would make them look 
 something else. Running the whole rules pass too: its proposed checks are about rules,
 not the catalog, and are what the full review is for.
 
+## D50. A `## Repo layer` next to cognisphere's harness is stale
+
+*2026-10-28, v0.23.4*
+
+**Decision.** `update` finding `## Repo layer` in `AGENTS.local.md` while
+`.agents/rules/memory.md` names `/cognisphere:update` stops before writing, whatever the
+argument, and offers `/cognisphere:harness`, whose step 4 (`repo-layer.sh`, D31) removes
+the section and moves the local configuration over. The user is never asked to edit
+`AGENTS.local.md` by hand.
+
+**Why.** The section records how a clone was set up, not who owns the repo now. A
+teammate who sets up a vault before the harness is committed keeps the section after
+pulling it, and `update` then stopped `--catalog` and `--index` saying the repo was set
+up without `.agents/`, which it no longer is. The way out was a hand edit, which skips
+the `.git/info/exclude` cleanup and leaves `settings.local.json` in the real `.claude/`
+the harness turns into a link. `harness` already does that move, and only creates what
+is missing.
+
+**Rejected.** Ignoring the section once the harness is detected: the configuration would
+still be the untouched one (settings outside `.agents/`, exclude lines), and `update`
+would write over a split record. Removing it inside `update`: the move is `harness`'s
+job (D31), and `update` never writes the local configuration.
+
