@@ -1215,3 +1215,26 @@ replace part of the system prompt where `AGENTS.local.md` adds to it. Enforcing 
 copilot with deny rules in `settings.local.json`: a tutor sometimes edits on request, and
 a deny rule can't tell. Rewriting existing Author sections at upgrade: the file is the
 maintainer's, and `update` never writes it.
+
+## D47. Update takes `--note <path>` to deepen one note
+
+*2026-10-28, v0.23.1*
+
+**Decision.** `/cognisphere:update --note <path>` names a `.md` file under
+`.agents/memory/` as the one module mode deepens: its `paths:` are the area (a
+conceptual note's subject, with no read rule owed), and its read rule is the one
+`rules.md` revisits. No sibling, no new index line. A missing file, or one outside
+`.agents/memory/`, stops with a message; `MEMORY.md` stops too, since it is the index,
+which the full review covers. A bare argument stays a module: a note's path given
+without the flag stops and offers `--note`.
+
+**Why.** A maintainer who finds one note wrong or thin has its path at hand, and had to
+translate it back into a directory or module name, which module mode then mapped back
+to a note through `MEMORY.md`, with room to pick another one or create a sibling. The
+path names the note outright, and the flag says which variant runs instead of leaving
+it to the argument's shape (as D31 chose named commands over a detected branch).
+
+**Rejected.** Detecting a note from a bare path argument: it works, but the variant is
+then invisible in the command. A separate command for one note: it is module mode with
+the module named by its note, not a different job, and `--project` already set the
+flag precedent.

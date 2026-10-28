@@ -1,6 +1,6 @@
 {
   "name": "cognisphere",
-  "version": "0.23.0",
+  "version": "0.23.1",
   "license": "MIT",
   "description": "Agent harness plus a per-project vault: guards (master, secrets, memory drift) copied into each repo, versioned, so they run for the whole team without the plugin; and the vault's own hooks, from the plugin: a SessionStart hook that loads the vault's reading order, a PreToolUse hook that keeps working state out of Claude Code's scratchpad and auto-memory, PostToolUse hooks that remind the agent of its Scratch plan (after file edits and Bash) and copy plan-mode plans into Scratch, a Stop hook that asks for the session log (Changed and Not verified filled in from git and the transcript's test runs), the Scratch working notes when they fall behind the work, a Findings item when a reply mentions something wrong outside the task, and for Bash writes into Claude Code's own stores to move into the vault, .agents scaffold, /cognisphere:harness and /cognisphere:vault for either half alone, /cognisphere:read for vault notes copied in Obsidian, /cognisphere:auto, /cognisphere:copilot and /cognisphere:tutor to switch the working style per project, memory and rules mapping, explorer, planner, implementer, test-runner and reviewer agents, an Obsidian-ready Agent/ workspace outside the repo, and --project on every setup command for monorepo sub-projects with a harness of their own.",
   "author": { "name": "cognisphere contributors" },

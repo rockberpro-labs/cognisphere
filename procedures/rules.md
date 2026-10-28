@@ -45,7 +45,8 @@ Every rule's text and heading go in that language, the commit policy included �
   candidate. Reviewing rules that already exist — dead globs, duplicates, language — is
   `review-rules.md`.
 - **Module mode** (`/cognisphere:update <module>`) — only that area's rule: the read rule
-  over the note's `paths:`, plus what the area must obey. Read its memory note first; if
+  over the note's `paths:`, plus what the area must obey. Given `--note <path>`, that
+  note is the one: a note without `paths:` owes no rule. Read its memory note first; if
   there is none, `memory.md` in module mode writes it first, or ask the user whether to
   write the rule without one. Sections it needs: Language, Rule or memory note?, Read
   rules, Path-scoped rules, Report; skip the always-on rules and where candidates come
