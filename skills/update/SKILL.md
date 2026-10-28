@@ -1,7 +1,7 @@
 ---
 name: update
-description: Maintains an existing cognisphere harness - the .agents/ structure, settings and guards, the memory catalog (index, anti-drift rule, stale notes, dead or overlapping globs, domain declarations) and the rules (read rules, dead or too-broad globs, duplicates, new candidates) - and checks, without writing, the vault in ~/Cognisphere/Projects/ named after the project (when this user has one), the local configuration and the user-level settings that would run the guards twice. Use when the user asks to update, upgrade, review, audit, refresh or repair the agent harness, the .agents, the memory, the rules, the hooks/guards or the settings of a project that already has one, typically after upgrading the plugin or a long stretch of commits. Pass a module (a directory such as src/payments, a named module such as billing, or a feature that spans folders such as authentication) to map or deepen just that one, e.g. when a task enters code that has no note - ask before writing. Pass --note <path> (--note .agents/memory/payments.md) to deepen just that one note. Pass --project <dir> to maintain a sub-project's harness (a monorepo's frontend/ or backend/), optionally followed by a module inside it.
-argument-hint: "[--project <dir>] [module | --note <path>]"
+description: Maintains an existing cognisphere harness - the .agents/ structure, settings and guards, the memory catalog (index, anti-drift rule, stale notes, dead or overlapping globs, domain declarations) and the rules (read rules, dead or too-broad globs, duplicates, new candidates) - and checks, without writing, the vault in ~/Cognisphere/Projects/ named after the project (when this user has one), the local configuration and the user-level settings that would run the guards twice. Use when the user asks to update, upgrade, review, audit, refresh or repair the agent harness, the .agents, the memory, the rules, the hooks/guards or the settings of a project that already has one, typically after upgrading the plugin or a long stretch of commits. Pass a module (a directory such as src/payments, a named module such as billing, or a feature that spans folders such as authentication) to map or deepen just that one, e.g. when a task enters code that has no note - ask before writing. Pass --note <path> (--note .agents/memory/payments.md) to deepen just that one note. Pass --index to repair just the memory index, MEMORY.md (merge-conflict markers, broken links, missing lines), e.g. after a merge. Pass --project <dir> to maintain a sub-project's harness (a monorepo's frontend/ or backend/), optionally followed by a module inside it.
+argument-hint: "[--project <dir>] [module | --note <path> | --index]"
 ---
 
 # update
@@ -19,7 +19,7 @@ cd "$(git rev-parse --show-toplevel)" || exit 1   # not a git repo → stop and 
 
 **Repo layer left untouched** — `AGENTS.local.md` has `## Repo layer` (D30, D31) →
 passes 1–4 and § Module write what git tracks: skip them, say so in one line, and run
-passes 5–7 only. A module argument → stop: mapping writes `.agents/`, which this repo was
+passes 5–7 only. A module argument or `--index` → stop: mapping writes `.agents/`, which this repo was
 set up without; `/cognisphere:harness` adds the repo layer.
 
 **No vault** — `AGENTS.local.md` missing, or without `## Agent workspace` → this user has
@@ -35,7 +35,7 @@ only), run the chosen one (its skill, from step 0) and stop here.
 
 Arguments: `$ARGUMENTS`. A leading `--project <dir>` → § Sub-project, and what follows
 it is the module. Then: no module → the full review below; a module or `--note <path>` →
-§ Module. A bare argument is always a module: a file under `.agents/memory/` given
+§ Module; `--index` → § Index. A bare argument is always a module: a file under `.agents/memory/` given
 without `--note` → stop and offer `--note <path>`.
 
 ## Full review
@@ -54,12 +54,12 @@ do reports "nothing to do" in one line and the next one starts.
    `.agents/hooks/guard.sh` against the plugin's, its registration, agent-kit's
    one-guard-per-file copies (D37).
 3. **Memory — `review-memory.md`.** No `MEMORY.md` → run `memory.md` (bootstrap) instead.
-   - **Mandatory, written without asking:** index integrity (every link resolves, every
-     note has an index line, every note links back) and the anti-drift rule
+   - **Mandatory, written without asking:** index integrity (merge-conflict markers
+     resolved, every link resolves, every note has an index line, every note links back) and the anti-drift rule
      `rules/memory.md` (missing → the template, translated; present → what the template
      gained, and an obsolete `agent-kit:memory` pointer replaced). The report lists them.
-   - **Proposed, written on a yes:** stale notes against their diffs, dead or
-     overlapping globs, area notes without `paths:`, `kind:` declarations, language,
+   - **Proposed, written on a yes:** stale notes against their diffs, notes with
+     merge-conflict markers, dead or overlapping globs, area notes without `paths:`, `kind:` declarations, language,
      gaps.
 4. **Rules — `review-rules.md`.** No `rules/commit.md` → run `rules.md` (full pass)
    instead; it asks the commit policy.
@@ -113,7 +113,7 @@ procedures' own commands run in `dir`. No `.agents/` in `dir` → nothing to mai
 offer `/cognisphere:harness --project <tag>` (or `install`), run the chosen one and
 stop.
 
-A module after the flag → § Module, inside the sub-project. Otherwise the full review, with
+A module after the flag → § Module, `--index` → § Index, inside the sub-project. Otherwise the full review, with
 these changes:
 
 1. **Structure:** `scaffold.md` § Sub-projects; the sub-project's line in the root
@@ -146,9 +146,22 @@ sub-project's `.agents/`, globs relative to its folder:
 or to the sub-project's folder after `--project`) → that note is the one to deepen, and its `paths:` are the module; with no `paths:` (a conceptual note), its
 subject is, and it owes no read rule. Steps 1–2 work on that note and its read rule,
 never a sibling; step 3 does not apply. The file doesn't exist, or isn't under
-`.agents/memory/` → stop and say so. `MEMORY.md` → stop: it is the index, not a note;
-`/cognisphere:update` with no argument reviews it.
+`.agents/memory/` → stop and say so. `MEMORY.md` → stop: it is the index, not a note; offer `--index`, which repairs it.
 
 The vault and the local configuration are not touched or checked in this mode. Claude
 may run this on its own when a task enters a module with no note; it still asks before
 writing.
+
+## Index
+
+`/cognisphere:update --index` repairs `.agents/memory/MEMORY.md` and nothing else, e.g.
+after a merge left conflict markers in it (D48). After `--project <dir>`, the
+sub-project's. No `MEMORY.md` → stop: there is no index to repair; `/cognisphere:update`
+with no argument maps the memory.
+
+Run `review-memory.md` check 2 (index integrity) alone, without asking: it is the memory
+contract, written without asking in the full review too. The notes themselves are not
+edited, save a missing back-to-index line; a note with conflict markers is listed, with
+`/cognisphere:update` (check 5) to merge it. Stage `MEMORY.md` and the notes that got a
+back link by name, then report what changed. No other pass runs: no settings, rules,
+vault or configuration.

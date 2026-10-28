@@ -7,7 +7,7 @@ Two kinds of finding, and they are handled differently:
 
 - **Mandatory** (checks 1–2) — the memory contract: index integrity and the anti-drift
   rule. They carry no policy, so fix them **without asking** and list them in the report.
-- **Proposed** (checks 3–8) — everything else. **Ask before writing**, with the list of
+- **Proposed** (checks 3–9) — everything else. **Ask before writing**, with the list of
   findings and the fix proposed for each; write on a yes.
 
 **Sub-project** (`--project <dir>`, `scaffold.md` § Sub-projects) → that folder is the
@@ -39,7 +39,10 @@ write goes in it.
      older pointer "Procedure and note format: `/cognisphere:update <area>`" or the
      paragraph that named `<area>` (in any language) → replace it with the template's closing paragraph, translated.
 
-2. **Index integrity.** Every link in `MEMORY.md` resolves; every note in `memory/` is
+2. **Index integrity.** First, merge-conflict markers (`<<<<<<<`, `=======`, `>>>>>>>`)
+   in `MEMORY.md` → resolve them: keep the union of both sides' lines, in their sections,
+   one line per note (two hooks for the same note → the one that matches the note, or
+   one rewritten from it), and drop the markers. Then: every link in `MEMORY.md` resolves; every note in `memory/` is
    linked from the index (an orphan is never found); every note links back to the
    index. Broken link → fix the link, or drop the line when the note is gone; orphan →
    add a line in the right section with a hook (written from the note, the way
@@ -80,21 +83,25 @@ Run all of them, then report once. Each finding: note, what is wrong, proposed f
    and the fix goes into the doc. A `doc:` that no longer exists → the pointer is dead:
    find where the doc went, or propose turning the pointer into a regular note.
 
-5. **Area notes without `paths:`.** A note that describes a directory or module
+5. **Conflicted notes.** Merge-conflict markers in a note → its two sides, read against
+   the code its `paths:` cover; propose the merged note. Unlike the index, the sides can
+   disagree on what the code does.
+
+6. **Area notes without `paths:`.** A note that describes a directory or module
    (`module-*`, a jobs/integration note) but has no frontmatter is invisible to the
    guard and gets no read rule. Propose the globs.
 
-6. **Domain declaration.** The domain rules follow `kind: domain` in a note's
+7. **Domain declaration.** The domain rules follow `kind: domain` in a note's
    frontmatter, not its filename. A `domain-*.md` without it → add `kind: domain`
    (the name already said so; no need to ask). Notes that `domains.md` links to as
    domains with no `kind:` → list them and ask which are domains; write `kind: domain`
    or `kind: module` on the answer, so the question is not asked again. Nothing to ask
    when `domains.md` maps a single domain.
 
-7. **Language.** A note, heading or index line not in the declared language → list it
+8. **Language.** A note, heading or index line not in the declared language → list it
    and offer to translate (it is a rewrite). Glossary *terms* stay as the code names them.
 
-8. **Gaps.** Foundation notes the index promises but that do not exist, or an area with
+9. **Gaps.** Foundation notes the index promises but that do not exist, or an area with
    heavy recent activity (`git log --since=6.months --name-only`) and no note → do not
    write them here: list them and offer `/cognisphere:update <module>`.
 
