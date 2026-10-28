@@ -4,6 +4,16 @@ What changed in each release of cognisphere. Versions follow
 [semver](https://semver.org/); the reasoning behind each change is in
 [docs/decisions.md](docs/decisions.md), referenced as `Dnn`.
 
+## 0.23.4 — 2026-10-28
+
+### Fixed
+
+- `/cognisphere:update` no longer treats a clone as vault-only when cognisphere's
+  harness was committed after its vault was set up (D50). A `## Repo layer` section in
+  `AGENTS.local.md` next to a cognisphere anti-drift rule is now reported as stale, with
+  `/cognisphere:harness` to move the local configuration over, instead of stopping
+  `--catalog`, `--index`, `--note` and module runs as if `.agents/` didn't exist.
+
 ## 0.23.3 — 2026-10-28
 
 ### Added

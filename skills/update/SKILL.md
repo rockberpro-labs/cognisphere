@@ -19,8 +19,19 @@ cd "$(git rev-parse --show-toplevel)" || exit 1   # not a git repo → stop and 
 
 **Repo layer left untouched** — `AGENTS.local.md` has `## Repo layer` (D30, D31) →
 passes 1–4 and § Module write what git tracks: skip them, say so in one line, and run
-passes 5–7 only. A module argument, `--index` or `--catalog` → stop: mapping writes `.agents/`, which this repo was
-set up without; `/cognisphere:harness` adds the repo layer.
+passes 5–7 only. A module argument, `--note`, `--index` or `--catalog` → stop: they
+write `.agents/`, which this repo was set up without; `/cognisphere:harness` adds the
+repo layer.
+
+**Stale `## Repo layer`** — the section is there, yet `.agents/rules/memory.md` names
+`/cognisphere:update`: cognisphere's harness reached the repo after the vault was set up
+(a teammate committed it, or a pull brought it), and the section only records how this
+clone started (D50). Any argument, and the full review too: stop before writing and say
+so, naming the harness found. Offer `/cognisphere:harness`: on a repo that has the
+layer it writes nothing git tracks that is already there, and its step 4
+(`scripts/repo-layer.sh`) removes the section, drops the `.git/info/exclude` lines
+`.gitignore` now covers and moves `.claude/settings.local.json` into `.agents/`. Then
+rerun the same command. Never ask the user to edit `AGENTS.local.md` by hand.
 
 **No vault** — `AGENTS.local.md` missing, or without `## Agent workspace` → this user has
 no vault, by choice or not yet (D31): not a defect. Pass 5 and the local-configuration
