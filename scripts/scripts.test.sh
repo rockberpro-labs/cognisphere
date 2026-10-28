@@ -200,5 +200,39 @@ out="$(bash "$S/subprojects.sh")"
 ok "subprojects lists them"           'printf "%s\n" "$out" | grep -qx "frontend	same-repo	harness" && printf "%s\n" "$out" | grep -qx "backend	own-repo	harness" && printf "%s\n" "$out" | grep -qx "docs-site	same-repo	candidate"'
 ok "subprojects skips the root"       '! printf "%s\n" "$out" | grep -q "^\.\|^	"'
 
+# style.sh (D46): the working-style switch, in the root's AGENTS.local.md.
+styles="$S/../templates/styles"
+out="$(cd backend && bash "$S/style.sh" auto --replace)"; r=$?
+ok "style: own-repo switches the root's" '[ $r = 0 ] && printf "%s" "$out" | grep -qx "file    $m/AGENTS.local.md" && grep -qF "$(cat "$styles/auto.md")" AGENTS.local.md && [ ! -e backend/AGENTS.local.md ]'
+out="$(bash "$S/style.sh" auto)"
+ok "style: same style is unchanged"   'printf "%s" "$out" | grep -qx "unchanged auto"'
+bash "$S/style.sh" nope >/dev/null 2>&1; r=$?
+ok "style: unknown style is usage"    '[ $r = 2 ]'
+st="$tmp/style-switch"; mkdir -p "$st" && cd "$st" && git init -q || exit 1
+bash "$S/scaffold.sh" >/dev/null
+out="$(bash "$S/style.sh" copilot)"; r=$?
+ok "style: harness-only creates the file" '[ $r = 0 ] && printf "%s" "$out" | grep -qx "switched none -> copilot" && [ "$(grep -c "^## " AGENTS.local.md)" = 1 ] && grep -qxF "$(cat "$styles/copilot.md")" AGENTS.local.md && [ -L CLAUDE.local.md ]'
+ok "style: .gitignore covers it"      '[ -z "$(git status --porcelain -- AGENTS.local.md CLAUDE.local.md)" ] && ! grep -q "^/" .git/info/exclude'
+out="$(bash "$S/style.sh" tutor)"
+ok "style: copilot -> tutor"          'printf "%s" "$out" | grep -qx "switched copilot -> tutor" && grep -qxF "$(cat "$styles/tutor.md")" AGENTS.local.md && ! grep -qF "The maintainer drives." AGENTS.local.md'
+printf '# Mine\n\n## Working style\n\nThe agent writes and edits code when asked, following the project'"'"'s rules,\nand proposes before large or risky changes.\n\n- Keep replies short.\n\n## Agent workspace\n\n- x\n' > AGENTS.local.md
+out="$(bash "$S/style.sh" auto)"
+ok "style: retired author, own lines kept" 'printf "%s" "$out" | grep -qx "switched author -> auto" && grep -qxF "$(cat "$styles/auto.md")" AGENTS.local.md && grep -qx -- "- Keep replies short." AGENTS.local.md && grep -qx "## Agent workspace" AGENTS.local.md && ! grep -q "proposes before large" AGENTS.local.md'
+printf '# Mine\n\n## Working style\n\nPair with me.\n\n## Agent workspace\n\n- x\n' > AGENTS.local.md
+cp AGENTS.local.md "$tmp/custom.md"
+bash "$S/style.sh" auto >/dev/null 2>&1; r=$?
+ok "style: custom text stops, untouched" '[ $r = 3 ] && cmp -s AGENTS.local.md "$tmp/custom.md"'
+out="$(bash "$S/style.sh" auto --replace)"
+ok "style: --replace swaps the section" 'printf "%s" "$out" | grep -qx "switched custom -> auto" && ! grep -q "Pair with me." AGENTS.local.md && [ "$(sed -n "/^## Agent workspace/=" AGENTS.local.md)" = "$(( $(grep -nxF "$(cat "$styles/auto.md")" AGENTS.local.md | cut -d: -f1) + 2 ))" ]'
+printf '# Mine\n\n## Agent workspace\n\n- x\n' > AGENTS.local.md
+bash "$S/style.sh" tutor >/dev/null
+ok "style: missing section goes first" '[ "$(grep "^## " AGENTS.local.md | tr "\n" "|")" = "## Working style|## Agent workspace|" ]'
+st="$tmp/style-plain"; mkdir -p "$st" && cd "$st" && git init -q || exit 1
+bash "$S/style.sh" tutor >/dev/null
+ok "style: no harness, ignored by exclude" '[ -z "$(git status --porcelain)" ] && grep -qx /AGENTS.local.md .git/info/exclude && [ "$(tail -c1 AGENTS.local.md | od -An -c | tr -d " ")" = "\n" ]'
+git config user.email t@t && git config user.name t && git add -f AGENTS.local.md && git commit -qm local
+bash "$S/style.sh" auto >/dev/null 2>&1; r=$?
+ok "style: tracked file stops"        '[ $r = 4 ] && grep -qxF "$(cat "$styles/tutor.md")" AGENTS.local.md'
+
 echo "failures=$fails"
 [ "$fails" -eq 0 ]

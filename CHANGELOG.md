@@ -4,6 +4,26 @@ What changed in each release of cognisphere. Versions follow
 [semver](https://semver.org/); the reasoning behind each change is in
 [docs/decisions.md](docs/decisions.md), referenced as `Dnn`.
 
+## 0.23.0 — 2026-10-28
+
+### Added
+
+- `/cognisphere:auto`, `/cognisphere:copilot` and `/cognisphere:tutor` switch the
+  project's working style in `AGENTS.local.md`, from that reply on. Lines of your own
+  under § Working style stay; a section of your own is shown before it is replaced. A
+  harness-only repo gets an `AGENTS.local.md` with just that section, git ignored.
+- Seeded vaults name the switches in Home and the Vault Guide. Existing vault notes
+  aren't rewritten.
+
+### Changed
+
+- The working styles are **auto**, **copilot** and **tutor** (D46). Auto replaces
+  author: the agent takes a goal, breaks it into subtasks, decides, implements and
+  verifies without asking at each step, and stops only when the goal is unclear or before
+  a destructive or outward-facing action. The texts live in `templates/styles/`.
+- `/cognisphere:vault` (and install) asks auto, copilot or tutor.
+- `/cognisphere:update` reports an `AGENTS.local.md` still holding the Author text.
+
 ## 0.22.0 — 2026-10-27
 
 ### Changed

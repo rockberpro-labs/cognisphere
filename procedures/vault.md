@@ -15,7 +15,7 @@ user without one has none of these files, and `update` treats that as a choice (
 Who reads what:
 
 - `/cognisphere:vault` reads this file: § Names, § Working style, § Seed, § Configure,
-  § Fill. So does `/cognisphere:install`, after `/cognisphere:harness`. Both
+  § Fill. The style switches (`/cognisphere:auto`, `:copilot`, `:tutor`) read `style.md`. So does `/cognisphere:install`, after `/cognisphere:harness`. Both
   only **create what is missing**: it never modifies an existing vault file,
   and touches an existing local file only to add what that file lacks.
 - `/cognisphere:update` reads `vault-check.md` only, and **never writes** under
@@ -47,20 +47,20 @@ the `<project>` every script below gets (`vault-check.md` accepts it later).
 
 ## Working style
 
-Asked once, at install. The answer is written, word for word, into `AGENTS.local.md`
-§ Working style, its only home: the vault points there.
+Asked at install. The texts are defined once, in `<plugin>/templates/styles/`, and
+written, word for word, into `AGENTS.local.md` § Working style, their only home: the
+vault points there. `/cognisphere:auto`, `/cognisphere:copilot` and `/cognisphere:tutor`
+switch it later (`style.md`, D46).
 
-- **Author:** "The agent writes and edits code when asked, following the project's rules,
-  and proposes before large or risky changes."
-- **Copilot:** "The maintainer drives. Help when asked — answer, explain, review,
-  suggest — and don't edit repo files unprompted. When the maintainer hands a task over,
-  take the wheel: implement it as an author would, following the project's rules and
-  proposing before large or risky changes, then hand the wheel back."
-- **Tutor, not author:** "The maintainer writes the code to learn. Explain trade-offs,
-  review, catch what a second reviewer would, sketch diffs — but the maintainer
-  implements. Don't edit repo files unless explicitly asked."
+- **Auto** (`auto.md`): the agent takes a goal and owns the way there — plans,
+  decides, implements and verifies without approval at each step, asking only when the
+  goal is unclear or before a destructive or outward-facing action.
+- **Copilot** (`copilot.md`): the maintainer drives; the agent helps when asked, and
+  takes the wheel only for a task handed over.
+- **Tutor** (`tutor.md`): the maintainer writes the code to learn; the agent explains,
+  reviews and sketches diffs, and edits repo files only when asked.
 
-Write the chosen text to a file in the scratchpad: § Configure reads it from there.
+The question quotes the three files. The chosen file is § Configure's `<style-file>`.
 
 ## Seed
 

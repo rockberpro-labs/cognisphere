@@ -110,13 +110,16 @@ covers only the areas the agent has worked in: a log of what it saw, not an audi
 
 ### Working style
 
-Install asks whether the agent is your **author** (writes code when asked, proposes
-before large or risky changes), your **copilot** (you drive; it answers, reviews and
-suggests when asked, and writes the code only for a task you hand over, then hands the
-wheel back) or your **tutor** (you write the code to learn; it
-explains trade-offs, reviews and sketches diffs, and doesn't edit repo files unless
-asked). The answer lives in `AGENTS.local.md`, so two people on one repo can choose
-differently.
+Install asks whether the agent works on **auto** (you give the goal; it breaks it into
+subtasks, decides, implements and verifies without asking at each step, and stops only
+when the goal is unclear or before a destructive or outward-facing action), as your
+**copilot** (you drive; it answers, reviews and suggests when asked, and writes the code
+only for a task you hand over, then hands the wheel back) or as your **tutor** (you write
+the code to learn; it explains trade-offs, reviews and sketches diffs, and doesn't edit
+repo files unless asked). The texts are in `templates/styles/`. The answer lives in
+`AGENTS.local.md`, so two people on one repo can choose differently, and each project
+keeps its own. `/cognisphere:auto`, `/cognisphere:copilot` and `/cognisphere:tutor`
+switch it (see § Commands).
 
 ### Who maintains it
 
@@ -139,6 +142,9 @@ differently.
 /cognisphere:vault                   # only your vault and its local configuration
 /cognisphere:update [module]           # maintains the harness; with a module, maps just that one
 /cognisphere:read <note> [request]   # reads a vault note you copied in Obsidian
+/cognisphere:auto                    # working style: you give the goal, the agent drives
+/cognisphere:copilot                 # working style: you drive, the agent helps
+/cognisphere:tutor                   # working style: you write the code, the agent teaches
 ```
 
 Each setup command also takes `--project <dir>` for a sub-project, e.g.
@@ -232,6 +238,17 @@ says about the code against the code, then does the request
 (`/cognisphere:read Human/draft.md plan phase 1`), or, with none, says what it read and
 what the code contradicts, and asks. It never writes the note, and only you run it.
 
+### `/cognisphere:auto`, `/cognisphere:copilot`, `/cognisphere:tutor`
+
+Switch the working style of the project you run them in, from that reply on. Each
+writes its text into `AGENTS.local.md` § Working style, the root's even from a
+sub-project, since that is the file that loads, and records the switch in the vault's
+Log when you have one. Lines of your own under the heading stay; a section holding only
+text of your own is shown to you before anything replaces it. In a repo with no
+`AGENTS.local.md` (harness only, no vault), it creates one with just that section, git
+ignored. Only you run them: the agent never switches its own style. Installs before
+v0.23.0 that chose **author** keep its text until you switch; `/cognisphere:update`
+reports it.
 ## Sub-projects
 
 A monorepo often gives each part its own instructions: `frontend/CLAUDE.md` with the
@@ -446,7 +463,8 @@ the code names them. Filenames stay English everywhere.
 - **`skills/`** — `harness`, `vault` and `update`, each running the steps in its
   `SKILL.md` and reading procedures from `procedures/` on demand (`scaffold`, `memory`,
   `rules`, `review-settings`, `review-memory`, `review-rules`, `vault`, `vault-check`);
-  `install`, which runs `harness` then `vault`; `read`, with no procedure.
+  `install`, which runs `harness` then `vault`; `read`, with no procedure; `auto`,
+  `copilot` and `tutor`, which share the `style` procedure.
 - **`hooks/`** — `guard.sh` (the source `/cognisphere:harness` copies into each repo; the
   plugin doesn't run it), and the vault's hooks the plugin runs: `session-log.sh`, `session-start.sh`, `scratch-first.sh`, `scratch-redirect.sh`, `plan-mirror.sh`, with `vault-of.sh` (the nearest `AGENTS.local.md`'s vault, for all five), and one test per guard and hook.
 - **`agents/`** — `cognisphere:explorer` (read-only investigator; the memory passes fan
@@ -462,10 +480,12 @@ the code names them. Filenames stay English everywhere.
   `coupling.sh` (how often an area's commits already touch the doc a pointer note adopts),
   `user-settings.pl` (what in the user-level settings runs a guard twice), `guards.sh`
   (copies the guard into a repo and registers it with the team's flags), `target.sh`
-  (the root, or the sub-project `--project` names, and its layout) and
-  `subprojects.sh` (the sub-projects below the root, and the candidates).
+  (the root, or the sub-project `--project` names, and its layout),
+  `subprojects.sh` (the sub-projects below the root, and the candidates) and `style.sh`
+  (the working-style switch).
 - **`templates/`** — `settings.json`, `rules/memory.md` (the anti-drift rule),
-  `settings.local.json` and `AGENTS.local.md` (the local configuration), and `vault/`
+  `settings.local.json` and `AGENTS.local.md` (the local configuration), `styles/` (the
+  three working styles), and `vault/`
   (the root and `Shared/` READMEs, `Human/README.md`, one template per `Agent/` note).
 - **`evals/`** — `claude plugin eval` fixtures for the memory and rules passes.
 
