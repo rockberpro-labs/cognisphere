@@ -41,9 +41,9 @@ Then ask **one round of questions, before writing anything**, in the user's lang
 - **Project name and vault path** — `~/Cognisphere/Projects/<project>/`. The folder
   exists and this repo's local configuration does not point at it → another repo may own
   it: reuse it, or pick another name.
-- **Working style** — author, copilot or tutor (`vault.md` § Working style), quoting the
-  three texts.
-  Skip it when `AGENTS.local.md` already has `## Working style`.
+- **Working style** — auto, copilot or tutor (`vault.md` § Working style), quoting the
+  three texts. Skip it when `AGENTS.local.md` already has `## Working style`:
+  `/cognisphere:auto`, `/cognisphere:copilot` and `/cognisphere:tutor` change it.
 - **What will be created** — the vault tree and the three local files, each marked
   "create" or "exists, kept", plus the `.git/info/exclude` lines when untouched. Nothing
   in the repo.
@@ -70,8 +70,9 @@ is written only here, before step 2's deny rule exists.
 
 ## 2. Local configuration — `vault.md` § Configure
 
-`scripts/configure.sh <project> <style-file>`. Exit 4 → git tracks one of the three
-files: nothing was written; report it and stop.
+`scripts/configure.sh <project> <style-file>`, the style file being
+`${CLAUDE_PLUGIN_ROOT}/templates/styles/<style>.md`. Exit 4 → git tracks one of the
+three files: nothing was written; report it and stop.
 
 ## 3. Record the run in `Agent/` — `vault.md` § Fill
 

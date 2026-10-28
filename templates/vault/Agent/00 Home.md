@@ -14,7 +14,7 @@ Repo: `{{repo}}`
 
 ## Ground rules
 - This vault holds only what nothing else holds ([[Vault Guide]] § 1). `AGENTS.md`, `.agents/` and git are already at hand: never copy them here.
-- Role: `AGENTS.local.md` § Working style.
+- Role: `AGENTS.local.md` § Working style (auto, copilot or tutor; the maintainer switches it with `/cognisphere:auto`, `:copilot` or `:tutor`).
 - Write only in `Agent/`. `../Human/` is the maintainer's: read it, never write it, don't summarise it unless asked.
 - When sources disagree: **code** > `AGENTS.md` > `.agents/memory/` > this vault > `docs/`.
 

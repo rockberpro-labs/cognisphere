@@ -130,7 +130,8 @@ keeps the templates, the Vault Guide and the checks aligned.
 
 *2026-10-25, v0.1.0*
 
-Superseded in part by D39: a third style, **copilot**.
+Superseded in part by D39: a third style, **copilot**; and by D46: **author** became
+**auto**, and the style can be switched.
 
 **Decision.** Install asks whether the agent is an **author** or a **tutor**. The answer
 is written into `AGENTS.local.md` § Working style and the Working Agreement's Roles. Both
@@ -990,6 +991,9 @@ Findings too (it is read on demand, not injected) and a Log note per sub-project
 
 *2026-10-27, v0.17.0*
 
+Superseded in part by D46: author became auto, and switching the standing style is a
+command.
+
 **Decision.** Install offers a third working style between author and tutor, defined in
 `procedures/vault.md` § Working style with the other two:
 
@@ -1163,3 +1167,51 @@ nobody authored in a vault whose only writer is the agent. Flagging "unrelated" 
 "noticed" alone: on real transcripts they mostly describe the task ("an unrelated
 commit on this branch"), so a weak cue needs a word for what is wrong. Detecting a Bash
 write from the transcript: D43's mtime check already sees it.
+
+## D46. Auto replaces author, and three commands switch the style
+
+*2026-10-28, v0.23.0*
+
+Supersedes D7's author style, and refines D39's rejection of switching styles.
+
+**Decision.** The working styles are **auto**, **copilot** and **tutor**, each defined
+once in `templates/styles/<style>.md`. Install asks for one (`vault.md` § Working style
+quotes the files and passes the chosen one to `configure.sh`), and
+`/cognisphere:auto`, `/cognisphere:copilot` and `/cognisphere:tutor` switch it later,
+through `procedures/style.md` and `scripts/style.sh`:
+
+- **Auto:** "The maintainer gives the goal; the agent owns the way there. Break it into
+  subtasks, decide, implement and verify without asking for approval at each step,
+  following the project's rules. Stop and ask only when the goal is ambiguous, or before
+  an action that is destructive, hard to reverse or reaches outside the repo (a push, a
+  deploy, a message). At the end, report what was done, what was decided and why, and
+  what was not verified."
+
+The switch writes the nearest `AGENTS.local.md` from the git root up, the one that
+loads, so a sub-project switches the root's. It swaps only a known text (the three, or
+the retired Author, matched across line wraps) and keeps the maintainer's own lines
+around it; a section holding none of them is shown and replaced only on a yes
+(`--replace`). With no `AGENTS.local.md` (a harness-only repo), it creates one with only
+§ Working style, links `CLAUDE.local.md` and ignores both through `.git/info/exclude`
+when `.gitignore` doesn't. The new style applies from the command's reply on, and the
+switch goes in the Log when there is a vault. The commands run only when the maintainer
+types them. `update` reports a section still holding the Author text.
+
+**Why.** Author sat between copilot and a fully autonomous agent: it wrote code when
+asked but proposed before each large change, so a maintainer who wanted to hand over a
+goal had no style for it, and one who wanted to keep control had copilot. Auto fills
+the gap; three styles with distinct jobs are easier to choose between than four that
+overlap. The style was asked once and changeable only by editing a file whose section
+also had to match update's checks; a maintainer's need changes with the project's phase
+(learning a codebase, then shipping in it), so the switch is a command, one per style,
+named after what it does. D39 rejected switching to hand over a single task; a switch
+here changes the standing choice, which is what D7 put in the local file.
+
+**Rejected.** Keeping author as a fourth style: it overlaps auto and copilot. One
+`/cognisphere:style <name>` command: one command per variant says what it does
+(as D31 did for `harness` and `vault`). Claude Code's output styles: they work in
+Claude Code only, take the single output-style slot the maintainer may already use, and
+replace part of the system prompt where `AGENTS.local.md` adds to it. Enforcing tutor and
+copilot with deny rules in `settings.local.json`: a tutor sometimes edits on request, and
+a deny rule can't tell. Rewriting existing Author sections at upgrade: the file is the
+maintainer's, and `update` never writes it.

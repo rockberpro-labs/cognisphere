@@ -29,7 +29,7 @@ MIT licensed · Claude Code on Linux, macOS and Windows (Git Bash).
 | **Memory catalog** | `AGENTS.md` + `.agents/memory/` notes with the *why*, kept in sync with the code at commit time |
 | **Rules** | `.agents/rules/`: short instructions the harness injects when the agent reads a matching file |
 | **Vault** | `Agent/` (open threads, findings, log, scratch) and `Human/` (your notes, read-only to the agent); `Shared/` across projects |
-| **Commands** | `/cognisphere:install` (= `harness` + `vault`), `/cognisphere:update [module]`, `/cognisphere:read <note>` |
+| **Commands** | `/cognisphere:install` (= `harness` + `vault`), `/cognisphere:update [module]`, `/cognisphere:read <note>`, `/cognisphere:auto` / `copilot` / `tutor` |
 | **Agents** | explorer, planner, implementer, test-runner, reviewer |
 
 ## Quick start
@@ -143,9 +143,11 @@ conventions; what's left is the agent's own:
   own scratchpad and plans, so backing up the vault backs up the work.
 
 Your notes go in `Human/` (this project) or `Shared/` (every project). The agent reads
-them and never writes them. Install also asks whether the agent is your **author** (it
-writes the code), your **copilot** (you drive; it helps when asked and takes the wheel
-when you hand it over) or your **tutor** (you write it; it explains and reviews).
+them and never writes them. Install also asks whether the agent works on **auto** (you
+give the goal; it plans, implements and verifies on its own), as your **copilot** (you
+drive; it helps when asked and takes the wheel when you hand it over) or as your
+**tutor** (you write it; it explains and reviews). `/cognisphere:auto`, `:copilot` and
+`:tutor` switch it later, per project.
 
 **Back it up.** The vault isn't in git and cognisphere never syncs it; add
 `~/Cognisphere` to a sync client, Obsidian Sync, Syncthing or a scheduled copy.
@@ -159,6 +161,9 @@ when you hand it over) or your **tutor** (you write it; it explains and reviews)
 /cognisphere:vault                   # only your vault and its local configuration
 /cognisphere:update [module]           # maintains the harness; with a module, maps just that one
 /cognisphere:read <note> [request]   # reads a vault note you copied in Obsidian
+/cognisphere:auto                    # working style: you give the goal, the agent drives
+/cognisphere:copilot                 # working style: you drive, the agent helps
+/cognisphere:tutor                   # working style: you write the code, the agent teaches
 ```
 
 Each setup command also takes `--project <dir>` for a sub-project, e.g.

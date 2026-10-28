@@ -54,7 +54,7 @@ What is left is the agent's own: open threads, what it noticed along the way, ho
 | [[History]] | dated events git doesn't record (a deploy, an incident, a decision made outside a commit), grouped by month, newest first | such an event happens |
 | [[Preferences]] | how the maintainer wants the agent to work (corrections and approaches they confirmed, each with its reason) and what the agent should know about them to work well (expertise, what they own); what Claude Code's auto-memory would otherwise keep | the maintainer corrects the agent or confirms an approach in a way meant to hold beyond the task. Rewrite an item when it changes; the Log keeps the moment it was said |
 
-[[Preferences]] is current by definition: the Log records a correction when it happens, Preferences holds the standing rule. The role set at install stays in `AGENTS.local.md` § Working style; a preference the maintainer wants enforced in every session goes there too, and only the maintainer edits that file.
+[[Preferences]] is current by definition: the Log records a correction when it happens, Preferences holds the standing rule. The role stays in `AGENTS.local.md` § Working style, set at install and switched only by the maintainer (`/cognisphere:auto`, `:copilot`, `:tutor`), never on your own; a preference the maintainer wants enforced in every session goes there too, and only the maintainer edits that file.
 
 When the repo keeps its own plan, TODO or issue file, that file owns its items: [[Open Threads]] and [[Findings]] link it and hold only what it doesn't.
 

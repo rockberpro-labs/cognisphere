@@ -138,7 +138,10 @@ it (`names.sh <name>` prints its paths).
    kept about the maintainer. A Scratch line without `rewrite that part in place` (added
    in v0.19.0) → report the template's line: without it the agent appends revisions to
    its plan note, and the note stops reading as the current plan. No `## Working style`
-   section → report.
+   section → report, with `/cognisphere:auto`, `:copilot` or `:tutor` to add it. A
+   section holding the Author text (`The agent writes and edits code when asked…`, retired
+   in v0.23.0) → report that Author became Auto (D46): `/cognisphere:auto` swaps it, or
+   `/cognisphere:copilot` to keep proposing before each change.
 4. **`CLAUDE.local.md`** must be a symlink to `AGENTS.local.md`
    (`[ -L CLAUDE.local.md ] && [ "$(readlink CLAUDE.local.md)" = AGENTS.local.md ]`).
    Missing → `/cognisphere:vault` creates it; a regular file or another target → report.

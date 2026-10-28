@@ -5,11 +5,11 @@
 # apply. Own-repo: only settings.local.json, in the sub-project, since Claude Code reads
 # it from the git root; CLAUDE.local.md loads from the folder above.
 # Creates the three local files or adds what they lack; never rewrites what is there.
-# <style-file> holds the working style text, word for word. When the repo layer is not
-# cognisphere's (names.sh repo_layer=untouched; D30, D31): settings.local.json goes where
-# Claude Code reads it (.claude/, followed through a link), AGENTS.local.md gains
-# § Repo layer, and every file is ignored through .git/info/exclude, so git status shows
-# nothing new.
+# <style-file> holds the working style text, word for word: templates/styles/<style>.md.
+# When the repo layer is not cognisphere's (names.sh repo_layer=untouched; D30, D31):
+# settings.local.json goes where Claude Code reads it (.claude/, followed through a link),
+# AGENTS.local.md gains § Repo layer, and every file is ignored through .git/info/exclude,
+# so git status shows nothing new.
 # Exit 0 done, 2 settings.local.json is not valid JSON (left untouched), 3 a regular
 # CLAUDE.local.md sits next to AGENTS.local.md (ask, then rerun), 4 untouched and git
 # tracks one of the three files (nothing written), 1 a symlink could not be made,
