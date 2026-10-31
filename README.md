@@ -21,17 +21,6 @@ Cognisphere fixes that in two layers:
 
 MIT licensed · Claude Code on Linux, macOS and Windows (Git Bash).
 
-## What you get
-
-| | |
-|---|---|
-| **Guards** | `master-guard`, `secret-guard`, `memory-drift-guard`: one Bash hook the repo carries, so they run for the whole team, plugin or not |
-| **Memory catalog** | `AGENTS.md` + `.agents/memory/` notes with the *why*, kept in sync with the code at commit time |
-| **Rules** | `.agents/rules/`: short instructions the harness injects when the agent reads a matching file |
-| **Vault** | `Agent/` (open threads, findings, log, scratch) and `Human/` (your notes, read-only to the agent); `Shared/` across projects |
-| **Commands** | `/cognisphere:install` (= `harness` + `vault`), `/cognisphere:update [module \| --note <path> \| --index \| --catalog]`, `/cognisphere:read <note>`, `/cognisphere:auto` / `copilot` / `tutor` |
-| **Agents** | explorer, planner, implementer, test-runner, reviewer |
-
 ## Quick start
 
 Inside Claude Code, once per machine:
@@ -51,6 +40,17 @@ Then, in each project, run `/cognisphere:install` and restart the session.
   runs `/cognisphere:vault`.
 - **Updating:** `/plugin marketplace update cognisphere`, then restart the session.
 - **On Windows**, read [GUIDE.md § Windows](GUIDE.md#windows) first.
+
+## What you get
+
+| | |
+|---|---|
+| **Guards** | `master-guard`, `secret-guard`, `memory-drift-guard`: one Bash hook the repo carries, so they run for the whole team, plugin or not |
+| **Memory catalog** | `AGENTS.md` + `.agents/memory/` notes with the *why*, kept in sync with the code at commit time |
+| **Rules** | `.agents/rules/`: short instructions the harness injects when the agent reads a matching file |
+| **Vault** | `Agent/` (open threads, findings, log, scratch) and `Human/` (your notes, read-only to the agent); `Shared/` across projects |
+| **Commands** | `/cognisphere:install` (= `harness` + `vault`), `/cognisphere:update [module \| --note <path> \| --index \| --catalog]`, `/cognisphere:read <note>`, `/cognisphere:auto` / `copilot` / `tutor` |
+| **Agents** | explorer, planner, implementer, test-runner, reviewer |
 
 ## How it fits together
 
