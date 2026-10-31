@@ -37,7 +37,7 @@ MIT licensed · Claude Code on Linux, macOS and Windows (Git Bash).
 Inside Claude Code, once per machine:
 
 ```
-/plugin marketplace add rockberpro/cognisphere
+/plugin marketplace add rockberpro-labs/cognisphere
 /plugin install cognisphere@cognisphere
 /reload-plugins
 ```
