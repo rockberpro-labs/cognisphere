@@ -4,6 +4,15 @@ What changed in each release of cognisphere. Versions follow
 [semver](https://semver.org/); the reasoning behind each change is in
 [docs/decisions.md](docs/decisions.md), referenced as `Dnn`.
 
+## 0.23.7 — 2026-11-01
+
+### Fixed
+
+- The vault hooks no longer act in a repo that was never set up for a vault. A repo
+  under a folder with a configured `AGENTS.local.md` used to inherit that vault; it now
+  does so only when its own `.agents/settings.local.json` (or `.claude/`) points at it,
+  as `/cognisphere:vault --project` writes (D51).
+
 ## 0.23.6 — 2026-11-01
 
 ### Fixed

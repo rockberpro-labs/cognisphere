@@ -937,7 +937,7 @@ local file: Claude Code reads `settings.local.json` from the git root and
 `CLAUDE.local.md` from the folders above the session's. An own-repo sub-project gets
 `.agents/settings.local.json` pointing at the root's vault. The vault hooks look for the
 nearest `AGENTS.local.md` from the session's repo upwards, so they find the root's from
-an own-repo sub-project.
+an own-repo sub-project. Only when that settings file points at the vault (D51).
 
 **Why.** Claude Code reads `settings.json` only from the folder a session starts in,
 with no fallback to a parent (checked: a session started in `frontend/` ran only
@@ -1308,3 +1308,24 @@ still be the untouched one (settings outside `.agents/`, exclude lines), and `up
 would write over a split record. Removing it inside `update`: the move is `harness`'s
 job (D31), and `update` never writes the local configuration.
 
+
+## D51. Vault hooks act only where a vault is set up
+
+*2026-11-01, v0.23.7*
+
+**Decision.** `vault_of` (`hooks/vault-of.sh`) takes a vault found in a folder above the
+session's repo only when that repo's own local settings point at it:
+`.agents/settings.local.json` or `.claude/settings.local.json` names
+`Projects/<the vault's folder>`, which is what `/cognisphere:vault --project` writes
+(D38). A repo with no such file, or one naming another project, gets no vault, and all
+five vault hooks stay silent in it. The repo's own `AGENTS.local.md` still counts as it
+did.
+
+**Why.** The walk up for D38's own-repo sub-projects had no condition: any repo cloned
+or created under a configured root inherited its vault. There the Stop hook blocked
+stops, `scratch-redirect` refused writes and `plan-mirror` copied plans into a project
+the repo had nothing to do with, none of it set up by the user.
+
+**Rejected.** Dropping the walk up: own-repo sub-projects would lose the root's vault
+(D38). Stopping at the repo root and copying `AGENTS.local.md` into each sub-project:
+`--project` deliberately writes no `AGENTS.local.md` there.

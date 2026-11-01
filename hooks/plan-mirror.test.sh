@@ -48,6 +48,9 @@ reset; t 'payload is not JSON' no "" 'not json'
 reset; t 'a repo file' no "$repo/a.md"
 reset; mkdir -p "$plans/sub"; echo x > "$plans/sub/x.md"; t 'a file in a plans subfolder' no "$plans/sub/x.md"
 reset; rm "$plans/quiet-river.md"; t 'the plan file is gone' no
+reset; mkdir -p "$repo/backend" && git -C "$repo/backend" init -q
+  t 'a nested repo never set up for the vault (D51)' no "" \
+    "{\"cwd\":\"$repo/backend\",\"tool_input\":{\"file_path\":\"$plans/quiet-river.md\"}}"
 
 echo "== mirrored into today's day folder =="
 reset; t 'a written plan' yes

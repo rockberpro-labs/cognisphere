@@ -44,6 +44,9 @@ reset /nope/missing; t 'the configured vault has no Scratch/' 0 "$pad/notes.md"
 reset; t 'not a git repo' 0 "$pad/x" Write "{\"cwd\":\"$tmp\",\"tool_input\":{\"file_path\":\"$pad/x\"}}"
 reset; t 'payload is not JSON' 0 "" Write 'not json'
 reset; t 'a repo file' 0 "$repo/src/a.txt" Edit
+reset; mkdir -p "$repo/backend" && git -C "$repo/backend" init -q
+  t 'a nested repo never set up for the vault (D51)' 0 "$pad/notes.md" Write \
+    "{\"cwd\":\"$repo/backend\",\"tool_input\":{\"file_path\":\"$pad/notes.md\"}}"
 reset; t 'a relative path' 0 "src/a.txt"
 reset; t 'a vault note' 0 "$vault/Agent/Scratch/2026-01-01/plan.md"
 reset; t 'a plan-mode plan file' 0 "$tmp/.claude/plans/quiet-river.md"
