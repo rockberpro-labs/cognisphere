@@ -16,21 +16,22 @@ vault_named() {
 }
 
 vault_of() {
-  local d="$1" v
+  local d="$1" v p
   while [ -n "$d" ]; do
     v="$(vault_named "$d")"
     if [ -n "$v" ]; then
       case "$v" in '~/'*) v="$HOME/${v#'~/'}" ;; esac
       printf '%s\n' "$v"; return 0
     fi
-    [ "$d" = / ] && break
-    d="$(dirname "$d")"
+    # dirname stops moving at the top: / on Unix, but C: or . on Windows paths.
+    p="$(dirname "$d")"; [ "$p" = "$d" ] && break
+    d="$p"
   done
   return 0
 }
 
 subproject_of() {
-  local d="$1" sub=
+  local d="$1" sub= p
   home= tag=
   while [ -n "$d" ]; do
     if [ -n "$(vault_named "$d")" ]; then
@@ -39,8 +40,8 @@ subproject_of() {
       return 0
     fi
     [ -z "$sub" ] && [ -d "$d/.agents" ] && sub="$d"
-    [ "$d" = / ] && break
-    d="$(dirname "$d")"
+    p="$(dirname "$d")"; [ "$p" = "$d" ] && break
+    d="$p"
   done
   return 0
 }

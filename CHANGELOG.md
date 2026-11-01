@@ -4,6 +4,16 @@ What changed in each release of cognisphere. Versions follow
 [semver](https://semver.org/); the reasoning behind each change is in
 [docs/decisions.md](docs/decisions.md), referenced as `Dnn`.
 
+## 0.23.6 — 2026-11-01
+
+### Fixed
+
+- The hang 0.23.5 set out to fix on Windows is fixed for real: 0.23.5 shipped the hook
+  timeouts and the tests but not the change to `vault-of.sh`. The walk up the directory
+  tree there ended only at `/`, but `dirname` on a `C:/…` path stops at `C:`, so a
+  project with no `AGENTS.local.md` above it sent the hooks into an endless loop. It now
+  ends wherever `dirname` stops moving.
+
 ## 0.23.5 — 2026-11-01
 
 ### Fixed
