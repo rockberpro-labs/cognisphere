@@ -84,10 +84,22 @@ reset; mkdir -p "$tmp/cfg/projects/$(slug)/memory"; echo x > "$tmp/cfg/projects/
 
 echo "== a sub-project that is a repo of its own finds the root's vault (D38) =="
 sub() { printf '{"session_id":"s","cwd":"%s","hook_event_name":"SessionStart","source":"startup"}' "$repo/backend"; }
-reset; mkdir -p "$repo/backend" && git -C "$repo/backend" init -q
+# What /cognisphere:vault --project writes into the sub-project's repo.
+own() { mkdir -p "$repo/backend/$1" && git -C "$repo/backend" init -q \
+  && echo "{\"permissions\":{\"additionalDirectories\":[\"~/Cognisphere/Projects/${2:-vault}\"]}}" > "$repo/backend/$1/settings.local.json"; }
+reset; own .agents
 t 'session started in backend/' 'HOME-NOTE' "$(sub)"
-reset; mkdir -p "$repo/backend" && git -C "$repo/backend" init -q && echo '# mine' > "$repo/backend/AGENTS.local.md"
+reset; own .agents && echo '# mine' > "$repo/backend/AGENTS.local.md"
 t 'past its own AGENTS.local.md without a vault' 'HOME-NOTE' "$(sub)"
+reset; own .claude
+t 'configured through .claude/settings.local.json' 'HOME-NOTE' "$(sub)"
+echo "== a repo never set up for a vault stays out of it (D51) =="
+reset; mkdir -p "$repo/backend" && git -C "$repo/backend" init -q
+t 'a bare repo under a vault root' '^$' "$(sub)"
+reset; mkdir -p "$repo/backend" && git -C "$repo/backend" init -q && echo '# mine' > "$repo/backend/AGENTS.local.md"
+t 'its own AGENTS.local.md without a vault, no settings' '^$' "$(sub)"
+reset; own .agents other
+t 'settings pointing at another project' '^$' "$(sub)"
 
 echo "== a session started in a sub-project sees its own threads and Scratch (D38) =="
 # frontend/ and apps/web/ are sub-projects; docs/ is a plain folder. Threads: one for

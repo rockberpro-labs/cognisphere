@@ -143,7 +143,7 @@ bash "<plugin>/scripts/configure.sh" --project <tag> <project>
   its repo layer is untouched), from the same template and pointing at the root's vault:
   Claude Code reads it from that repo's root. No `AGENTS.local.md`: the root's
   `CLAUDE.local.md` loads from the folder above, and the vault hooks find the nearest
-  `AGENTS.local.md` upwards.
+  `AGENTS.local.md` upwards, when this settings file points at its vault (D51).
 - Exit 5 → the root has no vault configured: `/cognisphere:vault` at the root first.
 
 ## Fill
