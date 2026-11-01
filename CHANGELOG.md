@@ -4,6 +4,17 @@ What changed in each release of cognisphere. Versions follow
 [semver](https://semver.org/); the reasoning behind each change is in
 [docs/decisions.md](docs/decisions.md), referenced as `Dnn`.
 
+## 0.23.5 — 2026-11-01
+
+### Fixed
+
+- The hooks no longer hang on Windows when no `AGENTS.local.md` is found above the
+  project. The walk up the directory tree in `vault-of.sh` ended only at `/`, but
+  `dirname` on a `C:/…` path stops at `C:`, so SessionStart sat in "running SessionStart
+  hooks…" until it timed out. The walk now ends wherever `dirname` stops moving.
+- Every hook now has a 10-second timeout, so a hook that misbehaves delays a session by
+  seconds, not minutes.
+
 ## 0.23.4 — 2026-10-28
 
 ### Fixed

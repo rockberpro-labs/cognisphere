@@ -6,7 +6,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/scratch-redirect.sh\""
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/scratch-redirect.sh\"",
+            "timeout": 10
           }
         ]
       }
@@ -17,7 +18,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/scratch-first.sh\""
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/scratch-first.sh\"",
+            "timeout": 10
           }
         ]
       },
@@ -26,7 +28,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/plan-mirror.sh\""
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/plan-mirror.sh\"",
+            "timeout": 10
           }
         ]
       }
@@ -36,7 +39,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/session-log.sh\""
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/session-log.sh\"",
+            "timeout": 10
           }
         ]
       }
@@ -46,7 +50,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/session-start.sh\""
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/session-start.sh\"",
+            "timeout": 10
           }
         ]
       }

@@ -130,5 +130,26 @@ subs; from "$repo" 'at the root, every Scratch note' 'web-plan\.md'
 subs; from "$repo" 'at the root, no tag line' 'started in the sub-project' !
 subs; from "$repo/docs" 'a plain folder is the root' 'WEB-ONE'
 
+echo "== the walk up for AGENTS.local.md ends at the top of a path, whatever the platform =="
+# dirname C:/x -> C: -> C: and dirname . -> . never reach /, so the walk once spun forever.
+# from_hangs <dir> <project dir> <name>: the hook returns within the timeout.
+walk() {
+  local r; printf '{"cwd":"%s"}' "$1" | CLAUDE_PROJECT_DIR="$2" timeout 10 bash "$H" >/dev/null 2>&1; r=$?
+  if [ "$r" = 0 ]; then s=ok; else s=FAIL; fails=$((fails+1)); fi
+  printf '%-4s exit=%s  <- %s\n' "$s" "$r" "$3"
+}
+reset; rm "$repo/AGENTS.local.md"; walk "$repo" "$repo" 'a repo with no vault above it'
+reset; rm "$repo/AGENTS.local.md"; walk "$repo" . 'a project dir that dirname maps to itself'
+noproj="$tmp/noproj"; mkdir -p "$noproj"
+reset; walk "$repo" "$noproj" "the vault repo's cwd, a vault-less project dir"
+reset; rm "$repo/AGENTS.local.md"
+  vo() { timeout 10 bash -c '. "$1"; "$2" "$3"' _ "$(dirname "$H")/vault-of.sh" "$1" "$2"; }
+  for p in 'C:/x/y' 'C:\x\y' '.'; do
+    r=0; vo vault_of "$p" >/dev/null 2>&1 || r=$?; [ "$r" = 0 ] && s=ok || { s=FAIL; fails=$((fails+1)); }
+    printf '%-4s exit=%s  <- vault_of %s ends\n' "$s" "$r" "$p"
+    r=0; vo subproject_of "$p" >/dev/null 2>&1 || r=$?; [ "$r" = 0 ] && s=ok || { s=FAIL; fails=$((fails+1)); }
+    printf '%-4s exit=%s  <- subproject_of %s ends\n' "$s" "$r" "$p"
+  done
+
 echo
 [ "$fails" -eq 0 ] && echo "all session-start cases pass" || { echo "$fails case(s) FAILED"; exit 1; }
