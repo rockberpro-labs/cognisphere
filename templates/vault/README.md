@@ -1,6 +1,6 @@
 # Cognisphere
 
-Written by the [cognisphere](https://github.com/rockberpro/cognisphere) plugin for Claude Code. Open this folder, or any project folder in it, as an Obsidian vault.
+Written by the [cognisphere](https://github.com/rockberpro-labs/cognisphere) plugin for Claude Code. Open this folder, or any project folder in it, as an Obsidian vault.
 
 - `Projects/<project>/` is one repo's vault, named after it.
   - `Agent/` is the agent's workspace: state, log, scratch. The agent is its only writer.

@@ -447,7 +447,7 @@ What it wrote stays: `.agents/` and `AGENTS.md` in each repo (versioned, the pro
 own), the local files, and `~/Cognisphere/`. Delete those by hand if you want them gone.
 
 To pin a machine to a release instead, add the marketplace at that release's tag:
-`claude plugin marketplace add https://github.com/rockberpro/cognisphere.git#<version>`.
+`claude plugin marketplace add https://github.com/rockberpro-labs/cognisphere.git#<version>`.
 
 ## Language
 
