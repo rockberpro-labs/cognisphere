@@ -1329,3 +1329,29 @@ the repo had nothing to do with, none of it set up by the user.
 **Rejected.** Dropping the walk up: own-repo sub-projects would lose the root's vault
 (D38). Stopping at the repo root and copying `AGENTS.local.md` into each sub-project:
 `--project` deliberately writes no `AGENTS.local.md` there.
+
+
+## D52. Plan check, scope and status in the Scratch note; docs swept by `update`
+
+*2026-11-19, v0.24.0*
+
+**Decision.** The agent's local instructions gain a plan check (before the first edit of
+a new feature, compare the request with Open Threads, today's Scratch and the repo's own
+plan; a mismatch is a question for the maintainer) and a scope rule (work only on what
+the request names; the rest goes to Findings). The Scratch plan note opens with a
+`## Status` list, each step done, in progress or not started. `/cognisphere:update` gains
+check 10 in `review-memory.md`: repo docs no note points at are read against the code and
+the commits since they changed, by `cognisphere:explorer`, and a contradiction is a
+proposed fix.
+
+**Why.** Generic agent-workflow advice (status on tickets, scope limits, checking new
+requests against plans, sweeping outdated docs) mostly maps onto what the vault already
+does: the code wins, a fresh session loads only curated state, noticed things go to
+Findings. These are the gaps that remained.
+
+**Rejected.** An archive folder plus a hook that blocks reading it: cognisphere fixes a
+stale note in place instead of archiving it, and old Scratch folders are history the
+agent may need, which a block would hide. Moving docs during the sweep: repo docs are
+the maintainer's; the sweep fixes on a yes and reports the rest. A `progress.md` in the
+repo: it would become the stale doc the sweep exists to catch; the Scratch note is the
+progress file and lives outside git.

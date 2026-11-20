@@ -137,7 +137,14 @@ it (`names.sh <name>` prints its paths).
    state in Claude Code's own stores and has nowhere in the vault for what auto-memory
    kept about the maintainer. A Scratch line without `rewrite that part in place` (added
    in v0.19.0) → report the template's line: without it the agent appends revisions to
-   its plan note, and the note stops reading as the current plan. No `## Working style`
+   its plan note, and the note stops reading as the current plan. A Scratch line without
+   `## Status` (added in v0.24.0) → report the template's line: without it the plan note
+   doesn't show which steps are done. A section without the plan-check line (`Before the
+   first edit of a new feature or change, compare the request…`, added in v0.24.0) →
+   report the template's line: without it the agent starts work that clashes with an open
+   thread or the repo's plan without asking. A Findings line without `Work only on the
+   files and features the request names` (added in v0.24.0) → report the template's line.
+   No `## Working style`
    section → report, with `/cognisphere:auto`, `:copilot` or `:tutor` to add it. A
    section holding the Author text (`The agent writes and edits code when asked…`, retired
    in v0.23.0) → report that Author became Auto (D46): `/cognisphere:auto` swaps it, or

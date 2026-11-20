@@ -4,6 +4,19 @@ What changed in each release of cognisphere. Versions follow
 [semver](https://semver.org/); the reasoning behind each change is in
 [docs/decisions.md](docs/decisions.md), referenced as `Dnn`.
 
+## 0.24.0 — 2026-11-19
+
+### Added
+
+- The Scratch plan note opens with a `## Status` list (done, in progress, not started),
+  so a later session sees where the work stands.
+- A plan check before the first edit of a new feature: the request is compared with Open
+  Threads, today's Scratch and the repo's plan, and a mismatch is asked, not assumed.
+- A scope rule: work only on the files and features the request names; the rest goes to
+  Findings.
+- `/cognisphere:update` checks repo docs and plans against the code and history, with
+  `cognisphere:explorer` as the checking agent, and proposes fixes (D52).
+
 ## 0.23.7 — 2026-11-01
 
 ### Fixed

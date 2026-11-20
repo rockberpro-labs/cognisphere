@@ -105,6 +105,21 @@ Run all of them, then report once. Each finding: note, what is wrong, proposed f
    heavy recent activity (`git log --since=6.months --name-only`) and no note → do not
    write them here: list them and offer `/cognisphere:update <module>`.
 
+10. **Docs and plans.** The repo's own docs that no memory note points at: `README`,
+    `docs/`, plan, status and ADR files. For each, the commits since it last changed:
+
+    ```bash
+    since="$(git log -1 --format=%H -- <doc>)"
+    git log --oneline "$since"..HEAD
+    ```
+
+    No commits since → skip it. Otherwise read the doc against the code and those commits,
+    fanning out to `cognisphere:explorer`, one per doc, asking "what in this doc the code
+    or the history now contradicts" (the code is the source of truth). Each contradiction
+    is a proposed fix to the doc, written on a yes. A fix the user declines is listed in
+    the report, for the agent to record in `State/Open Threads.md`. Nothing is moved,
+    archived or deleted: a doc that is wholly obsolete is a question for the user.
+
 ## Fixing
 
 Fix in place: a note describes the current state, it does not accumulate a changelog. Do
@@ -116,4 +131,5 @@ Stage the notes you changed by name, together with nothing else (plus
 
 The mandatory fixes made without asking, then the findings per proposed check (cut the
 empty ones), what you fixed, what you left and why, and the `/cognisphere:update <module>`
-follow-ups — a fixed note that now holds a new "never"/"always" is a rule candidate.
+follow-ups — a fixed note that now holds a new "never"/"always" is a rule candidate. Docs
+the code contradicts (check 10), fixed or declined, get their own line.
