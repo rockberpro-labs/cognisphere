@@ -71,7 +71,7 @@ do reports "nothing to do" in one line and the next one starts.
      gained, and an obsolete `agent-kit:memory` pointer replaced). The report lists them.
    - **Proposed, written on a yes:** stale notes against their diffs, notes with
      merge-conflict markers, dead or overlapping globs, area notes without `paths:`, `kind:` declarations, language,
-     gaps.
+     gaps, repo docs and plans the code contradicts.
 4. **Rules — `review-rules.md`.** No `rules/commit.md` → run `rules.md` (full pass)
    instead; it asks the commit policy.
    - **Mandatory, written without asking:** a read rule for every note that owns an
