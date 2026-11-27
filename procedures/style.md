@@ -5,7 +5,7 @@ The working-style switch (D46): `/cognisphere:auto`, `/cognisphere:copilot` and
 `<plugin>/templates/styles/<style>.md`; install asks for one (`vault.md` § Working
 style), and these commands change it later. The answer lives in `AGENTS.local.md`
 § Working style: gitignored, so it holds for this project and this maintainer only.
-`<plugin>` is `${PLUGIN_ROOT}`.
+`<plugin>` is `${PLUGIN_ROOT} (Claude Code: ${CLAUDE_PLUGIN_ROOT})`.
 
 1. **Switch.**
 

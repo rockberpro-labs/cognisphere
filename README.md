@@ -24,42 +24,29 @@ MIT licensed · Claude Code on Linux, macOS and Windows (Git Bash).
 ## Quick start
 
 The repository root is an [Agent Plugins](https://agent-plugins.org/) v1 plugin
-(`plugin.json`, `skills/`). The spec leaves installing to each client, and Claude Code
-does not read it yet, so on Claude Code you link the pieces by hand. Once per machine:
+(`plugin.json`, `skills/`), and `.claude-plugin/` adds Claude Code's own manifest on top.
 
-```bash
-# 1. clone it somewhere permanent
-git clone https://github.com/rockberpro-labs/cognisphere ~/.local/share/cognisphere
-P=~/.local/share/cognisphere
+**Claude Code**, once per machine:
 
-# 2. skills: one link per skill (the command is the skill's name: /install, /vault, ... with no cognisphere: prefix)
-mkdir -p ~/.claude/skills ~/.claude/agents
-for s in "$P"/skills/*/; do ln -sfn "$s" ~/.claude/skills/cognisphere-$(basename "$s"); done
-
-# 3. subagents
-for a in "$P"/io.github.rockberpro-labs.cognisphere/agents/*.md; do ln -sf "$a" ~/.claude/agents/; done
+```
+/plugin marketplace add rockberpro-labs/cognisphere
+/plugin install cognisphere@cognisphere
+/reload-plugins
 ```
 
-Then add this to `~/.claude/settings.json` (merge with what is there; replace `<P>` with
-the clone's absolute path). `PLUGIN_ROOT` is what the skills' `${PLUGIN_ROOT}` paths
-resolve to, and the hooks are the five from
-`io.github.rockberpro-labs.cognisphere/hooks/hooks.json`, with `<P>/io.github.rockberpro-labs.cognisphere/hooks/` in place of `${CLAUDE_PLUGIN_ROOT}/hooks/`:
+Then, in each project, run `/cognisphere:install` and restart the session.
 
-```json
-{ "env": { "PLUGIN_ROOT": "<P>" },
-  "hooks": { "...": "copy the entries of hooks.json here" } }
-```
-
-Restart Claude Code, then in each project run `/install`.
-Skills and procedures read the same on any client; only this linking is Claude Code
-specific. This route is not tested end to end.
+**Other clients** (Codex, Cursor, Copilot, Kiro, VS Code) read the root `plugin.json`;
+install it the way the client documents. Only the skills load there: the hooks and
+agents live in the `io.github.rockberpro-labs.cognisphere/` client extension, which only
+Claude Code reads (through `.claude-plugin/`). Not tested outside Claude Code.
 
 - **Needs** `git` and `perl` with `JSON::PP` (it ships with git). The plugin runs only
   the vault's hooks; the guards are copied into each repo the harness sets up.
 - **Only one half?** Run `/cognisphere:harness` for the repo layer or
   `/cognisphere:vault` for your vault. A teammate in a repo that already has the harness
   runs `/cognisphere:vault`.
-- **Updating:** `git -C ~/.local/share/cognisphere pull` (or check out a release tag), then restart the session. Linked skills and agents update with it; hook changes you copied into `settings.json` do not.
+- **Updating:** `/plugin marketplace update cognisphere`, then restart the session.
 - **On Windows**, read [GUIDE.md § Windows](GUIDE.md#windows) first.
 
 ## What you get

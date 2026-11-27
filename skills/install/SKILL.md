@@ -15,6 +15,7 @@ which.
 Read `${PLUGIN_ROOT}/skills/harness/SKILL.md` and
 `${PLUGIN_ROOT}/skills/vault/SKILL.md` now, and follow them as below. Each reads
 its procedures from `${PLUGIN_ROOT}/procedures/` when its step starts.
+(`${PLUGIN_ROOT}` is `${CLAUDE_PLUGIN_ROOT}` in Claude Code.)
 
 ## 0. Preflight
 

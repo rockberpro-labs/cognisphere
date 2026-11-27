@@ -9,12 +9,11 @@ What changed in each release of cognisphere. Versions follow
 ### Changed
 
 - The plugin follows the [Agent Plugins](https://agent-plugins.org/) v1 manifest: `plugin.json` at the
-  root (with `$schema`), `skills/` as the portable component. `.claude-plugin/` and the
-  marketplace file are gone; skills and procedures refer to `${PLUGIN_ROOT}`.
+  root (with `$schema`), `skills/` as the portable component. Skills and procedures refer to `${PLUGIN_ROOT}`.
 - `hooks/` and `agents/` moved into the client extension directory
   `io.github.rockberpro-labs.cognisphere/`, declared under `extensions` in `plugin.json`.
-  The spec has no home for them, so only a client that reads that extension runs them;
-  Claude Code no longer discovers them on its own.
+  Claude Code reads them through a thin `.claude-plugin/` shim (manifest and marketplace),
+  which points at that directory; other clients load only the skills.
 
 ## 0.24.0 — 2026-11-19
 

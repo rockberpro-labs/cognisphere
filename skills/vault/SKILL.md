@@ -6,7 +6,7 @@ argument-hint: "[--project <dir>]"
 
 # vault
 
-`<plugin>` in the procedures is `${PLUGIN_ROOT}`. Read
+`<plugin>` in the procedures is `${PLUGIN_ROOT} (Claude Code: ${CLAUDE_PLUGIN_ROOT})`. Read
 `${PLUGIN_ROOT}/procedures/vault.md` when step 1 starts, not before.
 
 Sets up the unversioned half for the person running it: the vault outside the repo and
