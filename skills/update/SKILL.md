@@ -6,7 +6,7 @@ argument-hint: "[--project <dir>] [module | --note <path> | --index | --catalog]
 
 # update
 
-`<plugin>` in the procedures is `${PLUGIN_ROOT}`. Read each procedure from
+`<plugin>` in the procedures is `${PLUGIN_ROOT} (Claude Code: ${CLAUDE_PLUGIN_ROOT})`. Read each procedure from
 `${PLUGIN_ROOT}/procedures/` when its step starts, not before.
 
 Maintains the versioned harness, minding what is already in place, and **only checks**

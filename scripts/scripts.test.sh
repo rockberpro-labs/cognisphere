@@ -122,7 +122,7 @@ printf '{\n  "hooks": {\n    "PreToolUse": [{ "matcher": "Edit", "hooks": [{ "ty
 ok "check: nothing yet"               '[ "$(bash "$S/guards.sh" --check | tr "\n" " ")" = "missing .agents/hooks/guard.sh unregistered " ]'
 out="$(bash "$S/guards.sh" --no-master)"; r=$?
 ok "guards exits 0"                   '[ $r = 0 ]'
-ok "copy made, executable"            'cmp -s "$S/../hooks/guard.sh" .agents/hooks/guard.sh && [ -x .agents/hooks/guard.sh ]'
+ok "copy made, executable"            'cmp -s "$S/../io.github.rockberpro-labs.cognisphere/hooks/guard.sh" .agents/hooks/guard.sh && [ -x .agents/hooks/guard.sh ]'
 ok "registered with the flag"         'grep -qF "bash \\\"\$CLAUDE_PROJECT_DIR/.agents/hooks/guard.sh\\\" --no-master" .agents/settings.json'
 ok "a hook of the team kept"          'grep -qF lint.sh .agents/settings.json'
 before="$(cat .agents/settings.json)"; out="$(bash "$S/guards.sh" --no-secret)"
@@ -131,7 +131,7 @@ echo '# edited' >> .agents/hooks/guard.sh
 out="$(bash "$S/guards.sh" --check)"
 ok "check: a stale copy"              'printf "%s\n" "$out" | grep -qx "differs .agents/hooks/guard.sh"'
 out="$(bash "$S/guards.sh")"
-ok "rerun replaces a stale copy"      'printf "%s" "$out" | grep -q "^updated" && cmp -s "$S/../hooks/guard.sh" .agents/hooks/guard.sh'
+ok "rerun replaces a stale copy"      'printf "%s" "$out" | grep -q "^updated" && cmp -s "$S/../io.github.rockberpro-labs.cognisphere/hooks/guard.sh" .agents/hooks/guard.sh'
 touch .agents/hooks/master-guard.sh
 out="$(bash "$S/guards.sh" --check)"
 ok "check: an older guard copy"       'printf "%s\n" "$out" | grep -qx "old .agents/hooks/master-guard.sh"'

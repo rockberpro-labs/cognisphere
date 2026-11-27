@@ -6,7 +6,7 @@ argument-hint: "[--project <dir>]"
 
 # harness
 
-`<plugin>` in the procedures is `${PLUGIN_ROOT}`. Read each procedure from
+`<plugin>` in the procedures is `${PLUGIN_ROOT} (Claude Code: ${CLAUDE_PLUGIN_ROOT})`. Read each procedure from
 `${PLUGIN_ROOT}/procedures/` when its step starts, not before.
 
 Sets up the versioned half: what git tracks, shared with everyone who clones. It never

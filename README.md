@@ -23,17 +23,30 @@ MIT licensed · Claude Code on Linux, macOS and Windows (Git Bash).
 
 ## Quick start
 
-Install the plugin directory with any client that supports [Agent Plugins](https://agent-plugins.org/) v1 (the repository root is the plugin: `plugin.json`, `skills/`). Skills load everywhere; the hooks and agents live in the `io.github.rockberpro-labs.cognisphere/` client extension and run only in a client that reads it.
+The repository root is an [Agent Plugins](https://agent-plugins.org/) v1 plugin
+(`plugin.json`, `skills/`), and `.claude-plugin/` adds Claude Code's own manifest on top.
 
+**Claude Code**, once per machine:
+
+```
+/plugin marketplace add rockberpro-labs/cognisphere
+/plugin install cognisphere@cognisphere
+/reload-plugins
+```
 
 Then, in each project, run `/cognisphere:install` and restart the session.
+
+**Other clients** (Codex, Cursor, Copilot, Kiro, VS Code) read the root `plugin.json`;
+install it the way the client documents. Only the skills load there: the hooks and
+agents live in the `io.github.rockberpro-labs.cognisphere/` client extension, which only
+Claude Code reads (through `.claude-plugin/`). Not tested outside Claude Code.
 
 - **Needs** `git` and `perl` with `JSON::PP` (it ships with git). The plugin runs only
   the vault's hooks; the guards are copied into each repo the harness sets up.
 - **Only one half?** Run `/cognisphere:harness` for the repo layer or
   `/cognisphere:vault` for your vault. A teammate in a repo that already has the harness
   runs `/cognisphere:vault`.
-- **Updating:** pull the repository (or reinstall from the tag), then restart the session.
+- **Updating:** `/plugin marketplace update cognisphere`, then restart the session.
 - **On Windows**, read [GUIDE.md § Windows](GUIDE.md#windows) first.
 
 ## What you get

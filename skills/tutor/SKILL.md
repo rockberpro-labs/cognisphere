@@ -8,4 +8,5 @@ disable-model-invocation: true
 
 Runs only when the maintainer types it. The procedure is
 `${PLUGIN_ROOT}/procedures/style.md`; read it and follow it with style `tutor`.
+(`${PLUGIN_ROOT}` is `${CLAUDE_PLUGIN_ROOT}` in Claude Code.)
 To switch to another style, run `/cognisphere:auto` or `/cognisphere:copilot`.
