@@ -118,7 +118,7 @@ CLAUDE.local.md -> AGENTS.local.md   (gitignored)
    tool that set it up.
 
    The guards (`master-guard`, `secret-guard`, `memory-drift-guard`) are the repo's own:
-   `scripts/guards.sh` copies `hooks/guard.sh` to `.agents/hooks/guard.sh` and registers
+   `scripts/guards.sh` copies `io.github.rockberpro-labs.cognisphere/hooks/guard.sh` to `.agents/hooks/guard.sh` and registers
    it here, with a flag per check the team turned off, so they act for everyone on the
    repo, plugin or not (D37). The `deny` list stops a stray `.env` or real config from
    being staged at all; `secret-guard` is the net behind it.

@@ -23,13 +23,8 @@ MIT licensed · Claude Code on Linux, macOS and Windows (Git Bash).
 
 ## Quick start
 
-Inside Claude Code, once per machine:
+Install the plugin directory with any client that supports [Agent Plugins](https://agent-plugins.org/) v1 (the repository root is the plugin: `plugin.json`, `skills/`). Skills load everywhere; the hooks and agents live in the `io.github.rockberpro-labs.cognisphere/` client extension and run only in a client that reads it.
 
-```
-/plugin marketplace add rockberpro-labs/cognisphere
-/plugin install cognisphere@cognisphere
-/reload-plugins
-```
 
 Then, in each project, run `/cognisphere:install` and restart the session.
 
@@ -38,7 +33,7 @@ Then, in each project, run `/cognisphere:install` and restart the session.
 - **Only one half?** Run `/cognisphere:harness` for the repo layer or
   `/cognisphere:vault` for your vault. A teammate in a repo that already has the harness
   runs `/cognisphere:vault`.
-- **Updating:** `/plugin marketplace update cognisphere`, then restart the session.
+- **Updating:** pull the repository (or reinstall from the tag), then restart the session.
 - **On Windows**, read [GUIDE.md § Windows](GUIDE.md#windows) first.
 
 ## What you get

@@ -438,16 +438,12 @@ these steps as a follow-up.
 
 ## Uninstall
 
-```bash
-claude plugin uninstall cognisphere@cognisphere
-claude plugin marketplace remove cognisphere
-```
+Remove the plugin directory with your client's plugin manager.
 
 What it wrote stays: `.agents/` and `AGENTS.md` in each repo (versioned, the project's
 own), the local files, and `~/Cognisphere/`. Delete those by hand if you want them gone.
 
-To pin a machine to a release instead, add the marketplace at that release's tag:
-`claude plugin marketplace add https://github.com/rockberpro-labs/cognisphere.git#<version>`.
+To pin a machine to a release, check out the repository at that release's tag.
 
 ## Language
 
@@ -472,9 +468,9 @@ the code names them. Filenames stay English everywhere.
   `rules`, `review-settings`, `review-memory`, `review-rules`, `vault`, `vault-check`);
   `install`, which runs `harness` then `vault`; `read`, with no procedure; `auto`,
   `copilot` and `tutor`, which share the `style` procedure.
-- **`hooks/`** — `guard.sh` (the source `/cognisphere:harness` copies into each repo; the
+- **`io.github.rockberpro-labs.cognisphere/hooks/`** — `guard.sh` (the source `/cognisphere:harness` copies into each repo; the
   plugin doesn't run it), and the vault's hooks the plugin runs: `session-log.sh`, `session-start.sh`, `scratch-first.sh`, `scratch-redirect.sh`, `plan-mirror.sh`, with `vault-of.sh` (the nearest `AGENTS.local.md`'s vault, for all five), and one test per guard and hook.
-- **`agents/`** — `cognisphere:explorer` (read-only investigator; the memory passes fan
+- **`io.github.rockberpro-labs.cognisphere/agents/`** — `cognisphere:explorer` (read-only investigator; the memory passes fan
   out to it), `cognisphere:planner` (ordered steps from an explorer report),
   `cognisphere:implementer` (one planned step, code plus the stale note),
   `cognisphere:test-runner` (runs the tests, returns only the failures) and

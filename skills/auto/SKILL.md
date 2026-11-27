@@ -7,5 +7,5 @@ disable-model-invocation: true
 # auto
 
 Runs only when the maintainer types it. The procedure is
-`${CLAUDE_PLUGIN_ROOT}/procedures/style.md`; read it and follow it with style `auto`.
+`${PLUGIN_ROOT}/procedures/style.md`; read it and follow it with style `auto`.
 To switch to another style, run `/cognisphere:copilot` or `/cognisphere:tutor`.

@@ -6,8 +6,8 @@ argument-hint: "[--project <dir>]"
 
 # harness
 
-`<plugin>` in the procedures is `${CLAUDE_PLUGIN_ROOT}`. Read each procedure from
-`${CLAUDE_PLUGIN_ROOT}/procedures/` when its step starts, not before.
+`<plugin>` in the procedures is `${PLUGIN_ROOT}`. Read each procedure from
+`${PLUGIN_ROOT}/procedures/` when its step starts, not before.
 
 Sets up the versioned half: what git tracks, shared with everyone who clones. It never
 writes under `~/Cognisphere/` and creates no local file. **Every step only creates what
@@ -20,7 +20,7 @@ which. `/cognisphere:install` runs these steps, then `/cognisphere:vault`'s (D31
 cd "$(git rev-parse --show-toplevel)" || exit 1   # not a git repo → stop and say so
 ```
 
-The mechanical steps are scripts in `${CLAUDE_PLUGIN_ROOT}/scripts/`: run them as the
+The mechanical steps are scripts in `${PLUGIN_ROOT}/scripts/`: run them as the
 procedures say, never retype their contents into the shell.
 
 `--project <dir>` in `$ARGUMENTS` → a sub-project: § Sub-project below says what changes
@@ -72,7 +72,7 @@ local files. Then by hand: the Memory Catalog section and the language line in
 `AGENTS.md`, and `rules/memory.md` translated.
 
 Then `scripts/guards.sh`, with a flag for each guard the user unchecked (`--no-master`,
-`--no-secret`, `--no-memory-drift`): it copies the plugin's `hooks/guard.sh` to
+`--no-secret`, `--no-memory-drift`): it copies the plugin's `io.github.rockberpro-labs.cognisphere/hooks/guard.sh` to
 `.agents/hooks/guard.sh` and registers it in `.agents/settings.json`. The copy is the
 plugin's file, the one exception to create-only: an older copy is replaced
 (`updated`). A registration already there is never rewritten. All three unchecked →
@@ -109,7 +109,7 @@ D38). Resolve it after the preflight's `cd`, so `<dir>` is relative to the git r
 (`.` from a session started inside an own-repo sub-project):
 
 ```bash
-bash "${CLAUDE_PLUGIN_ROOT}/scripts/target.sh" <dir>   # a message → stop and say it
+bash "${PLUGIN_ROOT}/scripts/target.sh" <dir>   # a message → stop and say it
 ```
 
 Then `cd` to the printed `top` and run every script from there with `--project <tag>`;

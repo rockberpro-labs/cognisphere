@@ -4,6 +4,18 @@ What changed in each release of cognisphere. Versions follow
 [semver](https://semver.org/); the reasoning behind each change is in
 [docs/decisions.md](docs/decisions.md), referenced as `Dnn`.
 
+## 0.25.0 — 2026-11-26
+
+### Changed
+
+- The plugin follows the [Agent Plugins](https://agent-plugins.org/) v1 manifest: `plugin.json` at the
+  root (with `$schema`), `skills/` as the portable component. `.claude-plugin/` and the
+  marketplace file are gone; skills and procedures refer to `${PLUGIN_ROOT}`.
+- `hooks/` and `agents/` moved into the client extension directory
+  `io.github.rockberpro-labs.cognisphere/`, declared under `extensions` in `plugin.json`.
+  The spec has no home for them, so only a client that reads that extension runs them;
+  Claude Code no longer discovers them on its own.
+
 ## 0.24.0 — 2026-11-19
 
 ### Added
