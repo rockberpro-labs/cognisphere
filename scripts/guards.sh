@@ -21,7 +21,7 @@ here="$(cd "$(dirname "$0")" && pwd)"; plugin="$(dirname "$here")"
 sub=; [ "${1:-}" = --project ] && { sub="${2:?usage: guards.sh [--project <dir>] ...}"; shift 2; }
 . "$here/target.sh"; target "$sub" || exit 1
 cd "$dir" || exit 1
-src="$plugin/hooks/guard.sh"; copy=.agents/hooks/guard.sh; settings=.agents/settings.json
+src="$plugin/io.github.rockberpro-labs.cognisphere/hooks/guard.sh"; copy=.agents/hooks/guard.sh; settings=.agents/settings.json
 
 # The command lines in settings.json that run the repo's copy, one per line.
 registered() {

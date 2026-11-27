@@ -42,7 +42,7 @@ Language: nothing here writes prose, only JSON keys.
 2. **The repo's guard** — `bash "<plugin>/scripts/guards.sh" --check`, then by line:
    - `current` and `registered …` → nothing to do; say which checks the flags turn off.
    - `differs` → an older copy, or one the team changed: show `diff` against
-     `<plugin>/hooks/guard.sh` and, on a yes, run `scripts/guards.sh` (it replaces the
+     `<plugin>/io.github.rockberpro-labs.cognisphere/hooks/guard.sh` and, on a yes, run `scripts/guards.sh` (it replaces the
      copy and keeps the registration). A copy changed on purpose is the team's: leave it.
    - `missing` with `registered` → the registration runs nothing: on a yes, run
      `scripts/guards.sh` to restore the copy.

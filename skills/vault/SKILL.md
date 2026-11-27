@@ -6,8 +6,8 @@ argument-hint: "[--project <dir>]"
 
 # vault
 
-`<plugin>` in the procedures is `${CLAUDE_PLUGIN_ROOT}`. Read
-`${CLAUDE_PLUGIN_ROOT}/procedures/vault.md` when step 1 starts, not before.
+`<plugin>` in the procedures is `${PLUGIN_ROOT}`. Read
+`${PLUGIN_ROOT}/procedures/vault.md` when step 1 starts, not before.
 
 Sets up the unversioned half for the person running it: the vault outside the repo and
 the three local files that point the agent at it. The vault is personal: each person on
@@ -21,7 +21,7 @@ was which. `/cognisphere:install` runs these steps after `/cognisphere:harness`'
 cd "$(git rev-parse --show-toplevel)" || exit 1   # not a git repo → stop and say so
 ```
 
-The mechanical steps are scripts in `${CLAUDE_PLUGIN_ROOT}/scripts/`: run them as the
+The mechanical steps are scripts in `${PLUGIN_ROOT}/scripts/`: run them as the
 procedure says, never retype their contents into the shell.
 
 Survey without writing: `scripts/names.sh` (`vault.md` § Names), whether `$vault`
@@ -71,7 +71,7 @@ is written only here, before step 2's deny rule exists.
 ## 2. Local configuration — `vault.md` § Configure
 
 `scripts/configure.sh <project> <style-file>`, the style file being
-`${CLAUDE_PLUGIN_ROOT}/templates/styles/<style>.md`. Exit 4 → git tracks one of the
+`${PLUGIN_ROOT}/templates/styles/<style>.md`. Exit 4 → git tracks one of the
 three files: nothing was written; report it and stop.
 
 ## 3. Record the run in `Agent/` — `vault.md` § Fill

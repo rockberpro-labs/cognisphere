@@ -7,5 +7,5 @@ disable-model-invocation: true
 # tutor
 
 Runs only when the maintainer types it. The procedure is
-`${CLAUDE_PLUGIN_ROOT}/procedures/style.md`; read it and follow it with style `tutor`.
+`${PLUGIN_ROOT}/procedures/style.md`; read it and follow it with style `tutor`.
 To switch to another style, run `/cognisphere:auto` or `/cognisphere:copilot`.

@@ -12,9 +12,9 @@ one half only, the user runs that command (D31). **Every step only creates what 
 missing**: what already exists stays exactly as it is, and the report says which was
 which.
 
-Read `${CLAUDE_PLUGIN_ROOT}/skills/harness/SKILL.md` and
-`${CLAUDE_PLUGIN_ROOT}/skills/vault/SKILL.md` now, and follow them as below. Each reads
-its procedures from `${CLAUDE_PLUGIN_ROOT}/procedures/` when its step starts.
+Read `${PLUGIN_ROOT}/skills/harness/SKILL.md` and
+`${PLUGIN_ROOT}/skills/vault/SKILL.md` now, and follow them as below. Each reads
+its procedures from `${PLUGIN_ROOT}/procedures/` when its step starts.
 
 ## 0. Preflight
 

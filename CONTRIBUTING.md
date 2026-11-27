@@ -2,21 +2,20 @@
 
 ## Versioning and release gate
 
-`version` in `.claude-plugin/plugin.json` decides whether a machine gets an update.
+`version` in `plugin.json` decides whether a machine gets an update.
 Without bumping it, every commit counts as a new version. Release flow:
 
 ```bash
 # 1. change the code on a branch   2. bump version in plugin.json (semver) and add its CHANGELOG.md entry
-claude plugin validate . --strict && claude plugin validate .claude-plugin/plugin.json --strict
-for t in hooks/*.test.sh scripts/*.test.sh; do bash "$t" || break; done
+# validate plugin.json against https://agent-plugins.org/schemas/1.0.0/plugin.schema.json
+for t in io.github.rockberpro-labs.cognisphere/hooks/*.test.sh scripts/*.test.sh; do bash "$t" || break; done
 # when a skill or procedure changed: the eval fixtures (costs real runs)
 claude plugin eval . --scaffold --allow-tools Bash Write Edit --runs 3
 # 3. open the PR and merge it   4. tag the merge commit on main
 git tag <version> && git push origin <version>
 ```
 
-There is no CI in this repository on purpose; the lines above are the gate. On each
-machine, run `/plugin marketplace update cognisphere` and restart the session.
+There is no CI in this repository on purpose; the lines above are the gate. Each client updates from the repository by its own means; restart the session after.
 
 ## What does not belong here
 

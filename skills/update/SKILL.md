@@ -6,8 +6,8 @@ argument-hint: "[--project <dir>] [module | --note <path> | --index | --catalog]
 
 # update
 
-`<plugin>` in the procedures is `${CLAUDE_PLUGIN_ROOT}`. Read each procedure from
-`${CLAUDE_PLUGIN_ROOT}/procedures/` when its step starts, not before.
+`<plugin>` in the procedures is `${PLUGIN_ROOT}`. Read each procedure from
+`${PLUGIN_ROOT}/procedures/` when its step starts, not before.
 
 Maintains the versioned harness, minding what is already in place, and **only checks**
 the vault and the local configuration: it reports problems there and never writes to
@@ -102,7 +102,7 @@ do reports "nothing to do" in one line and the next one starts.
    `/cognisphere:update <module>` — as one list. Everything changed is staged by name;
    committing follows `rules/commit.md`. No commit unless the user asks.
 
-   **Sub-projects:** `bash "${CLAUDE_PLUGIN_ROOT}/scripts/subprojects.sh"` (writes
+   **Sub-projects:** `bash "${PLUGIN_ROOT}/scripts/subprojects.sh"` (writes
    nothing). Each `harness` line → `/cognisphere:update --project <tag>` in the
    follow-ups; each `candidate` (a `CLAUDE.md` or `.claude/` of its own, no `.agents/`)
    → `/cognisphere:harness --project <tag>`; a sub-project missing from the root
@@ -116,7 +116,7 @@ Maintains one sub-project's harness (D38). Resolve it after the preflight's `cd`
 sub-project):
 
 ```bash
-bash "${CLAUDE_PLUGIN_ROOT}/scripts/target.sh" <dir>   # a message → stop and say it
+bash "${PLUGIN_ROOT}/scripts/target.sh" <dir>   # a message → stop and say it
 ```
 
 `cd` to the printed `top`; every script runs from there with `--project <tag>`, and the
